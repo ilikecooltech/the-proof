@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-// â”€â”€ SUPABASE CLIENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 const SUPABASE_URL  = "https://bqvdudylkqwpyvhshewj.supabase.co";
 const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -13,7 +13,7 @@ function getUserId() {
 }
 
 
-// â”€â”€ REAL LEADERBOARD DATA (from Audi 4.0T Drag Racing Leaderboard) â”€â”€â”€â”€â”€â”€â”€â”€
+// ── REAL LEADERBOARD DATA (from Audi 4.0T Drag Racing Leaderboard) ────────
 const LEADERBOARD = [
   { rank:1,  driver:"Miguel Romero",    car:"B8.5 S5",   tuner:"Load Logic / ET Spec", t60130:4.10, et:"9.26", mph:153.57, turbo:"Xona 5657", fuel:"E75",     trans:"Built",    manifolds:"SRM",     supFuel:"Port+NOS", ic:"SRM W2A",    dp:"Catless", da:"7932ft" },
   { rank:2,  driver:"Chris Clayton",    car:"C7 RS7",    tuner:"C4 / ET Spec",         t60130:4.49, et:null,   mph:null,   turbo:"Xona 6564", fuel:"E65",     trans:"Stock",    manifolds:"SRM",     supFuel:"Port",     ic:"SRM W2A",    dp:"Catless", da:"-65ft" },
@@ -27,7 +27,7 @@ const LEADERBOARD = [
   { rank:10, driver:"Sean Fallon",      car:"C7.5 RS7",  tuner:"Unknown",              t60130:5.24, et:null,   mph:null,   turbo:"TS2+",        fuel:"E60",     trans:"Stock",    manifolds:"Unknown", supFuel:"Port",     ic:"SRM W2A",    dp:"Catless", da:"-1933ft" },
 ];
 
-// â”€â”€ MODELS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── MODELS ─────────────────────────────────────────────────────────────────
 const MODELS = [
   { id:"a6_20t", label:"A6 2.0T", engine:"2.0T TFSI",    hp:252, torque:273, t060:6.1, t60130:15.2 },
   { id:"a6_30t", label:"A6 3.0T", engine:"3.0T TFSI SC", hp:310, torque:325, t060:5.5, t60130:13.1 },
@@ -41,10 +41,10 @@ const MODELS = [
 
 const CATEGORIES = ["Engine","Turbos","Fueling","Intake","Exhaust","Intercooler","Cooling","Manifolds","Differential","Drivetrain","Suspension","Brakes","Tires","Maintenance"];
 
-// â”€â”€ SLOTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SLOTS ──────────────────────────────────────────────────────────────────
 const SLOTS = [
 
-  // â”€â”€ ENGINE (ECU TUNE) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── ENGINE (ECU TUNE) ─────────────────────────────────────────────────
   {
     id:"ecu_s1", cat:"Engine", name:"Stage 1 ECU Tune",
     desc:"Software-only. No hardware needed. Best starting point.",
@@ -102,7 +102,7 @@ const SLOTS = [
       { id:"ds1_srm",    brand:"Dyno Spectrum (DS1)", label:"DS1 ECU + ET Spec TCU Combo", price:1299, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"SRM's preferred tuning platform. DS1 ECU + ET Spec TCU combo for ZF8HP or DL501 â€” $1,299 as a bundle (free overnight shipping). Powers the SRM850 (838whp/744wtq Mustang dyno) and SRM1000 (992whp/919wtq Mustang dyno) kits. The ECU and TCU are tuned together for seamless power delivery across all gears.", difficulty:"Professional",
+        notes:"SRM's preferred tuning platform. DS1 ECU + ET Spec TCU combo for ZF8HP or DL501 — $1,299 as a bundle (free overnight shipping). Powers the SRM850 (838whp/744wtq Mustang dyno) and SRM1000 (992whp/919wtq Mustang dyno) kits. The ECU and TCU are tuned together for seamless power delivery across all gears.", difficulty:"Professional",
         pros:["SRM ecosystem native","ECU+TCU bundled","SRM850/1000 proven","Free overnight shipping"],cons:["SRM parts ecosystem recommended","Less aftermarket community than APR"] },
       { id:"loadlogic", brand:"Load Logic",  label:"Custom Race Map", price:1200, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
@@ -127,121 +127,121 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ SPARK PLUGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // 4.0TT uses 8 plugs total. Price shown is per-plug. Set of 8 = price Ã— 8.
+  // ── SPARK PLUGS ───────────────────────────────────────────────────────
+  // 4.0TT uses 8 plugs total. Price shown is per-plug. Set of 8 = price × 8.
   // Change interval shortens significantly with tune stage and ethanol content.
   {
     id:"spark_plugs", cat:"Maintenance", name:"Spark Plugs",
-    desc:"Gap and heat range matter more than brand on the 4.0T. Wrong gap at high boost causes cylinder misfires. Interval drops to 7â€“10K on Stage 2+ builds.",
+    desc:"Gap and heat range matter more than brand on the 4.0T. Wrong gap at high boost causes cylinder misfires. Interval drops to 7–10K on Stage 2+ builds.",
     tag:"MAINTENANCE", requires:[], recommends:["ecu_s1"], conflicts:[],
     variants:[
       { id:"ngk_stock",
-        brand:"NGK", label:"SILFER8C7ES â€” Stock / Stage 1 (0.028\")", price:18, rating:4.9,
+        brand:"NGK", label:"SILFER8C7ES — Stock / Stage 1 (0.028\")", price:18, rating:4.9,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"OEM plug for all C7/C7.5 4.0T. Part# 06K-905-601-M. Heat range 8. Gap: 0.028\". Audi updated the earlier S6/S7 spec in 2022 to match the RS7 plug â€” one plug now covers the entire 4.0T range. Fine for stock and Stage 1 builds on 93 octane or E30. Replace every 20â€“25K miles at stock, 15K at Stage 1. Set of 8 = ~$144.", difficulty:"DIY Friendly",
+        notes:"OEM plug for all C7/C7.5 4.0T. Part# 06K-905-601-M. Heat range 8. Gap: 0.028\". Audi updated the earlier S6/S7 spec in 2022 to match the RS7 plug — one plug now covers the entire 4.0T range. Fine for stock and Stage 1 builds on 93 octane or E30. Replace every 20–25K miles at stock, 15K at Stage 1. Set of 8 = ~$144.", difficulty:"DIY Friendly",
         pros:["OEM spec","Same plug for all 4.0T models","Iridium tip","Widely available"],
         cons:["Gap too wide for Stage 2+","Replace more frequently when tuned"] },
       { id:"ngk_s1_s2",
-        brand:"NGK", label:"SILFER8C7ES â€” Stage 1/2 regapped (0.026\")", price:18, rating:5.0,
+        brand:"NGK", label:"SILFER8C7ES — Stage 1/2 regapped (0.026\")", price:18, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Same NGK SILFER8C7ES OEM plug, regapped to 0.026\" before install. EPL recommends this for Stage 1 performance builds. Tighter gap reduces misfire risk under boost. Community consensus on Audizine and AudiWorld for APR/COBB/Unitronic Stage 1â€“2. Change every 15â€“20K miles. Requires a spark plug gap tool â€” do not install at factory gap.", difficulty:"DIY Friendly",
-        pros:["Community gold standard for S1/S2","Same OEM plug â€” no compatibility risk","Eliminates gap-related misfires"],
+        notes:"Same NGK SILFER8C7ES OEM plug, regapped to 0.026\" before install. EPL recommends this for Stage 1 performance builds. Tighter gap reduces misfire risk under boost. Community consensus on Audizine and AudiWorld for APR/COBB/Unitronic Stage 1–2. Change every 15–20K miles. Requires a spark plug gap tool — do not install at factory gap.", difficulty:"DIY Friendly",
+        pros:["Community gold standard for S1/S2","Same OEM plug — no compatibility risk","Eliminates gap-related misfires"],
         cons:["Must regap before install","0.026\" is minimum for daily street use"] },
       { id:"brisk_er12s",
-        brand:"Brisk Racing", label:"ER12S Silver â€” OEM+ / Stage 1 (0.028\")", price:11, rating:4.8,
+        brand:"Brisk Racing", label:"ER12S Silver — OEM+ / Stage 1 (0.028\")", price:11, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"034Motorsport lists the Brisk ER12S as the OEM+ stock replacement for the C7 S6/S7/RS7 4.0T. One step colder than OEM. Silver center electrode â€” better electrical and thermal conductor than iridium. 14mm Ã— 26.5mm reach, gasket seat. Does NOT come pre-gapped â€” must verify and set gap before install. Torque: 20â€“30 Nm. Change every 15â€“20K miles. Best Stage 1 daily driver upgrade with better heat dissipation than OEM NGK.", difficulty:"DIY Friendly",
+        notes:"034Motorsport lists the Brisk ER12S as the OEM+ stock replacement for the C7 S6/S7/RS7 4.0T. One step colder than OEM. Silver center electrode — better electrical and thermal conductor than iridium. 14mm × 26.5mm reach, gasket seat. Does NOT come pre-gapped — must verify and set gap before install. Torque: 20–30 Nm. Change every 15–20K miles. Best Stage 1 daily driver upgrade with better heat dissipation than OEM NGK.", difficulty:"DIY Friendly",
         pros:["034Motorsport tested and confirmed","One step colder than OEM","Silver = better conductor than iridium","Better thermal management than NGK OEM"],
         cons:["Must gap before install","Higher cost per plug than NGK OEM"] },
       { id:"brisk_er10s",
-        brand:"Brisk Racing", label:"ER10S Silver â€” Stage 2 / Hybrid / Big Turbo (0.024\")", price:11, rating:5.0,
+        brand:"Brisk Racing", label:"ER10S Silver — Stage 2 / Hybrid / Big Turbo (0.024\")", price:11, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Community preferred plug for Stage 2 through 700+ crank HP 4.0T builds. 034Motorsport confirmed for Stage 1/2 and hybrid/big turbo applications. A 4.0T tuner on Audizine stated: 'most run Brisk ER10S' at Stage 3 power levels. 1â€“2 steps colder than OEM. Non-projected tip handles high boost better â€” tip won't be blast-eroded by high-velocity charge. Silver electrode: far superior electrical and thermal conductor vs iridium. Gap: 0.024\" â€” comes unset, must gap before install. Change every 7,000â€“10,000 miles. Set of 8 = ~$88.", difficulty:"DIY Friendly",
-        pros:["Community Stage 2â€“3 standard","Non-projected tip for high boost","Silver electrode â€” best conductor","034Motorsport tested","Fouling resistant"],
-        cons:["Not pre-gapped â€” must set 0.024\" before install","7â€“10K change interval","Too cold for stock builds â€” will foul"] },
+        notes:"Community preferred plug for Stage 2 through 700+ crank HP 4.0T builds. 034Motorsport confirmed for Stage 1/2 and hybrid/big turbo applications. A 4.0T tuner on Audizine stated: 'most run Brisk ER10S' at Stage 3 power levels. 1–2 steps colder than OEM. Non-projected tip handles high boost better — tip won't be blast-eroded by high-velocity charge. Silver electrode: far superior electrical and thermal conductor vs iridium. Gap: 0.024\" — comes unset, must gap before install. Change every 7,000–10,000 miles. Set of 8 = ~$88.", difficulty:"DIY Friendly",
+        pros:["Community Stage 2–3 standard","Non-projected tip for high boost","Silver electrode — best conductor","034Motorsport tested","Fouling resistant"],
+        cons:["Not pre-gapped — must set 0.024\" before install","7–10K change interval","Too cold for stock builds — will foul"] },
       { id:"ngk_s2_tight",
-        brand:"NGK", label:"SILFER8C7ES â€” Stage 2 tight gap (0.024\")", price:18, rating:4.9,
+        brand:"NGK", label:"SILFER8C7ES — Stage 2 tight gap (0.024\")", price:18, rating:4.9,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"NGK SILFER8C7ES regapped to 0.024\" for Stage 2 builds on E30â€“E50. Tighter gap holds spark under higher cylinder pressure. APR previously recommended Denso IKH24 at this gap but moved back to NGK after cylinder 5 misfire reports on Denso. Change every 10â€“15K miles.", difficulty:"DIY Friendly",
-        pros:["Proven Stage 2 setup","No Denso misfire risk","E30â€“E50 capable"],
-        cons:["Too tight for stock â€” poor idle quality","Must gap precisely"] },
+        notes:"NGK SILFER8C7ES regapped to 0.024\" for Stage 2 builds on E30–E50. Tighter gap holds spark under higher cylinder pressure. APR previously recommended Denso IKH24 at this gap but moved back to NGK after cylinder 5 misfire reports on Denso. Change every 10–15K miles.", difficulty:"DIY Friendly",
+        pros:["Proven Stage 2 setup","No Denso misfire risk","E30–E50 capable"],
+        cons:["Too tight for stock — poor idle quality","Must gap precisely"] },
       { id:"ngk_s3_hybrid",
-        brand:"NGK", label:"Heat Range 9 â€” Stage 3 / Hybrid Turbo (0.022\")", price:22, rating:4.8,
+        brand:"NGK", label:"Heat Range 9 — Stage 3 / Hybrid Turbo (0.022\")", price:22, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Step up to a colder heat range (HR9 equivalent) for Stage 3 hybrid turbo builds running E50â€“E75. The colder plug dissipates heat faster under sustained boost â€” prevents pre-ignition at 600â€“750 whp. Gap: 0.022\". Required when running SRM or TGK hybrid turbo setups on ethanol. Confirm exact NGK part number with your tuner as it varies by build spec. Change every 8â€“12K miles.", difficulty:"Professional",
+        notes:"Step up to a colder heat range (HR9 equivalent) for Stage 3 hybrid turbo builds running E50–E75. The colder plug dissipates heat faster under sustained boost — prevents pre-ignition at 600–750 whp. Gap: 0.022\". Required when running SRM or TGK hybrid turbo setups on ethanol. Confirm exact NGK part number with your tuner as it varies by build spec. Change every 8–12K miles.", difficulty:"Professional",
         pros:["Colder heat range prevents pre-ignition","Required at 600+ whp on E-fuel","Standard on SRM ecosystem builds"],
         cons:["Confirm part# with tuner","Poor cold-start if heat range too cold for street"] },
       { id:"denso_race",
-        brand:"Denso", label:"IKH01-27 (#5750) â€” Single Turbo / Race (0.018â€“0.020\")", price:38, rating:4.7,
+        brand:"Denso", label:"IKH01-27 (#5750) — Single Turbo / Race (0.018–0.020\")", price:38, rating:4.7,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Denso IKH01-27 (part #5750), heat range 27 â€” coldest production plug for this application. Listed by ECS Tuning as the Stage 3 race plug for the 4.0T. Gap: 0.018â€“0.020\". For Xona/Garrett single turbo builds on E65+ running 750â€“1000+ whp. Not for street use â€” cold start behavior is poor. Change every 5â€“8K miles or after every track day. ~$38/plug, set of 8 = ~$304.", difficulty:"Professional",
+        notes:"Denso IKH01-27 (part #5750), heat range 27 — coldest production plug for this application. Listed by ECS Tuning as the Stage 3 race plug for the 4.0T. Gap: 0.018–0.020\". For Xona/Garrett single turbo builds on E65+ running 750–1000+ whp. Not for street use — cold start behavior is poor. Change every 5–8K miles or after every track day. ~$38/plug, set of 8 = ~$304.", difficulty:"Professional",
         pros:["Coldest heat range for max power builds","Race-proven on leaderboard builds","Denso precision manufacturing"],
-        cons:["Race only â€” poor cold start on street","$38/plug â€” most expensive option","Must be re-gapped precisely"] },
+        cons:["Race only — poor cold start on street","$38/plug — most expensive option","Must be re-gapped precisely"] },
     ]
   },
 
-  // â”€â”€ ENGINE OIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── ENGINE OIL ────────────────────────────────────────────────────────
   // 4.0TT capacity: 8.7L / 9.2 quarts. Filter: MAHLE (OEM spec).
   // VW 502.00 5W-40 high SAPS is the platform standard.
-  // NEVER use oil additives â€” Audi explicitly warns. Fine oil screen risk on 4.0T.
+  // NEVER use oil additives — Audi explicitly warns. Fine oil screen risk on 4.0T.
   {
     id:"engine_oil", cat:"Maintenance", name:"Engine Oil",
-    desc:"4.0TT takes 9.2 qts. VW 502.00 5W-40 is the spec. Change interval drops from 10K stock to 3â€“5K at race boost levels. Always use MAHLE filter.",
+    desc:"4.0TT takes 9.2 qts. VW 502.00 5W-40 is the spec. Change interval drops from 10K stock to 3–5K at race boost levels. Always use MAHLE filter.",
     tag:"MAINTENANCE", requires:[], recommends:[], conflicts:[],
     variants:[
       { id:"liquimoly_5w40",
-        brand:"Liqui-Moly", label:"Leichtlauf High Tech 5W-40 â€” All Stages", price:12, rating:5.0,
+        brand:"Liqui-Moly", label:"Leichtlauf High Tech 5W-40 — All Stages", price:12, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Most popular 4.0T oil in the Audizine and AudiWorld communities. Full synthetic, VW 502.00 certified, HTHS 3.5+ mPaÂ·s. Liqui-Moly confirmed this is their recommended oil for the 3.0T and 4.0T. Available in 5L jugs â€” 2 jugs per change. Price is per liter. Full change kit ~$90â€“100 with MAHLE filter. Interval: 7,500 miles Stage 1/2; 5,000 miles Stage 3+.", difficulty:"DIY Friendly",
+        notes:"Most popular 4.0T oil in the Audizine and AudiWorld communities. Full synthetic, VW 502.00 certified, HTHS 3.5+ mPa·s. Liqui-Moly confirmed this is their recommended oil for the 3.0T and 4.0T. Available in 5L jugs — 2 jugs per change. Price is per liter. Full change kit ~$90–100 with MAHLE filter. Interval: 7,500 miles Stage 1/2; 5,000 miles Stage 3+.", difficulty:"DIY Friendly",
         pros:["Most popular in community","VW 502.00 certified","German engineering","HTHS 3.5+"],
-        cons:["Pricier than Castrol","Sold in liters â€” metric conversion needed"] },
+        cons:["Pricier than Castrol","Sold in liters — metric conversion needed"] },
       { id:"motul_xcess_gen2",
-        brand:"Motul", label:"8100 X-cess Gen2 5W-40 â€” All Stages", price:13, rating:4.9,
+        brand:"Motul", label:"8100 X-cess Gen2 5W-40 — All Stages", price:13, rating:4.9,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Preferred oil at VW/Audi specialist tuner shops. Full synthetic, VW 502.00 certified. HTHS 3.8 mPaÂ·s in Gen2 â€” above the 3.5 minimum, better shear resistance under sustained turbo boost. JH Motorsports sells the full 4.0T kit (2Ã—5L + MAHLE filter). Best choice for builds doing back-to-back pulls or track days. Motul specifically recommends X-cess (not X-Clean) for the 4.0T. Interval: 7,500 miles Stage 1/2; 5,000 miles Stage 3+.", difficulty:"DIY Friendly",
-        pros:["HTHS 3.8 â€” above minimum","Tuner shop preferred","VW 502.00 certified","Better shear under sustained boost"],
+        notes:"Preferred oil at VW/Audi specialist tuner shops. Full synthetic, VW 502.00 certified. HTHS 3.8 mPa·s in Gen2 — above the 3.5 minimum, better shear resistance under sustained turbo boost. JH Motorsports sells the full 4.0T kit (2×5L + MAHLE filter). Best choice for builds doing back-to-back pulls or track days. Motul specifically recommends X-cess (not X-Clean) for the 4.0T. Interval: 7,500 miles Stage 1/2; 5,000 miles Stage 3+.", difficulty:"DIY Friendly",
+        pros:["HTHS 3.8 — above minimum","Tuner shop preferred","VW 502.00 certified","Better shear under sustained boost"],
         cons:["Slightly pricier than Liqui-Moly","Less widely stocked in retail stores"] },
       { id:"motul_xclean_5w40",
-        brand:"Motul", label:"8100 X-Clean 5W-40 â€” DI Engines / Stage 2+", price:13, rating:4.8,
+        brand:"Motul", label:"8100 X-Clean 5W-40 — DI Engines / Stage 2+", price:13, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Motul 8100 X-Clean 5W-40 Gen2. Engineered specifically for direct-injection gasoline engines â€” targets exactly what the 4.0T DI system demands. HTHS 3.9 in Gen2 (highest in the Motul 8100 lineup). 100% synthetic. Note: carries VW 505.00/505.01 spec (not 502.00) â€” both are acceptable for the 4.0T, but X-Cess Gen2 (502.00) is the primary community recommendation. X-Clean is the stronger DI deposit-control choice. Confirm with tuner before switching.", difficulty:"DIY Friendly",
-        pros:["HTHS 3.9 â€” highest in Motul 8100 range","100% synthetic","DI-optimized formula","Best deposit control"],
-        cons:["VW 505.00 spec, not 502.00 â€” confirm with tuner","X-Cess is primary 4.0T recommendation"] },
+        notes:"Motul 8100 X-Clean 5W-40 Gen2. Engineered specifically for direct-injection gasoline engines — targets exactly what the 4.0T DI system demands. HTHS 3.9 in Gen2 (highest in the Motul 8100 lineup). 100% synthetic. Note: carries VW 505.00/505.01 spec (not 502.00) — both are acceptable for the 4.0T, but X-Cess Gen2 (502.00) is the primary community recommendation. X-Clean is the stronger DI deposit-control choice. Confirm with tuner before switching.", difficulty:"DIY Friendly",
+        pros:["HTHS 3.9 — highest in Motul 8100 range","100% synthetic","DI-optimized formula","Best deposit control"],
+        cons:["VW 505.00 spec, not 502.00 — confirm with tuner","X-Cess is primary 4.0T recommendation"] },
       { id:"castrol_edge_5w40",
-        brand:"Castrol", label:"EDGE 5W-40 â€” Stock / Stage 1 (OEM dealer fill)", price:10, rating:4.7,
+        brand:"Castrol", label:"EDGE 5W-40 — Stock / Stage 1 (OEM dealer fill)", price:10, rating:4.7,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"US Audi dealer OEM fill. VW 502.00 certified. Widely available at auto parts stores nationwide. Solid choice for stock or Stage 1 builds on a budget. HTHS at the 3.5 minimum spec. Best for warranty-period oil changes. Not the first choice for Stage 3+ where HTHS headroom matters. Interval: 7,500â€“10,000 miles stock; 5,000â€“7,500 Stage 1/2.", difficulty:"DIY Friendly",
+        notes:"US Audi dealer OEM fill. VW 502.00 certified. Widely available at auto parts stores nationwide. Solid choice for stock or Stage 1 builds on a budget. HTHS at the 3.5 minimum spec. Best for warranty-period oil changes. Not the first choice for Stage 3+ where HTHS headroom matters. Interval: 7,500–10,000 miles stock; 5,000–7,500 Stage 1/2.", difficulty:"DIY Friendly",
         pros:["Cheapest VW 502.00 option","Widely available everywhere","OEM dealer spec","Good for warranty period"],
         cons:["HTHS at minimum spec only","Not ideal for Stage 3+ sustained boost"] },
       { id:"mobil1_0w40",
-        brand:"Mobil 1", label:"FS 0W-40 â€” Cold Climate / Turbo Startup Protection", price:11, rating:4.8,
+        brand:"Mobil 1", label:"FS 0W-40 — Cold Climate / Turbo Startup Protection", price:11, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"0W-40 flows faster than 5W-40 at cold start â€” better immediate turbo bearing lubrication in the first 10 seconds. VW 502.00 certified. HTHS 3.7. Popular for RS7/S7 builds in cold climates or cars that sit extended periods. Same hot viscosity as 5W-40 â€” no sacrifice under load. Audizine community frequently recommends for builds that run hard from cold.", difficulty:"DIY Friendly",
+        notes:"0W-40 flows faster than 5W-40 at cold start — better immediate turbo bearing lubrication in the first 10 seconds. VW 502.00 certified. HTHS 3.7. Popular for RS7/S7 builds in cold climates or cars that sit extended periods. Same hot viscosity as 5W-40 — no sacrifice under load. Audizine community frequently recommends for builds that run hard from cold.", difficulty:"DIY Friendly",
         pros:["Fastest cold-start flow","Better turbo startup protection","VW 502.00 certified","HTHS 3.7"],
         cons:["Slight viscosity drop vs 5W-40 at extreme sustained heat","Less community data than Liqui-Moly/Motul"] },
       { id:"motul_xpower_10w60",
-        brand:"Motul", label:"8100 X-Power 10W-60 â€” Track / Race Days Only", price:18, rating:4.9,
+        brand:"Motul", label:"8100 X-Power 10W-60 — Track / Race Days Only", price:18, rating:4.9,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Motul 8100 X-Power 10W-60. 100% synthetic, full SAPS, ACEA A3/B4. BMW M Series approved. Designed for high power-to-liter ratio turbocharged engines under sustained track load. The 10W base maintains a thicker oil film at extreme sustained temperatures â€” critical during back-to-back quarter-mile passes or full track sessions at Stage 3+ power. Not suitable for cold-climate daily driving â€” the 10W base flows sluggishly below 10Â°C. Change every 3,000â€“5,000 miles. Use for dedicated track/strip events only â€” switch back to X-Cess for street.", difficulty:"DIY Friendly",
+        notes:"Motul 8100 X-Power 10W-60. 100% synthetic, full SAPS, ACEA A3/B4. BMW M Series approved. Designed for high power-to-liter ratio turbocharged engines under sustained track load. The 10W base maintains a thicker oil film at extreme sustained temperatures — critical during back-to-back quarter-mile passes or full track sessions at Stage 3+ power. Not suitable for cold-climate daily driving — the 10W base flows sluggishly below 10°C. Change every 3,000–5,000 miles. Use for dedicated track/strip events only — switch back to X-Cess for street.", difficulty:"DIY Friendly",
         pros:["Highest viscosity for sustained track heat","BMW M Series approved","Full SAPS formulation","Maintained oil film at 700+ whp"],
-        cons:["Not for daily driving â€” poor cold start below 10Â°C","3,000â€“5,000 mile change interval","Track and strip use only"] },
+        cons:["Not for daily driving — poor cold start below 10°C","3,000–5,000 mile change interval","Track and strip use only"] },
     ]
   },
 
-  // â”€â”€ WASTEGATE ACTUATORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── WASTEGATE ACTUATORS ───────────────────────────────────────────────
   {
     id:"wastegate", cat:"Engine", name:"Upgraded Wastegate Actuators",
     desc:"Stock wastegates can't hold boost at high EMAP on turbo builds. Upgraded actuators enable 30+ PSI cleanly without a MAC valve.",
@@ -250,7 +250,7 @@ const SLOTS = [
       { id:"tgk_wg",   brand:"TGK Motorsport", label:"60mm Vacuum Wastegate Kit",  price:700, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"60mm diaphragm â€” 150% larger than stock. Billet T6061 aluminum, Nomex diaphragm. Maintains factory vacuum-style gate: no MAC valve needed, simplifies tuning. Requires DS1 tune recalibration before WOT (TGK offers wastegate tuning calibration service). CRITICAL: NOT recommended for stock-sized S6/S7 turbos â€” 60mm cannot dial down enough, risks overspin.", difficulty:"Professional",
+        notes:"60mm diaphragm — 150% larger than stock. Billet T6061 aluminum, Nomex diaphragm. Maintains factory vacuum-style gate: no MAC valve needed, simplifies tuning. Requires DS1 tune recalibration before WOT (TGK offers wastegate tuning calibration service). CRITICAL: NOT recommended for stock-sized S6/S7 turbos — 60mm cannot dial down enough, risks overspin.", difficulty:"Professional",
         pros:["60mm vs stock","No MAC valve needed","Holds 30+ PSI","Billet construction"],cons:["DS1 recalibration required before WOT","Not safe with OEM S6/S7 turbos","Tuner coordination needed"] },
       { id:"tial_wg",  brand:"Tial",           label:"MVI Wastegate Actuators",    price:750, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
@@ -307,7 +307,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ FUELING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── FUELING ───────────────────────────────────────────────────────────
   {
     id:"hpfp", cat:"Fueling", name:"High-Pressure Fuel Pump Internals",
     desc:"The 4.0T has two HPFPs. Both need upgrading. Prevents fuel starvation at high boost and enables ethanol builds.",
@@ -316,7 +316,7 @@ const SLOTS = [
       { id:"autotech_hpfp", brand:"Autotech", label:"Dual HPFP Upgrade Kit",   price:520, rating:5.0,
         hp:{a6_20t:5,a6_30t:5,a7_20t:5,a7_30t:5,s6:8,s7:8,rs6:10,rs7:10},
         torque:{a6_20t:8,a6_30t:8,a7_20t:8,a7_30t:8,s6:12,s7:12,rs6:15,rs7:15},
-        notes:"The benchmark HPFP upgrade â€” the original DLC-coated piston kit. Match-ground and serialized. 5% torque gain, +10 Bar fuel rail pressure per Autotech spec. Lifetime warranty. 4.0T needs 2 kits (price shown for pair). First to use plasma DLC coating. Trusted by SRM, TGK, and most serious 4.0T tuners.", difficulty:"DIY Friendly",
+        notes:"The benchmark HPFP upgrade — the original DLC-coated piston kit. Match-ground and serialized. 5% torque gain, +10 Bar fuel rail pressure per Autotech spec. Lifetime warranty. 4.0T needs 2 kits (price shown for pair). First to use plasma DLC coating. Trusted by SRM, TGK, and most serious 4.0T tuners.", difficulty:"DIY Friendly",
         pros:["Benchmark product","DLC coated","Match-ground precision","Lifetime warranty"],cons:["Requires specialty tool","2 kits needed for 4.0T"] },
       { id:"034_hpfp",      brand:"034 Motorsport", label:"HPFP Piston Upgrade Kit", price:480, rating:4.9,
         hp:{a6_20t:5,a6_30t:5,a7_20t:5,a7_30t:5,s6:8,s7:8,rs6:10,rs7:10},
@@ -337,7 +337,7 @@ const SLOTS = [
   },
   {
     id:"flex_fuel", cat:"Fueling", name:"Flex Fuel / Ethanol Kit",
-    desc:"Every top leaderboard car runs E30â€“E85. Ethanol is not optional at this level.",
+    desc:"Every top leaderboard car runs E30–E85. Ethanol is not optional at this level.",
     tag:"LEADERBOARD MUST", requires:["hpfp"], recommends:["ecu_custom"], conflicts:[],
     variants:[
       { id:"cobb_flex",  brand:"COBB",    label:"Flex Fuel Kit",      price:399, rating:4.6,
@@ -375,7 +375,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ INTAKE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── INTAKE ────────────────────────────────────────────────────────────
   {
     id:"cai", cat:"Intake", name:"Cold Air / High-Flow Intake",
     desc:"Improves airflow and charge temps. Unlocks tune headroom. High-flow intakes pair best with an upgraded intercooler.",
@@ -404,7 +404,7 @@ const SLOTS = [
       { id:"tgk_4in",   brand:"TGK Motorsport", label:"4\" Merged Inlet Intake", price:399, rating:4.9,
         hp:{a6_20t:11,a6_30t:9,a7_20t:11,a7_30t:9,s6:15,s7:15,rs6:17,rs7:17},
         torque:{a6_20t:11,a6_30t:9,a7_20t:11,a7_30t:9,s6:13,s7:13,rs6:17,rs7:17},
-        notes:"4.0T-specific design. Single 4\" merged inlet feeds both turbos from one filter. 3D-scanned for perfect fitment. Extremely loud induction noise â€” the most aggressive intake sound on the platform. Pairs naturally with TGK BOV. Highly reviewed for sound and performance data. Available with OEM airbox conversion or open air filter.", difficulty:"DIY Friendly",
+        notes:"4.0T-specific design. Single 4\" merged inlet feeds both turbos from one filter. 3D-scanned for perfect fitment. Extremely loud induction noise — the most aggressive intake sound on the platform. Pairs naturally with TGK BOV. Highly reviewed for sound and performance data. Available with OEM airbox conversion or open air filter.", difficulty:"DIY Friendly",
         pros:["Loudest induction sound","Perfect C7 fitment","Strong community reviews","Pairs with TGK BOV"],cons:["Single-filter design not stealth","Backorder common"] },
       { id:"tgk_5in",   brand:"TGK Motorsport", label:"5\" Conversion Kit (1000+HP)", price:499, rating:4.8,
         hp:{a6_20t:13,a6_30t:11,a7_20t:13,a7_30t:11,s6:18,s7:18,rs6:22,rs7:22},
@@ -414,17 +414,17 @@ const SLOTS = [
       { id:"srm_intake", brand:"SRM", label:"2.5\" Luftwaffe Intake (C7)",      price:595, rating:4.8,
         hp:{a6_20t:12,a6_30t:10,a7_20t:12,a7_30t:10,s6:16,s7:16,rs6:20,rs7:20},
         torque:{a6_20t:11,a6_30t:9,a7_20t:11,a7_30t:9,s6:14,s7:14,rs6:18,rs7:18},
-        notes:"SRM Luftwaffe â€” the largest intake available for the C7 4.0T platform. Full 2.5\" intake runner all the way to the turbo inlet. 5-axis CNC machined inlets welded to mandrel-bent tubing. Drops inlet depression from 750 mbar (stock) to under 900 mbar, freeing 3-4 PSI at top end. 30-40 HP gains at redline per SRM spec. Core of the SRM850 and SRM1000 kits. Note: S8/D4 chassis uses a separate SRM 3\" dual intake ($895) due to different space constraints.", difficulty:"DIY Friendly",
-        pros:["2.5\" full runner to turbo","3-4 PSI top-end gain","SRM ecosystem native","CNC 5-axis machined inlets"],cons:["C7 only â€” D4 S8 needs separate SKU","Less aggressive sound than TGK single-filter"] },
+        notes:"SRM Luftwaffe — the largest intake available for the C7 4.0T platform. Full 2.5\" intake runner all the way to the turbo inlet. 5-axis CNC machined inlets welded to mandrel-bent tubing. Drops inlet depression from 750 mbar (stock) to under 900 mbar, freeing 3-4 PSI at top end. 30-40 HP gains at redline per SRM spec. Core of the SRM850 and SRM1000 kits. Note: S8/D4 chassis uses a separate SRM 3\" dual intake ($895) due to different space constraints.", difficulty:"DIY Friendly",
+        pros:["2.5\" full runner to turbo","3-4 PSI top-end gain","SRM ecosystem native","CNC 5-axis machined inlets"],cons:["C7 only — D4 S8 needs separate SKU","Less aggressive sound than TGK single-filter"] },
       { id:"srm_s8_intake", brand:"SRM", label:"3\" Dual Intake (S8 / D4)",     price:895, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"SRM's D4 S8/A8 specific 3\" dual intake system. Dual 3\" inlets with 5-axis CNC machined inlets â€” the additional space in the D4 chassis allows larger individual runners vs the merged C7 design. REQUIRES Air-to-Air intercooler: the increased airflow from 3\" inlets pushes heat load beyond what the OEM air-to-water unit can manage at high power. Pair with SRM A2A IC and port injection for the full SRM ecosystem build.", difficulty:"DIY Friendly",
-        pros:["Dual 3\" runners","D4 S8/A8 specific fitment","SRM ecosystem native"],cons:["D4 only â€” C7 uses 2.5\" Luftwaffe","âš  Requires SRM A2A intercooler","Not a C7 fitment"] },
+        notes:"SRM's D4 S8/A8 specific 3\" dual intake system. Dual 3\" inlets with 5-axis CNC machined inlets — the additional space in the D4 chassis allows larger individual runners vs the merged C7 design. REQUIRES Air-to-Air intercooler: the increased airflow from 3\" inlets pushes heat load beyond what the OEM air-to-water unit can manage at high power. Pair with SRM A2A IC and port injection for the full SRM ecosystem build.", difficulty:"DIY Friendly",
+        pros:["Dual 3\" runners","D4 S8/A8 specific fitment","SRM ecosystem native"],cons:["D4 only — C7 uses 2.5\" Luftwaffe","⚠ Requires SRM A2A intercooler","Not a C7 fitment"] },
     ]
   },
 
-  // â”€â”€ BOV / DIVERTER VALVE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── BOV / DIVERTER VALVE ─────────────────────────────────────────────
   {
     id:"bov", cat:"Intake", name:"BOV / Blow-Off Valve Upgrade",
     desc:"Stock electronic diverter valves are a common boost leak source at high power. A mechanical BOV eliminates this and adds the classic turbo sound.",
@@ -433,17 +433,17 @@ const SLOTS = [
       { id:"tgk_bov",   brand:"TGK Motorsport", label:"BOV Conversion Kit",   price:700, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Converts OEM electronic diverter valves to mechanical BOV. Uses factory vacuum and boost reference port â€” stays fully closed under boost, eliminates boost leaks. Removes recirculation noise and replaces with full BOV sound. 5.0/5.0 rating across 14 reviews. Easy install. Pairs perfectly with TGK intake for maximum induction theater.", difficulty:"DIY Friendly",
-        pros:["Eliminates boost leaks","Full BOV sound","Easy install","Pairs with TGK intake"],cons:["BOV sound â€” not for sleeper builds","Check MAF tuning compatibility"] },
+        notes:"Converts OEM electronic diverter valves to mechanical BOV. Uses factory vacuum and boost reference port — stays fully closed under boost, eliminates boost leaks. Removes recirculation noise and replaces with full BOV sound. 5.0/5.0 rating across 14 reviews. Easy install. Pairs perfectly with TGK intake for maximum induction theater.", difficulty:"DIY Friendly",
+        pros:["Eliminates boost leaks","Full BOV sound","Easy install","Pairs with TGK intake"],cons:["BOV sound — not for sleeper builds","Check MAF tuning compatibility"] },
       { id:"gfb_dv",    brand:"GFB",            label:"DV+ Diverter Valve",   price:89,  rating:4.6,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Budget drop-in upgrade. Replaces the OEM plastic diverter valve piston with a stronger unit. Retains OEM recirculation â€” no BOV sound. Eliminates the common plastic valve failure. Good first valve upgrade for stock-to-Stage 1 builds.", difficulty:"DIY Friendly",
+        notes:"Budget drop-in upgrade. Replaces the OEM plastic diverter valve piston with a stronger unit. Retains OEM recirculation — no BOV sound. Eliminates the common plastic valve failure. Good first valve upgrade for stock-to-Stage 1 builds.", difficulty:"DIY Friendly",
         pros:["Budget option","Drop-in fit","Eliminates OEM failure","OEM sound retained"],cons:["No BOV sound","Not for high-boost applications"] },
     ]
   },
 
-  // â”€â”€ EXHAUST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── EXHAUST ───────────────────────────────────────────────────────────
   {
     id:"downpipe", cat:"Exhaust", name:"High-Flow Downpipe",
     desc:"100% of leaderboard builds run catless. Required for Stage 2 and turbo builds.",
@@ -463,7 +463,7 @@ const SLOTS = [
         hp:{a6_20t:16,a6_30t:13,a7_20t:16,a7_30t:13,s6:22,s7:22,rs6:27,rs7:27},
         torque:{a6_20t:18,a6_30t:15,a7_20t:18,a7_30t:15,s6:26,s7:26,rs6:31,rs7:31},
         notes:"Best value catless DP. Widely used on APR Stage 2 builds.", difficulty:"Professional",
-        pros:["Best price","Race quality"],cons:["Catless â€” check local laws"] },
+        pros:["Best price","Race quality"],cons:["Catless — check local laws"] },
       { id:"ecs_dp",     brand:"ECS Tuning",label:"Catless Race DP",   price:649, rating:4.5,
         hp:{a6_20t:14,a6_30t:11,a7_20t:14,a7_30t:11,s6:19,s7:19,rs6:24,rs7:24},
         torque:{a6_20t:16,a6_30t:13,a7_20t:16,a7_30t:13,s6:23,s7:23,rs6:28,rs7:28},
@@ -472,8 +472,8 @@ const SLOTS = [
       { id:"arm_dp",     brand:"ARM Motorsports", label:"Catless Race DP", price:699, rating:4.8,
         hp:{a6_20t:16,a6_30t:13,a7_20t:16,a7_30t:13,s6:22,s7:22,rs6:28,rs7:28},
         torque:{a6_20t:20,a6_30t:17,a7_20t:20,a7_30t:17,s6:30,s7:30,rs6:36,rs7:36},
-        notes:"Verified 37whp / 42wtq on dyno per ARM spec. Same-side design eliminates OEM crossover routing â€” shorter path, less restriction. 4.4\"Ã—3\" collector on OEM 5-bolt flange. Compatible with all turbo upgrades. Built-in stainless flex sections. Lifetime warranty.", difficulty:"Professional",
-        pros:["Verified 37whp/42wtq","Same-side design","Lifetime warranty","Turbo upgrade compatible"],cons:["Catless â€” check local laws","A8/S8 need extension pieces"] },
+        notes:"Verified 37whp / 42wtq on dyno per ARM spec. Same-side design eliminates OEM crossover routing — shorter path, less restriction. 4.4\"×3\" collector on OEM 5-bolt flange. Compatible with all turbo upgrades. Built-in stainless flex sections. Lifetime warranty.", difficulty:"Professional",
+        pros:["Verified 37whp/42wtq","Same-side design","Lifetime warranty","Turbo upgrade compatible"],cons:["Catless — check local laws","A8/S8 need extension pieces"] },
     ]
   },
   {
@@ -485,7 +485,7 @@ const SLOTS = [
         hp:{a6_20t:3,a6_30t:3,a7_20t:3,a7_30t:3,s6:5,s7:5,rs6:6,rs7:6},
         torque:{a6_20t:3,a6_30t:3,a7_20t:3,a7_30t:3,s6:5,s7:5,rs6:6,rs7:6},
         notes:"034 Motorsport C7 S6 specific. Bolt-in no-weld installation. Removes heavy factory resonator and adds X-pipe to balance exhaust pulses. Deeper, more aggressive note with no noticeable drone at cruise. Fraction of cat-back price. Good first exhaust mod before committing to a full cat-back.", difficulty:"DIY Friendly",
-        pros:["No-weld bolt-in","Budget-friendly","No drone","Noticeably deeper sound"],cons:["C7 S6 fitment â€” confirm RS7 fitment separately","Less dramatic than full cat-back"] },
+        pros:["No-weld bolt-in","Budget-friendly","No drone","Noticeably deeper sound"],cons:["C7 S6 fitment — confirm RS7 fitment separately","Less dramatic than full cat-back"] },
     ]
   },
   {
@@ -508,7 +508,7 @@ const SLOTS = [
         torque:{a6_20t:5,a6_30t:5,a7_20t:5,a7_30t:5,s6:7,s7:7,rs6:9,rs7:9},
         notes:"Quieter daily option. UK tone without drone. Good for street builds.", difficulty:"Professional",
         pros:["No drone","UK quality"],cons:["Less aggressive than non-res"] },
-      { id:"akra_cb",     brand:"AkrapoviÄ",  label:"Slip-On Titanium",   price:2800, rating:4.9,
+      { id:"akra_cb",     brand:"Akrapovič",  label:"Slip-On Titanium",   price:2800, rating:4.9,
         hp:{a6_20t:7,a6_30t:6,a7_20t:7,a7_30t:6,s6:11,s7:11,rs6:13,rs7:13},
         torque:{a6_20t:6,a6_30t:5,a7_20t:6,a7_30t:5,s6:10,s7:10,rs6:12,rs7:12},
         notes:"Titanium. Valve-controlled sound. OEM+ aesthetics.", difficulty:"Professional",
@@ -516,12 +516,12 @@ const SLOTS = [
       { id:"ecs_cb",      brand:"ECS Tuning", label:"Valved Cat-Back",    price:1199, rating:4.4,
         hp:{a6_20t:5,a6_30t:4,a7_20t:5,a7_30t:4,s6:7,s7:7,rs6:9,rs7:9},
         torque:{a6_20t:5,a6_30t:4,a7_20t:5,a7_30t:4,s6:7,s7:7,rs6:9,rs7:9},
-        notes:"Valved â€” quiet or loud via OEM button. Best value for sound control.", difficulty:"Professional",
+        notes:"Valved — quiet or loud via OEM button. Best value for sound control.", difficulty:"Professional",
         pros:["Valved control","Best price for valved"],cons:["Valve longevity concerns"] },
     ]
   },
 
-  // â”€â”€ COOLING (oil only â€” intercooler moved to its own category) â”€â”€â”€â”€â”€â”€â”€
+  // ── COOLING (oil only — intercooler moved to its own category) ───────
   {
     id:"oil_cooler", cat:"Cooling", name:"Upgraded Oil Cooler",
     desc:"Reduces oil temps on track. Essential for Stage 3 builds.",
@@ -530,12 +530,12 @@ const SLOTS = [
       { id:"mishimoto_oc", brand:"Mishimoto", label:"Oil Cooler Kit", price:349, rating:4.7,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Bolt-on. Drops oil temps 20-30Â°F. Anodized fittings included.", difficulty:"DIY Friendly",
+        notes:"Bolt-on. Drops oil temps 20-30°F. Anodized fittings included.", difficulty:"DIY Friendly",
         pros:["Bolt-on","Great temp drop","Affordable"],cons:["No HP gain"] },
     ]
   },
 
-  // â”€â”€ MANIFOLDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── MANIFOLDS ─────────────────────────────────────────────────────────
   {
     id:"manifolds", cat:"Manifolds", name:"Upgraded Manifolds",
     desc:"SRM manifolds appear on 7 of 10 top 60-130 builds. Critical for port injection and W2A IC integration.",
@@ -545,7 +545,7 @@ const SLOTS = [
         hp:{a6_20t:25,a6_30t:22,a7_20t:25,a7_30t:22,s6:50,s7:50,rs6:55,rs7:55},
         torque:{a6_20t:30,a6_30t:27,a7_20t:30,a7_30t:27,s6:60,s7:60,rs6:65,rs7:65},
         notes:"Drop-in replacement for the highly restrictive OEM manifolds. SRM states 50+ HP gains depending on setup. Fixes the cylinder 5 misfire caused by excessive exhaust backpressure (EMAP). Compatible with factory downpipe. Required for all SRM turbo kits (SRM850 and SRM1000). Appears on 7 of 10 top leaderboard 60-130 builds.", difficulty:"Professional",
-        pros:["$1,395 â€” best value manifold","Fixes cyl 5 misfire","50+ HP gain","Factory DP compatible"],cons:["Requires tuner recalibration for full gains","Professional install required"] },
+        pros:["$1,395 — best value manifold","Fixes cyl 5 misfire","50+ HP gain","Factory DP compatible"],cons:["Requires tuner recalibration for full gains","Professional install required"] },
       { id:"klassen_mani",brand:"Klassen", label:"Klassen Manifolds",      price:2800, rating:4.7,
         hp:{a6_20t:20,a6_30t:18,a7_20t:20,a7_30t:18,s6:38,s7:38,rs6:48,rs7:48},
         torque:{a6_20t:25,a6_30t:22,a7_20t:25,a7_30t:22,s6:48,s7:48,rs6:58,rs7:58},
@@ -559,7 +559,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ DRIVETRAIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── DRIVETRAIN ────────────────────────────────────────────────────────
   {
     id:"dsg_tune", cat:"Drivetrain", name:"DSG / S-Tronic Tune",
     desc:"Raises torque limits, tightens shifts, enables launch control.",
@@ -578,7 +578,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ SUSPENSION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── SUSPENSION ────────────────────────────────────────────────────────
   {
     id:"coilovers", cat:"Suspension", name:"Coilover Kit",
     desc:"Adjustable height and damping. Transforms handling and stance.",
@@ -609,8 +609,8 @@ const SLOTS = [
       { id:"034_rsb",   brand:"034 Motorsport", label:"Adjustable Solid Rear Sway Bar", price:395, rating:4.9,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"25.4mm single-piece spring steel rear bar for C7/C7.5 S6/RS6/S7/RS7. Designed to work with stock front sway bar â€” adding a stiffer front bar actually worsens understeer on this platform. Eliminates understeer and body roll, greatly improves turn-in and off-throttle oversteer. Street and track tested on multiple C7 chassis. Adjustable stiffness settings.", difficulty:"DIY Friendly",
-        pros:["25.4mm spring steel","Works with stock front bar","Adjustable","C7 track tested"],cons:["Rear only â€” no front bar needed","May increase rear grip in wet"] },
+        notes:"25.4mm single-piece spring steel rear bar for C7/C7.5 S6/RS6/S7/RS7. Designed to work with stock front sway bar — adding a stiffer front bar actually worsens understeer on this platform. Eliminates understeer and body roll, greatly improves turn-in and off-throttle oversteer. Street and track tested on multiple C7 chassis. Adjustable stiffness settings.", difficulty:"DIY Friendly",
+        pros:["25.4mm spring steel","Works with stock front bar","Adjustable","C7 track tested"],cons:["Rear only — no front bar needed","May increase rear grip in wet"] },
     ]
   },
   {
@@ -621,7 +621,7 @@ const SLOTS = [
       { id:"034_mm",    brand:"034 Motorsport", label:"Street Density Motor Mounts", price:449, rating:4.8,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"034 Motorsport C7 4.0T street density motor mounts. 3+ years of testing and multiple revisions per 034. Void-free, fluid-free high-durometer rubber â€” eliminates leakage and collapse of OEM units. Cast aluminum bodies using OEM production techniques. Plug-and-play electronics (emulators). May produce a soft VCDS code â€” does not trigger CEL. Not an easy DIY on the 4.0T.", difficulty:"Professional",
+        notes:"034 Motorsport C7 4.0T street density motor mounts. 3+ years of testing and multiple revisions per 034. Void-free, fluid-free high-durometer rubber — eliminates leakage and collapse of OEM units. Cast aluminum bodies using OEM production techniques. Plug-and-play electronics (emulators). May produce a soft VCDS code — does not trigger CEL. Not an easy DIY on the 4.0T.", difficulty:"Professional",
         pros:["Eliminates OEM fluid failure","Plug-and-play electronics","No CEL","OEM fit/finish"],cons:["Not a DIY install on 4.0T","Soft VCDS code possible","Slightly firmer feel vs OEM"] },
     ]
   },
@@ -638,7 +638,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ BRAKES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── BRAKES ────────────────────────────────────────────────────────────
   {
     id:"brake_pads", cat:"Brakes", name:"Performance Brake Pads",
     desc:"First brake upgrade on any C7.", tag:"START HERE",
@@ -673,7 +673,7 @@ const SLOTS = [
         pros:["Brand benchmark","Excellent modulation"],cons:["Highest price"] },
     ]
   },
-  // â”€â”€ INTERCOOLER (A2A upgrades â€” OEM 4.0T runs air-to-water stock) â”€â”€â”€â”€
+  // ── INTERCOOLER (A2A upgrades — OEM 4.0T runs air-to-water stock) ────
   {
     id:"intercooler", cat:"Intercooler", name:"Intercooler Upgrade",
     desc:"The OEM 4.0T runs a stock air-to-water unit. Every serious build replaces it. SRM's A2A conversion dominates the leaderboard.",
@@ -682,7 +682,7 @@ const SLOTS = [
       { id:"srm_a2a",    brand:"SRM",       label:"A2A Intercooler (CSF Core)",  price:2995, rating:5.0,
         hp:{a6_20t:18,a6_30t:15,a7_20t:18,a7_30t:15,s6:25,s7:25,rs6:30,rs7:30},
         torque:{a6_20t:20,a6_30t:17,a7_20t:20,a7_30t:17,s6:28,s7:28,rs6:35,rs7:35},
-        notes:"Converts OEM air-to-water to full air-to-air. CSF core: 510mmÃ—380mmÃ—90mm (20\"Ã—15\"Ã—3.5\"). Billet end tanks TIG-welded in-house. Lowest IATs over ambient, fastest recovery times. Appears on top leaderboard runs. Note: loses night vision on C7 (not S8).", difficulty:"Professional",
+        notes:"Converts OEM air-to-water to full air-to-air. CSF core: 510mm×380mm×90mm (20\"×15\"×3.5\"). Billet end tanks TIG-welded in-house. Lowest IATs over ambient, fastest recovery times. Appears on top leaderboard runs. Note: loses night vision on C7 (not S8).", difficulty:"Professional",
         pros:["Best IAT recovery","Leaderboard standard","Replaces failure-prone OEM unit","Integrates port injection"],cons:["$2,995 price point","Loses C7 night vision","10-day lead time"] },
       { id:"sean_east_ic", brand:"Sean East", label:"A2A + Chiller System",      price:3200, rating:4.9,
         hp:{a6_20t:19,a6_30t:16,a7_20t:19,a7_30t:16,s6:26,s7:26,rs6:32,rs7:32},
@@ -697,7 +697,7 @@ const SLOTS = [
       { id:"ecs_fmic",   brand:"ECS Tuning",label:"Competition A2A FMIC",        price:699,  rating:4.5,
         hp:{a6_20t:14,a6_30t:11,a7_20t:14,a7_30t:11,s6:19,s7:19,rs6:24,rs7:24},
         torque:{a6_20t:16,a6_30t:13,a7_20t:16,a7_30t:13,s6:22,s7:22,rs6:28,rs7:28},
-        notes:"Budget-friendly A2A option. Direct fit, no cutting. Good for Stage 1â€“2 daily builds watching budget.", difficulty:"Professional",
+        notes:"Budget-friendly A2A option. Direct fit, no cutting. Good for Stage 1–2 daily builds watching budget.", difficulty:"Professional",
         pros:["Best price A2A","Direct fit","Stage 2 capable"],cons:["Smaller core than SRM/IE","Less effective at 600+whp"] },
       { id:"wagner_fmic", brand:"Wagner",   label:"Competition A2A FMIC",        price:1099, rating:4.8,
         hp:{a6_20t:16,a6_30t:13,a7_20t:16,a7_30t:13,s6:22,s7:22,rs6:27,rs7:27},
@@ -707,17 +707,17 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ DIFFERENTIAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── DIFFERENTIAL ──────────────────────────────────────────────────────
   {
     id:"diff", cat:"Differential", name:"Differential Upgrade",
-    desc:"Stock open diff loses torque to the spinning wheel. An LSD keeps both rear wheels working â€” critical for launches and corner exit.",
+    desc:"Stock open diff loses torque to the spinning wheel. An LSD keeps both rear wheels working — critical for launches and corner exit.",
     tag:"TRACTION", requires:[], recommends:[], conflicts:[],
     variants:[
       { id:"jxb_wavetrac", brand:"JXB Performance", label:"Retrofitted Wavetrac LSD", price:2299, rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"The ONLY true rear LSD available for C7 S6/S7 and RS6/RS7. JXB retrofits a Wavetrac helical unit into your OEM diff housing. No clutch packs â€” pure gear-based. No NVH, no noise. Fits diff codes MNB (C7 S6/S7) and NPR (C7 RS6/RS7, D4 A8/S8). Sport Diff owners must code out Sport Diff via VCDS before removal. From $2,299.99 (send-in) â€” higher if JXB sources the diff.", difficulty:"Professional",
-        pros:["Only C7 rear LSD option","No NVH/noise","Helical â€” no clutch wear","Street and drag"],cons:["Must send in your diff","Sport Diff needs VCDS coding first","Premium price"] },
+        notes:"The ONLY true rear LSD available for C7 S6/S7 and RS6/RS7. JXB retrofits a Wavetrac helical unit into your OEM diff housing. No clutch packs — pure gear-based. No NVH, no noise. Fits diff codes MNB (C7 S6/S7) and NPR (C7 RS6/RS7, D4 A8/S8). Sport Diff owners must code out Sport Diff via VCDS before removal. From $2,299.99 (send-in) — higher if JXB sources the diff.", difficulty:"Professional",
+        pros:["Only C7 rear LSD option","No NVH/noise","Helical — no clutch wear","Street and drag"],cons:["Must send in your diff","Sport Diff needs VCDS coding first","Premium price"] },
       { id:"peloquin",   brand:"Peloquin",  label:"Torque Biasing Diff",        price:1199, rating:4.7,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
@@ -726,12 +726,12 @@ const SLOTS = [
       { id:"os_giken",   brand:"OS Giken",  label:"Triple Plate Clutch LSD",    price:2200, rating:4.9,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Japanese motorsport clutch-type LSD. Triple plate design delivers maximum locking force. Track and drag strip only â€” too aggressive for daily street use. Requires periodic clutch pack service.", difficulty:"Professional",
+        notes:"Japanese motorsport clutch-type LSD. Triple plate design delivers maximum locking force. Track and drag strip only — too aggressive for daily street use. Requires periodic clutch pack service.", difficulty:"Professional",
         pros:["Maximum locking force","Race proven","Motorsport heritage"],cons:["Not street friendly","Clutch packs need service","Requires break-in period"] },
     ]
   },
 
-  // â”€â”€ TCU TUNE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── TCU TUNE ──────────────────────────────────────────────────────────
   {
     id:"tcu_tune", cat:"Drivetrain", name:"TCU / ZF8 Transmission Tune",
     desc:"The ZF8HP automatic in S6/S7/RS6/RS7 has its own control unit. A TCU tune raises torque limits, sharpens shift speed, and enables launch control.",
@@ -760,7 +760,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ PORT INJECTION (expanded) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── PORT INJECTION (expanded) ─────────────────────────────────────────
   {
     id:"port_inj_full", cat:"Fueling", name:"Port Injection System",
     desc:"9 of 10 leaderboard builds. Adds fuel ports to supplement direct injection at high power. Required above ~600whp on E-fuel.",
@@ -784,10 +784,10 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ EXHAUST (expanded brands) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── EXHAUST (expanded brands) ─────────────────────────────────────────
   {
     id:"catback_full", cat:"Exhaust", name:"Cat-Back System",
-    desc:"Full cat-back replacement. Choose your tone â€” quiet daily to full race aggression.",
+    desc:"Full cat-back replacement. Choose your tone — quiet daily to full race aggression.",
     tag:"SOUND MOD", requires:[], recommends:["downpipe"], conflicts:[],
     variants:[
       { id:"awe_touring",   brand:"AWE",         label:"Touring Edition",          price:1749, rating:4.8,
@@ -810,7 +810,7 @@ const SLOTS = [
         torque:{a6_20t:5,a6_30t:5,a7_20t:5,a7_30t:5,s6:7,s7:7,rs6:9,rs7:9},
         notes:"Quieter daily UK tone. No drone. Best Milltek option for daily drivers.", difficulty:"Professional",
         pros:["No drone","UK quality"],cons:["Less aggressive"] },
-      { id:"akra_slip",     brand:"AkrapoviÄ",  label:"Slip-On Titanium",         price:2800, rating:4.9,
+      { id:"akra_slip",     brand:"Akrapovič",  label:"Slip-On Titanium",         price:2800, rating:4.9,
         hp:{a6_20t:7,a6_30t:6,a7_20t:7,a7_30t:6,s6:11,s7:11,rs6:13,rs7:13},
         torque:{a6_20t:6,a6_30t:5,a7_20t:6,a7_30t:5,s6:10,s7:10,rs6:12,rs7:12},
         notes:"Titanium construction. Valve-controlled sound. OEM+ appearance. Show-car and driver builds.", difficulty:"Professional",
@@ -818,7 +818,7 @@ const SLOTS = [
       { id:"ecs_valved",    brand:"ECS Tuning", label:"Valved Cat-Back",          price:1199, rating:4.4,
         hp:{a6_20t:5,a6_30t:4,a7_20t:5,a7_30t:4,s6:7,s7:7,rs6:9,rs7:9},
         torque:{a6_20t:5,a6_30t:4,a7_20t:5,a7_30t:4,s6:7,s7:7,rs6:9,rs7:9},
-        notes:"Electronic valve â€” quiet mode for the neighborhood, open for the highway. Best price for a valved system.", difficulty:"Professional",
+        notes:"Electronic valve — quiet mode for the neighborhood, open for the highway. Best price for a valved system.", difficulty:"Professional",
         pros:["Valved sound control","Budget valved option"],cons:["Valve longevity questions"] },
       { id:"remus_sport",   brand:"Remus",      label:"Sport Cat-Back",           price:1650, rating:4.6,
         hp:{a6_20t:5,a6_30t:5,a7_20t:5,a7_30t:5,s6:8,s7:8,rs6:10,rs7:10},
@@ -838,7 +838,7 @@ const SLOTS = [
     ]
   },
 
-  // â”€â”€ TIRES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── TIRES ─────────────────────────────────────────────────────────────
   {
     id:"tires_street", cat:"Tires", name:"Street Performance Tires",
     desc:"The only mod that actually contacts the road. Tires determine how power gets to the ground.",
@@ -852,7 +852,7 @@ const SLOTS = [
       { id:"cup2",          brand:"Michelin",   label:"Pilot Sport Cup 2",        price:420,  rating:5.0,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
-        notes:"Street-legal track tire. Best dry grip of any street compound. Needs heat to come on. Marginal wet performance â€” not for rain.", difficulty:"DIY Friendly",
+        notes:"Street-legal track tire. Best dry grip of any street compound. Needs heat to come on. Marginal wet performance — not for rain.", difficulty:"DIY Friendly",
         pros:["Best dry grip","Incredible feel","Track capable"],cons:["Poor wet grip","Needs warmup","Short life"] },
       { id:"pss",           brand:"Michelin",   label:"Pilot Super Sport",        price:280,  rating:4.7,
         hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,rs6:0,rs7:0},
@@ -900,7 +900,7 @@ const SLOTS = [
   },
 ];
 
-// â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── HELPERS ────────────────────────────────────────────────────────────────
 function getSlotById(id) { return SLOTS.find(s => s.id === id); }
 function getVariantById(slotId, variantId) { return getSlotById(slotId)?.variants.find(v => v.id === variantId); }
 
@@ -943,19 +943,19 @@ function calcWhp(crankHp) { return Math.round(crankHp * 0.85); }
 function Stars({ rating }) {
   return (
     <span style={{color:"#ffd000",fontSize:11,letterSpacing:1}}>
-      {"â˜…".repeat(Math.floor(rating))}{"â˜†".repeat(5-Math.floor(rating))}
+      {"★".repeat(Math.floor(rating))}{"☆".repeat(5-Math.floor(rating))}
       <span style={{color:"var(--muted)",marginLeft:4,fontFamily:"'Share Tech Mono',monospace",fontSize:10}}>{rating}</span>
     </span>
   );
 }
 
-// â”€â”€ CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap');
 :root{
   --bg:#0a0a0c;--surface:#0f0f14;--card:#141420;--card2:#1a1a28;
   --border:#1e1e30;--accent:#e8550a;--accent2:#ff8c00;
-  --dim:#444460;--text:#d0d0e8;--muted:#6060a0;
+  --dim:#8080ac;--text:#d0d0e8;--muted:#8888c0;
   --green:#00e887;--red:#ff3b5c;--yellow:#ffd000;--blue:#4499ff;
   --nav-h:60px;
 }
@@ -963,10 +963,10 @@ const CSS = `
 html,body{height:100%;overscroll-behavior:none}
 body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-webkit-tap-highlight-color:transparent}
 
-/* â”€â”€ SHELL â”€â”€ */
+/* ── SHELL ── */
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 
-/* â”€â”€ HEADER â”€â”€ */
+/* ── HEADER ── */
 .header{background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50}
 .header-row1{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;gap:12px}
 .logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;letter-spacing:.08em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:8px;flex-shrink:0}
@@ -986,23 +986,23 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .mbtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 13px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .mbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
-/* â”€â”€ BODY â”€â”€ */
+/* ── BODY ── */
 .body{flex:1;overflow:hidden;display:flex;flex-direction:column}
 
-/* â”€â”€ CAT STRIP (mobile) â”€â”€ */
+/* ── CAT STRIP (mobile) ── */
 .cat-strip{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--surface);flex-shrink:0}
 .cat-strip::-webkit-scrollbar{display:none}
 .cbtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;position:relative}
 .cbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 .cbtn-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--green);border:1.5px solid var(--bg)}
 
-/* â”€â”€ PARTS AREA â”€â”€ */
+/* ── PARTS AREA ── */
 .parts-area{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
 .area-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.04em;color:#fff;margin-bottom:2px}
 .area-sub{font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:300}
 .slots-list{display:flex;flex-direction:column;gap:8px}
 
-/* â”€â”€ SLOT CARD â”€â”€ */
+/* ── SLOT CARD ── */
 .slot-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .18s}
 .slot-card.sel{border-color:rgba(232,85,10,.5)}
 .slot-card.warn{border-color:rgba(255,208,0,.5)}
@@ -1029,7 +1029,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .slot-chev{color:var(--dim);font-size:14px;transition:transform .22s;flex-shrink:0}
 .slot-chev.open{transform:rotate(180deg)}
 
-/* â”€â”€ VARIANT PICKER â”€â”€ */
+/* ── VARIANT PICKER ── */
 .var-picker{border-top:1px solid var(--border);background:rgba(0,0,0,.25);padding:10px}
 .v-alert{font-size:11px;padding:6px 8px;border-radius:5px;margin-bottom:8px;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
 .v-alert.warn{background:rgba(255,208,0,.06);color:var(--yellow);border-left:2px solid var(--yellow)}
@@ -1060,7 +1060,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .vc-btn.vsel{background:var(--accent);border-color:var(--accent);color:#fff}
 .vc-btn.vsel:active,.vc-btn.vsel:hover{background:var(--red);border-color:var(--red)}
 
-/* â”€â”€ BUILD PANEL â”€â”€ */
+/* ── BUILD PANEL ── */
 .build-panel{display:flex;flex-direction:column;overflow:hidden;flex:1}
 .build-inner{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
 .gauges{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
@@ -1098,7 +1098,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .ai-warn{background:rgba(255,208,0,.05);color:var(--yellow);border-left:2px solid var(--yellow)}
 .ai-conflict{background:rgba(255,59,92,.05);color:var(--red);border-left:2px solid var(--red)}
 
-/* â”€â”€ LEADERBOARD â”€â”€ */
+/* ── LEADERBOARD ── */
 .lb-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
 .lb-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;text-transform:uppercase;letter-spacing:.05em;color:#fff;margin-bottom:2px}
 .lb-sub{font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:300}
@@ -1129,7 +1129,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .lc-port{background:rgba(255,208,0,.08);color:var(--yellow);border-color:rgba(255,208,0,.2)}
 .lb-da{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);margin-top:6px}
 
-/* â”€â”€ BOTTOM NAV â”€â”€ */
+/* ── BOTTOM NAV ── */
 .bottom-nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;flex-shrink:0;z-index:50}
 .bnav{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:color .15s;position:relative;padding:0}
 .bnav.active{color:var(--accent)}
@@ -1140,7 +1140,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-/* â”€â”€ GARAGE / PROFILE â”€â”€ */
+/* ── GARAGE / PROFILE ── */
 .garage-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
 .garage-hero{background:linear-gradient(135deg,rgba(232,85,10,.12),rgba(0,0,0,0));border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
 .garage-hero::before{content:'';position:absolute;top:0;right:0;width:80px;height:100%;background:linear-gradient(90deg,transparent,rgba(232,85,10,.06));pointer-events:none}
@@ -1171,7 +1171,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .mod-action.install{color:var(--green);border-color:rgba(0,232,135,.3)}
 .mod-action.install:hover{background:rgba(0,232,135,.1)}
 
-/* â”€â”€ TIMES LOG â”€â”€ */
+/* ── TIMES LOG ── */
 .times-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
 .best-times{display:flex;gap:8px;margin-bottom:14px}
 .bt-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;position:relative;overflow:hidden}
@@ -1209,7 +1209,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .run-del{position:absolute;top:10px;right:10px;background:transparent;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:2px 6px;line-height:1}
 .run-del:hover{color:var(--red)}
 .run-note{font-size:11px;color:var(--muted);font-weight:300;font-style:italic}
-/* â”€â”€ DRAGGY UPLOAD â”€â”€ */
+/* ── DRAGGY UPLOAD ── */
 .draggy-upload-area{margin-bottom:12px}
 .draggy-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border:1.5px dashed var(--accent);border-radius:8px;background:rgba(232,85,10,.04);color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s}
 .draggy-btn:hover{background:rgba(232,85,10,.1);border-style:solid}
@@ -1224,7 +1224,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .draggy-clear:hover{color:var(--red)}
 .draggy-error{font-size:11px;color:var(--red);margin-top:7px;padding:6px 8px;background:rgba(255,59,92,.06);border-radius:5px;border-left:2px solid var(--red)}
 
-/* â”€â”€ PROFILE FORM â”€â”€ */
+/* ── PROFILE FORM ── */
 .profile-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
 .pf-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
 .pf-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:12px}
@@ -1244,7 +1244,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .share-url{font-family:'Share Tech Mono',monospace;font-size:10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--green);word-break:break-all;margin-bottom:8px}
 .share-copy{width:100%;padding:9px;background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.3);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;border-radius:5px;cursor:pointer}
 
-/* â”€â”€ MODE TOGGLE â”€â”€ */
+/* ── MODE TOGGLE ── */
 .mode-toggle{display:flex;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:0 0 10px;flex-shrink:0}
 .mtbtn{flex:1;padding:8px;background:transparent;border:none;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
 .mtbtn.active.inst{background:rgba(0,232,135,.12);color:var(--green)}
@@ -1254,7 +1254,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .dot-wish{background:var(--blue)}
 `;
 
-// â”€â”€ TAG CLASS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── TAG CLASS ────────────────────────────────────────────────────────────
 function tagClass(tag) {
   if (!tag) return null;
   if (tag==="MAINTENANCE") return "t-maint";
@@ -1289,7 +1289,7 @@ function rankNumClass(r) {
   if (r===1) return "r1"; if (r===2) return "r2"; if (r===3) return "r3"; return "";
 }
 
-// â”€â”€ APP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── APP ──────────────────────────────────────────────────────────────────
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
   const [openSlot, setOpenSlot]     = useState(null);
@@ -1301,6 +1301,10 @@ export default function TheProof() {
     name: "", car: "s7", year: "2016", color: "", nickname: "", tuner: "", note: ""
   });
   const [profileSaved, setProfileSaved] = useState(false);
+  const [authEmail, setAuthEmail] = useState("");
+  const [authSent, setAuthSent] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
   const [runs, setRuns]             = useState([]);
   const [runForm, setRunForm]       = useState({
     date: new Date().toISOString().slice(0,10),
@@ -1366,7 +1370,7 @@ export default function TheProof() {
     await sb.from("builds").upsert(
       { user_id:uid, installed_map:installed, wishlist_map:wishlist, updated_at:new Date().toISOString() },
       { onConflict:"user_id" }
-    ).catch(()=>{});
+    );
   }
 
   function setSelectedMap(fn) {
@@ -1414,13 +1418,33 @@ export default function TheProof() {
   function remove(slotId) { setSelectedMap(prev => { const n={...prev}; delete n[slotId]; return n; }); }
   function toggleSlot(id) { setOpenSlot(prev => prev===id ? null : id); }
 
+  useEffect(() => {
+    const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setAuthUser(session.user);
+        const { data } = await sb.from("profiles").select("*").eq("user_id", session.user.id).single();
+        if (data) setProfile(p => ({...p, name:data.name||"", car:data.car||p.car, year:data.year||p.year, color:data.color||"", nickname:data.nickname||"", tuner:data.tuner||"", note:data.note||""}));
+      } else { setAuthUser(null); }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function sendMagicLink() {
+    if (!authEmail) return;
+    setAuthLoading(true);
+    const { error } = await sb.auth.signInWithOtp({ email: authEmail, options: { emailRedirectTo: window.location.origin } });
+    setAuthLoading(false);
+    if (!error) setAuthSent(true);
+  }
+
   async function saveProfile(updates) {
     const next = {...profile, ...updates};
     setProfile(next);
-    const uid = getUserId();
+    const uid = authUser?.id || getUserId();
     await sb.from("profiles").upsert({
       user_id:uid, name:next.name, car:next.car, year:next.year,
       color:next.color, nickname:next.nickname, tuner:next.tuner, note:next.note,
+      email:authUser?.email||"",
       updated_at:new Date().toISOString()
     }, { onConflict:"user_id" });
     setProfileSaved(true);
@@ -1445,7 +1469,7 @@ export default function TheProof() {
   }
 
   async function deleteRun(id) {
-    await sb.from("runs").delete().eq("id", id).catch(()=>{});
+    await sb.from("runs").delete().eq("id", id);
     setRuns(prev => prev.filter(r => r.id !== id));
   }
 
@@ -1483,7 +1507,7 @@ export default function TheProof() {
 
 Fields to extract:
 {
-  "type": "run type â€” one of: 60-130, 0-60, 1/8 Mile, 1/4 Mile, Roll Race",
+  "type": "run type — one of: 60-130, 0-60, 1/8 Mile, 1/4 Mile, Roll Race",
   "time": "primary elapsed time in seconds as a decimal string, e.g. '4.97'",
   "mph": "exit or trap speed in mph as a decimal string, e.g. '143.2'",
   "et8th": "eighth mile elapsed time in seconds if shown, e.g. '6.28'",
@@ -1492,8 +1516,8 @@ Fields to extract:
   "da": "density altitude in feet if shown, e.g. '-65 ft'",
   "date": "date in YYYY-MM-DD format if shown",
   "fuel": "fuel type if shown or visible on the screen",
-  "surface": "surface type if visible â€” Street, Prepped Strip, Dragway, or Roll Race",
-  "note": "any other relevant data from the screen â€” reaction time, 60ft, conditions"
+  "surface": "surface type if visible — Street, Prepped Strip, Dragway, or Roll Race",
+  "note": "any other relevant data from the screen — reaction time, 60ft, conditions"
 }`
               }
             ]
@@ -1557,13 +1581,13 @@ Fields to extract:
   const bestRun60130 = runs.filter(r=>r.type==="60-130"&&r.time).sort((a,b)=>parseFloat(a.time)-parseFloat(b.time))[0];
   const bestRun14    = runs.filter(r=>r.et).sort((a,b)=>parseFloat(a.et)-parseFloat(b.et))[0];
 
-  // â”€â”€ GARAGE OVERVIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── GARAGE OVERVIEW ───────────────────────────────────────────────
   const garageContent = (
     <div className="garage-area">
       {/* hero */}
       <div className="garage-hero">
         <div className="gh-name">{profile.nickname || profile.name || "My Garage"}</div>
-        <div className="gh-car">{currentModel.label} {profile.year && `Â· ${profile.year}`} {profile.color && `Â· ${profile.color}`}</div>
+        <div className="gh-car">{currentModel.label} {profile.year && `· ${profile.year}`} {profile.color && `· ${profile.color}`}</div>
         {profile.note && <div className="gh-note">"{profile.note}"</div>}
         <div className="gh-stats">
           <div className="gh-stat">
@@ -1576,10 +1600,10 @@ Fields to extract:
           </div>
           <div className="gh-stat">
             <div className="gh-stat-val green">{speeds.t60130}s</div>
-            <div className="gh-stat-lbl">60â€“130 est</div>
+            <div className="gh-stat-lbl">60–130 est</div>
           </div>
           <div className="gh-stat">
-            <div className="gh-stat-val blue">{bestRun60130 ? `${bestRun60130.time}s` : "â€”"}</div>
+            <div className="gh-stat-val blue">{bestRun60130 ? `${bestRun60130.time}s` : "—"}</div>
             <div className="gh-stat-lbl">Best run</div>
           </div>
         </div>
@@ -1598,14 +1622,14 @@ Fields to extract:
             if (!slot||!v) return null;
             return (
               <div key={slotId} className="mod-row installed">
-                <div className="mod-orb-sm mo-inst">âœ“</div>
+                <div className="mod-orb-sm mo-inst">✓</div>
                 <div className="mod-name">
                   <div className="mod-n">{slot.name}</div>
-                  <div className="mod-b">{v.brand} Â· {v.label}</div>
+                  <div className="mod-b">{v.brand} · {v.label}</div>
                 </div>
                 <button className="mod-action" onClick={()=>{
                   setInstalledMap(prev=>{const n={...prev};delete n[slotId];saveBuild(n,wishlistMap);return n;});
-                }}>Ã—</button>
+                }}>×</button>
               </div>
             );
           })
@@ -1613,7 +1637,7 @@ Fields to extract:
 
       {/* wishlist */}
       <div className="section-title">
-        Wishlist <span style={{color:"var(--blue)",fontSize:11}}>{numWish} parts Â· ${wishlistTotals.cost.toLocaleString()}</span>
+        Wishlist <span style={{color:"var(--blue)",fontSize:11}}>{numWish} parts · ${wishlistTotals.cost.toLocaleString()}</span>
         <button onClick={()=>{setBuildMode("wishlist");setActiveTab("parts");}}>+ Add</button>
       </div>
       {numWish === 0
@@ -1624,47 +1648,47 @@ Fields to extract:
             if (!slot||!v) return null;
             return (
               <div key={slotId} className="mod-row wishlist">
-                <div className="mod-orb-sm mo-wish">â˜…</div>
+                <div className="mod-orb-sm mo-wish">★</div>
                 <div className="mod-name">
                   <div className="mod-n">{slot.name}</div>
-                  <div className="mod-b">{v.brand} Â· {v.label} Â· ${v.price.toLocaleString()}</div>
+                  <div className="mod-b">{v.brand} · {v.label} · ${v.price.toLocaleString()}</div>
                 </div>
-                <button className="mod-action install" onClick={()=>installFromWishlist(slotId)}>Install âœ“</button>
+                <button className="mod-action install" onClick={()=>installFromWishlist(slotId)}>Install ✓</button>
               </div>
             );
           })
       }
 
-      {/* Wishlist â†’ Installed gap */}
+      {/* Wishlist → Installed gap */}
       {numWish > 0 && (
         <div style={{background:"rgba(68,153,255,.06)",border:"1px solid rgba(68,153,255,.15)",borderRadius:8,padding:"10px 12px",marginTop:8}}>
           <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:700,fontSize:13,textTransform:"uppercase",letterSpacing:".06em",color:"var(--blue)",marginBottom:4}}>Wishlist Impact</div>
           <div style={{fontSize:11,color:"var(--muted)",fontWeight:300}}>
-            Adding wishlist mods: <span style={{color:"var(--accent2)",fontWeight:600}}>+{wishlistTotals.hp} crank hp</span> Â· <span style={{color:"var(--accent2)",fontWeight:600}}>~{Math.round(wishlistTotals.hp*0.85)} whp gain</span> Â· est 60â€“130: <span style={{color:"var(--green)",fontWeight:600}}>{wspds.t60130}s</span> Â· cost: <span style={{color:"var(--text)",fontWeight:600}}>${wishlistTotals.cost.toLocaleString()}</span>
+            Adding wishlist mods: <span style={{color:"var(--accent2)",fontWeight:600}}>+{wishlistTotals.hp} crank hp</span> · <span style={{color:"var(--accent2)",fontWeight:600}}>~{Math.round(wishlistTotals.hp*0.85)} whp gain</span> · est 60–130: <span style={{color:"var(--green)",fontWeight:600}}>{wspds.t60130}s</span> · cost: <span style={{color:"var(--text)",fontWeight:600}}>${wishlistTotals.cost.toLocaleString()}</span>
           </div>
         </div>
       )}
     </div>
   );
 
-  // â”€â”€ TIMES LOG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── TIMES LOG ─────────────────────────────────────────────────────
   const timesContent = (
     <div className="times-area">
       <div className="best-times">
         <div className="bt-card speed-card">
-          <div className="bt-label">Best 60â€“130</div>
-          <div className="bt-val">{bestRun60130 ? bestRun60130.time : "â€”"}<span className="bt-unit">s</span></div>
-          {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} Â· {bestRun60130.fuel||"fuel n/a"}</div>}
+          <div className="bt-label">Best 60–130</div>
+          <div className="bt-val">{bestRun60130 ? bestRun60130.time : "—"}<span className="bt-unit">s</span></div>
+          {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
         </div>
         <div className="bt-card strip-card">
           <div className="bt-label">Best 1/4 Mile</div>
-          <div className="bt-val blue">{bestRun14 ? bestRun14.et : "â€”"}<span className="bt-unit">s</span></div>
+          <div className="bt-val blue">{bestRun14 ? bestRun14.et : "—"}<span className="bt-unit">s</span></div>
           {bestRun14 && <div className="bt-sub">{bestRun14.trap ? `${bestRun14.trap} mph trap` : ""}</div>}
         </div>
       </div>
 
       <button className="add-run-btn" onClick={()=>setRunFormOpen(v=>!v)}>
-        {runFormOpen ? "âœ• Cancel" : "+ Log a Run"}
+        {runFormOpen ? "✕ Cancel" : "+ Log a Run"}
       </button>
 
       {runFormOpen && (
@@ -1681,17 +1705,17 @@ Fields to extract:
             {!draggyImage ? (
               <label htmlFor="draggy-file" className="draggy-btn">
                 {draggyParsing
-                  ? <><span className="draggy-spin">âŸ³</span> Reading screenshotâ€¦</>
-                  : <><span>ðŸ“·</span> Import Draggy Screenshot</>
+                  ? <><span className="draggy-spin">⟳</span> Reading screenshot…</>
+                  : <><span>📷</span> Import Draggy Screenshot</>
                 }
               </label>
             ) : (
               <div className="draggy-preview">
                 <img src={draggyImage} alt="Draggy screenshot" className="draggy-img"/>
                 <div className="draggy-preview-actions">
-                  <span className="draggy-ok">âœ“ Times imported â€” review below</span>
+                  <span className="draggy-ok">✓ Times imported — review below</span>
                   <label htmlFor="draggy-file" className="draggy-reupload">Change</label>
-                  <button className="draggy-clear" onClick={()=>{setDraggyImage(null);setDraggyError("");}}>âœ•</button>
+                  <button className="draggy-clear" onClick={()=>{setDraggyImage(null);setDraggyError("");}}>✕</button>
                 </div>
               </div>
             )}
@@ -1769,7 +1793,7 @@ Fields to extract:
             </div>
             <div className="rf-field">
               <label className="rf-label">Fuel</label>
-              <input className="rf-input" type="text" placeholder="E30, E85, 93 octâ€¦"
+              <input className="rf-input" type="text" placeholder="E30, E85, 93 oct…"
                 value={runForm.fuel} onChange={e=>setRunForm(p=>({...p,fuel:e.target.value}))}/>
             </div>
             <div className="rf-field">
@@ -1779,17 +1803,17 @@ Fields to extract:
             </div>
             <div className="rf-field">
               <label className="rf-label">Tires</label>
-              <input className="rf-input" type="text" placeholder="PS4S, ET Streetâ€¦"
+              <input className="rf-input" type="text" placeholder="PS4S, ET Street…"
                 value={runForm.tires} onChange={e=>setRunForm(p=>({...p,tires:e.target.value}))}/>
             </div>
             <div className="rf-field full">
               <label className="rf-label">Video / Slip URL</label>
-              <input className="rf-input" type="text" placeholder="https://youtube.com/â€¦"
+              <input className="rf-input" type="text" placeholder="https://youtube.com/…"
                 value={runForm.videoUrl} onChange={e=>setRunForm(p=>({...p,videoUrl:e.target.value}))}/>
             </div>
             <div className="rf-field full">
               <label className="rf-label">Notes</label>
-              <input className="rf-input" type="text" placeholder="Launch conditions, boost, notesâ€¦"
+              <input className="rf-input" type="text" placeholder="Launch conditions, boost, notes…"
                 value={runForm.note} onChange={e=>setRunForm(p=>({...p,note:e.target.value}))}/>
             </div>
           </div>
@@ -1808,7 +1832,7 @@ Fields to extract:
 
       {runs.map(run => (
         <div key={run.id} className="run-card">
-          <button className="run-del" onClick={()=>deleteRun(run.id)}>Ã—</button>
+          <button className="run-del" onClick={()=>deleteRun(run.id)}>×</button>
           <div className="run-top">
             <span className="run-date">{run.date}</span>
             <span className="run-type">{run.type}</span>
@@ -1850,7 +1874,7 @@ Fields to extract:
             {run.fuel && <span className="run-chip">{run.fuel}</span>}
             {run.tires && <span className="run-chip">{run.tires}</span>}
             {run.da && <span className="run-chip">DA: {run.da}</span>}
-            {run.videoUrl && <span className="run-chip" style={{color:"var(--accent)"}}>ðŸ“¹ slip</span>}
+            {run.videoUrl && <span className="run-chip" style={{color:"var(--accent)"}}>📹 slip</span>}
           </div>
           {run.slipImage && (
             <div style={{marginTop:6}}>
@@ -1860,7 +1884,7 @@ Fields to extract:
                 style={{width:"100%",maxHeight:120,objectFit:"cover",borderRadius:5,border:"1px solid var(--border)",cursor:"pointer"}}
                 onClick={()=>window.open(run.slipImage,"_blank")}
               />
-              <div style={{fontSize:9,color:"var(--dim)",marginTop:2,fontFamily:"'Share Tech Mono',monospace",letterSpacing:".06em"}}>DRAGGY SCREENSHOT Â· TAP TO EXPAND</div>
+              <div style={{fontSize:9,color:"var(--dim)",marginTop:2,fontFamily:"'Share Tech Mono',monospace",letterSpacing:".06em"}}>DRAGGY SCREENSHOT · TAP TO EXPAND</div>
             </div>
           )}
           {run.note && <div className="run-note">"{run.note}"</div>}
@@ -1869,17 +1893,17 @@ Fields to extract:
     </div>
   );
 
-  // â”€â”€ PROFILE SETTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── PROFILE SETTINGS ──────────────────────────────────────────────
   const profileContent = (
     <div className="profile-area">
       <div className="share-box">
-        <div className="share-title">ðŸ Proof.Build is coming</div>
+        <div className="share-title">🏁 Proof.Build is coming</div>
         <div className="share-sub">
-          Create an account to save your garage, share your build link, and post your times to the community leaderboard. Your data is already stored locally â€” sign up to sync it to the cloud and claim your build URL.
+          Create an account to save your garage, share your build link, and post your times to the community leaderboard. Your data is already stored locally — sign up to sync it to the cloud and claim your build URL.
         </div>
         <div className="share-url">proof.build/@{profile.name ? profile.name.toLowerCase().replace(/\s/g,"_") : "yourname"}/{currentModel.label.toLowerCase().replace(/\s/,"-")}</div>
         <button className="share-copy" onClick={()=>{
-          navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s/g,"_")}/${currentModel.label.toLowerCase().replace(/\s/,"-")}`).catch(()=>{});
+          navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s/g,"_")}/${currentModel.label.toLowerCase().replace(/\s/,"-")}`);
         }}>Copy Build Link</button>
       </div>
 
@@ -1917,36 +1941,64 @@ Fields to extract:
           </div>
           <div className="pf-field">
             <label className="pf-label">Tuner</label>
-            <input className="pf-input" type="text" placeholder="APR, Load Logicâ€¦"
+            <input className="pf-input" type="text" placeholder="APR, Load Logic…"
               value={profile.tuner} onChange={e=>setProfile(p=>({...p,tuner:e.target.value}))}/>
           </div>
           <div className="pf-field full">
             <label className="pf-label">Build Note</label>
-            <input className="pf-input" type="text" placeholder="Daily driver | street/strip | track buildâ€¦"
+            <input className="pf-input" type="text" placeholder="Daily driver | street/strip | track build…"
               value={profile.note} onChange={e=>setProfile(p=>({...p,note:e.target.value}))}/>
           </div>
         </div>
         <button className={`pf-save${profileSaved?" pf-saved":""}`} onClick={()=>saveProfile(profile)}>
-          {profileSaved ? "âœ“ Saved" : "Save Profile"}
+          {profileSaved ? "✓ Saved" : "Save Profile"}
         </button>
       </div>
 
-      <div className="pf-card" style={{fontSize:11,color:"var(--muted)",lineHeight:1.7,fontWeight:300}}>
+            <div className="pf-card">
+        <div className="pf-title">{authUser ? "Profile Linked" : "Link Your Profile"}</div>
+        {authUser ? (
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{color:"var(--accent)",fontSize:13}}>✓ Signed in as {authUser.email}</div>
+            <div style={{fontSize:12,color:"var(--dim)"}}>Profile syncs to your account — reload from any device.</div>
+            <button className="pf-save" onClick={()=>sb.auth.signOut()} style={{marginTop:4,maxWidth:140}}>Sign Out</button>
+          </div>
+        ) : (
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <div style={{fontSize:12,color:"var(--dim)"}}>Save your profile to your account and reload it on any device.</div>
+            {authSent ? (
+              <div style={{color:"var(--accent)",fontSize:13}}>✓ Magic link sent — check your email!</div>
+            ) : (
+              <div className="pf-field full">
+                <label className="pf-label">Email</label>
+                <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                  <input className="pf-input" type="email" placeholder="you@example.com" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMagicLink()} style={{flex:1}} />
+                  <button className="pf-save" onClick={sendMagicLink} disabled={authLoading||!authEmail} style={{whiteSpace:"nowrap",minWidth:110,opacity:(authLoading||!authEmail)?0.5:1}}>
+                    {authLoading ? "Sending…" : "Send Magic Link"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+<div className="pf-card" style={{fontSize:11,color:"var(--muted)",lineHeight:1.7,fontWeight:300}}>
         <div className="pf-title">About Proof.Build</div>
-        Proof.Build is a performance build platform for the Audi 4.0T community. Configure your current setup, plan your next mods, log your times, and discover what upgrades fit your goals â€” backed by real community data, real vendor specs, and a verified leaderboard.<br/><br/>
-        Platform: C7 / C7.5 (2013â€“2018) Â· S6 Â· S7 Â· RS6 Â· RS7<br/>
+        Proof.Build is a performance build platform for the Audi 4.0T community. Configure your current setup, plan your next mods, log your times, and discover what upgrades fit your goals — backed by real community data, real vendor specs, and a verified leaderboard.<br/><br/>
+        Platform: C7 / C7.5 (2013–2018) · S6 · S7 · RS6 · RS7<br/>
         Leaderboard data: Real community runs from the Audi 4.0T Drag Racing Leaderboard.<br/>
         Parts data: Verified against SRM, TGK Motorsport, 034 Motorsport, Autotech, IE, ECS, ARM, JXB Performance.<br/><br/>
-        <span style={{color:"var(--accent)"}}>proof.build</span> Â· Coming soon
+        <span style={{color:"var(--accent)"}}>proof.build</span> · Coming soon
       </div>
     </div>
   );
 
-  // â”€â”€ LEADERBOARD CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── LEADERBOARD CONTENT ───────────────────────────────────────────
   const boardContent = (
     <div className="lb-area">
-      <div className="lb-title">60â€“130 Leaderboard</div>
-      <div className="lb-sub">Real runs Â· Audi 4.0T community Â· All catless downpipes</div>
+      <div className="lb-title">60–130 Leaderboard</div>
+      <div className="lb-sub">Real runs · Audi 4.0T community · All catless downpipes</div>
       {liveLeaderboard.map(run => (
         <div key={run.rank} className={`lb-card ${rankClass(run.rank)}`}>
           <div className="lb-top">
@@ -1957,7 +2009,7 @@ Fields to extract:
             </div>
             <div className="lb-time">
               <div className="lb-t60130">{run.t60130}s</div>
-              <div className="lb-time-label">60â€“130</div>
+              <div className="lb-time-label">60–130</div>
             </div>
           </div>
           <div className="lb-chips">
@@ -1969,13 +2021,13 @@ Fields to extract:
             <span className="lb-chip lc-dp">{run.dp}</span>
             {run.trans !== "Stock" && <span className="lb-chip lc-mani">{run.trans}</span>}
           </div>
-          {run.da && <div className="lb-da">DA: {run.da}{run.et ? `  Â·  1/4: ${run.et} @ ${run.mph} mph` : ""}</div>}
+          {run.da && <div className="lb-da">DA: {run.da}{run.et ? `  ·  1/4: ${run.et} @ ${run.mph} mph` : ""}</div>}
         </div>
       ))}
     </div>
   );
 
-  // â”€â”€ PARTS CONTENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── PARTS CONTENT ─────────────────────────────────────────────────
   const activeModelId = currentModel.id;
   const partsContent = (
     <>
@@ -1991,7 +2043,7 @@ Fields to extract:
       <div className="parts-area">
         <div className="area-title">{activeCat}</div>
         <div className="area-sub">
-          {currentModel.engine} Â· {currentModel.hp} hp stock Â·{" "}
+          {currentModel.engine} · {currentModel.hp} hp stock ·{" "}
           <span style={{color: buildMode==="installed"?"var(--green)":"var(--blue)"}}>
             {buildMode==="installed" ? "Logging installed mods" : "Adding to wishlist"}
           </span>
@@ -2014,10 +2066,10 @@ Fields to extract:
             else if (hasWarn) cardCls += " warn";
             else if (hasSel) cardCls += " sel";
 
-            let orbCls = "", orbIcon = "â—‹";
-            if (hasSel && hasConf)  { orbCls="orb-conflict"; orbIcon="âš¡"; }
-            else if (hasSel && hasWarn) { orbCls="orb-warn"; orbIcon="âš "; }
-            else if (hasSel)        { orbCls="orb-ok"; orbIcon= buildMode==="installed"?"âœ“":"â˜…"; }
+            let orbCls = "", orbIcon = "○";
+            if (hasSel && hasConf)  { orbCls="orb-conflict"; orbIcon="⚡"; }
+            else if (hasSel && hasWarn) { orbCls="orb-warn"; orbIcon="⚠"; }
+            else if (hasSel)        { orbCls="orb-ok"; orbIcon= buildMode==="installed"?"✓":"★"; }
 
             return (
               <div key={slot.id} className={cardCls}>
@@ -2026,20 +2078,20 @@ Fields to extract:
                   <div className="slot-info">
                     <div className="slot-name">{slot.name}</div>
                     {selVar
-                      ? <div className="slot-sel-text" style={{color:buildMode==="wishlist"?"var(--blue)":undefined}}>{selVar.brand} Â· {selVar.label} Â· ${selVar.price.toLocaleString()}</div>
-                      : <div className="slot-desc-text">{slot.desc}{otherVarId ? ` Â· ${buildMode==="installed"?"â˜… On wishlist":"âœ“ Installed"}` : ""}</div>
+                      ? <div className="slot-sel-text" style={{color:buildMode==="wishlist"?"var(--blue)":undefined}}>{selVar.brand} · {selVar.label} · ${selVar.price.toLocaleString()}</div>
+                      : <div className="slot-desc-text">{slot.desc}{otherVarId ? ` · ${buildMode==="installed"?"★ On wishlist":"✓ Installed"}` : ""}</div>
                     }
                   </div>
                   {slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
-                  <span className={`slot-chev${isOpen?" open":""}`}>â–¾</span>
+                  <span className={`slot-chev${isOpen?" open":""}`}>▾</span>
                 </div>
 
                 {isOpen && (
                   <div className="var-picker">
-                    {hasConf && <div className="v-alert conflict">âš¡ Conflicts with: {conflicts.map(c=>getSlotById(c)?.name||c).join(", ")}</div>}
-                    {hasWarn && <div className="v-alert warn">âš  Also needs: {missing.map(m=>getSlotById(m)?.name||m).join(", ")}</div>}
+                    {hasConf && <div className="v-alert conflict">⚡ Conflicts with: {conflicts.map(c=>getSlotById(c)?.name||c).join(", ")}</div>}
+                    {hasWarn && <div className="v-alert warn">⚠ Also needs: {missing.map(m=>getSlotById(m)?.name||m).join(", ")}</div>}
                     {hasSel && !hasWarn && !hasConf && missingRecs.length>0 && (
-                      <div className="v-alert rec">âœ¦ Pairs well with: {missingRecs.map(r=>getSlotById(r)?.name||r).join(", ")}</div>
+                      <div className="v-alert rec">✦ Pairs well with: {missingRecs.map(r=>getSlotById(r)?.name||r).join(", ")}</div>
                     )}
                     <div className="var-grid">
                       {slot.variants.map(v => {
@@ -2056,13 +2108,13 @@ Fields to extract:
                             <div className="vc-stars"><Stars rating={v.rating}/></div>
                             <div className="vc-notes">{v.notes}</div>
                             <div className="vc-stats">
-                              <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${hp}`:"â€”"}</div></div>
-                              <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`} style={{color:hp>0?"var(--accent2)":undefined}}>{hp>0?`+${Math.round(hp*0.85)}`:"â€”"}</div></div>
-                              <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"â€”"}</div></div>
+                              <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${hp}`:"—"}</div></div>
+                              <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`} style={{color:hp>0?"var(--accent2)":undefined}}>{hp>0?`+${Math.round(hp*0.85)}`:"—"}</div></div>
+                              <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
                             </div>
                             <div className="vc-pc">
                               <div className="vc-pros">{v.pros.map((p,i)=><div key={i}>+ {p}</div>)}</div>
-                              <div className="vc-cons">{v.cons.map((c,i)=><div key={i}>âˆ’ {c}</div>)}</div>
+                              <div className="vc-cons">{v.cons.map((c,i)=><div key={i}>− {c}</div>)}</div>
                             </div>
                             <div className={`vc-diff ${diffClass(v.difficulty)}`}>{v.difficulty}</div>
                             <button className={`vc-btn${isActive?" vsel":""}`} onClick={()=>pick(slot.id,v.id)}>
@@ -2082,7 +2134,7 @@ Fields to extract:
     </>
   );
 
-  // â”€â”€ PARTS + BUILD MODE TOGGLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── PARTS + BUILD MODE TOGGLE ──────────────────────────────────────
   const partsWithToggle = (
     <>
       <div style={{padding:"8px 14px 0",background:"var(--surface)",flexShrink:0}}>
@@ -2118,14 +2170,14 @@ Fields to extract:
               <span className="hstat-val" style={{color:"var(--accent2)"}}>~{calcWhp(totalHp)}</span>
             </div>
             <div className="hstat">
-              <span className="hstat-label">0â€“60</span>
+              <span className="hstat-label">0–60</span>
               <span className="hstat-val">{speeds.t060}s</span>
-              {installedTotals.hp>0&&<span className="hstat-delta">âˆ’{(currentModel.t060-speeds.t060).toFixed(2)}s</span>}
+              {installedTotals.hp>0&&<span className="hstat-delta">−{(currentModel.t060-speeds.t060).toFixed(2)}s</span>}
             </div>
             <div className="hstat">
-              <span className="hstat-label">60â€“130</span>
+              <span className="hstat-label">60–130</span>
               <span className="hstat-val green">{speeds.t60130}s</span>
-              {installedTotals.hp>0&&<span className="hstat-delta">âˆ’{(currentModel.t60130-speeds.t60130).toFixed(2)}s</span>}
+              {installedTotals.hp>0&&<span className="hstat-delta">−{(currentModel.t60130-speeds.t60130).toFixed(2)}s</span>}
             </div>
             {bestRun60130 && <div className="hstat"><span className="hstat-label">Best</span><span className="hstat-val" style={{color:"var(--green)"}}>{bestRun60130.time}s</span></div>}
           </div>
@@ -2150,21 +2202,21 @@ Fields to extract:
 
       <nav className="bottom-nav">
         <button className={`bnav${activeTab==="garage"?" active":""}`} onClick={()=>setActiveTab("garage")}>
-          <span className="bnav-icon">ðŸš—</span>Garage
+          <span className="bnav-icon">🚗</span>Garage
         </button>
         <button className={`bnav${activeTab==="parts"?" active":""}`} onClick={()=>setActiveTab("parts")}>
-          <span className="bnav-icon">âš™</span>Parts
+          <span className="bnav-icon">⚙</span>Parts
           {(numInst+numWish)>0&&<span className="bnav-badge">{numInst+numWish}</span>}
         </button>
         <button className={`bnav${activeTab==="times"?" active":""}`} onClick={()=>setActiveTab("times")}>
-          <span className="bnav-icon">ðŸ</span>Times
+          <span className="bnav-icon">🏁</span>Times
           {runs.length>0&&<span className="bnav-badge">{runs.length}</span>}
         </button>
         <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>setActiveTab("board")}>
-          <span className="bnav-icon">ðŸ“Š</span>Board
+          <span className="bnav-icon">📊</span>Board
         </button>
         <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>setActiveTab("profile")}>
-          <span className="bnav-icon">ðŸ‘¤</span>Profile
+          <span className="bnav-icon">👤</span>Profile
         </button>
       </nav>
     </div>
