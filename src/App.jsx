@@ -1973,7 +1973,7 @@ Fields to extract:
                 <label className="pf-label">Email</label>
                 <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                   <input className="pf-input" type="email" placeholder="you@example.com" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMagicLink()} style={{flex:1}} />
-                  <button className="pf-save" onClick={sendMagicLink} disabled={authLoading||!authEmail} style={{whiteSpace:"nowrap",minWidth:110,opacity:(authLoading||!authEmail)?0.5:1}}>
+                  <button className="pf-save" onClick={sendMagicLink} disabled={authLoading||!authEmail} style={{whiteSpace:"nowrap",width:"auto",minWidth:110,opacity:(authLoading||!authEmail)?0.5:1}}>
                     {authLoading ? "Sending…" : "Send Magic Link"}
                   </button>
                 </div>
