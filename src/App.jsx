@@ -900,6 +900,29 @@ const SLOTS = [
   },
 ];
 
+// ── PERFORMANCE TIERS ──────────────────────────────────────────────────────
+// ET range = seconds off 1/4-mile (negative = faster)
+// t60130  = seconds off 60-130 mph roll (negative = faster)
+const PERF_TIERS = {
+  ecu_s1:       { tier:"Moderate",       et:[-0.10,-0.25], t60130:[-0.25,-0.60],  builds:14 },
+  ecu_s2:       { tier:"Moderate",       et:[-0.15,-0.35], t60130:[-0.40,-0.90],  builds:11 },
+  ecu_custom:   { tier:"Significant",    et:[-0.20,-0.50], t60130:[-0.50,-1.20],  builds:9  },
+  wastegate:    { tier:"Moderate",       et:[-0.05,-0.15], t60130:[-0.10,-0.35],  builds:4  },
+  turbo_upgrade:{ tier:"Transformative", et:[-0.40,-0.90], t60130:[-1.50,-3.50],  builds:8  },
+  hpfp:         { tier:"Moderate",       et:[-0.05,-0.15], t60130:[-0.10,-0.30],  builds:7  },
+  flex_fuel:    { tier:"Significant",    et:[-0.10,-0.30], t60130:[-0.30,-0.80],  builds:12 },
+  port_inj:     { tier:"Moderate",       et:[-0.10,-0.25], t60130:[-0.25,-0.60],  builds:7  },
+  port_inj_full:{ tier:"Significant",    et:[-0.15,-0.35], t60130:[-0.40,-0.90],  builds:5  },
+  cai:          { tier:"Moderate",       et:[-0.05,-0.15], t60130:[-0.10,-0.30],  builds:9  },
+  downpipe:     { tier:"Moderate",       et:[-0.10,-0.25], t60130:[-0.25,-0.60],  builds:11 },
+  intercooler:  { tier:"Moderate",       et:[-0.05,-0.20], t60130:[-0.10,-0.45],  builds:6  },
+  manifolds:    { tier:"Significant",    et:[-0.15,-0.35], t60130:[-0.40,-0.90],  builds:5  },
+  dsg_tune:     { tier:"Moderate",       et:[-0.10,-0.20], t60130:[-0.20,-0.50],  builds:8  },
+  tcu_tune:     { tier:"Moderate",       et:[-0.10,-0.20], t60130:[-0.20,-0.50],  builds:6  },
+  motor_mounts: { tier:"Moderate",       et:[-0.05,-0.15], t60130:[-0.05,-0.10],  builds:3  },
+  tires_drag:   { tier:"Significant",    et:[-0.15,-0.40], t60130:[-0.30,-0.70],  builds:6  },
+};
+
 // ── HELPERS ────────────────────────────────────────────────────────────────
 function getSlotById(id) { return SLOTS.find(s => s.id === id); }
 function getVariantById(slotId, variantId) { return getSlotById(slotId)?.variants.find(v => v.id === variantId); }
@@ -1059,6 +1082,20 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .vc-btn:active,.vc-btn:hover{background:var(--accent);color:#fff}
 .vc-btn.vsel{background:var(--accent);border-color:var(--accent);color:#fff}
 .vc-btn.vsel:active,.vc-btn.vsel:hover{background:var(--red);border-color:var(--red)}
+
+/* ── PERF BAR ── */
+.perf-bar-wrap{margin:6px 0 8px;padding:8px 9px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px}
+.perf-bar-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.perf-tier{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;font-weight:700}
+.perf-range{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted)}
+.perf-track{height:4px;background:rgba(255,255,255,.08);border-radius:2px;position:relative;margin-bottom:4px}
+.perf-fill{height:4px;border-radius:2px;position:absolute;transition:left .3s,width .3s}
+.perf-footer{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:.05em}
+/* metric toggle */
+.perf-metric-toggle{display:flex;gap:4px;align-items:center}
+.pmtbtn{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
+.pmtbtn.pma{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmtbtn:not(.pma):hover{border-color:var(--muted);color:var(--muted)}
 
 /* ── BUILD PANEL ── */
 .build-panel{display:flex;flex-direction:column;overflow:hidden;flex:1}
@@ -1289,6 +1326,33 @@ function rankNumClass(r) {
   if (r===1) return "r1"; if (r===2) return "r2"; if (r===3) return "r3"; return "";
 }
 
+// ── PERF BAR COMPONENT ────────────────────────────────────────────────────
+const TIER_COLOR = { Moderate:"var(--green)", Significant:"#F5A623", Transformative:"var(--accent)" };
+const TIER_BG    = { Moderate:"rgba(60,255,120,.10)", Significant:"rgba(245,166,35,.10)", Transformative:"rgba(232,85,10,.10)" };
+
+function PerfBar({ slotId, metric }) {
+  const d = PERF_TIERS[slotId];
+  if (!d) return null;
+  const range = d[metric];
+  const maxVal = metric === "et" ? 1.0 : 4.0; // absolute scale (seconds)
+  const leftPct  = Math.round((Math.abs(range[0]) / maxVal) * 100);
+  const widthPct = Math.round((Math.abs(range[1] - range[0]) / maxVal) * 100);
+  const color = TIER_COLOR[d.tier];
+  const label = metric === "et" ? "1/4-Mile ET" : "60–130 Roll";
+  return (
+    <div className="perf-bar-wrap">
+      <div className="perf-bar-hdr">
+        <span className="perf-tier" style={{color, background:TIER_BG[d.tier]}}>{d.tier}</span>
+        <span className="perf-range">{label}: {range[0].toFixed(2)}s – {range[1].toFixed(2)}s</span>
+      </div>
+      <div className="perf-track">
+        <div className="perf-fill" style={{left:`${leftPct}%`, width:`${Math.max(widthPct,4)}%`, background:color}}/>
+      </div>
+      <div className="perf-footer">{d.builds} builds logged</div>
+    </div>
+  );
+}
+
 // ── APP ──────────────────────────────────────────────────────────────────
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
@@ -1316,6 +1380,7 @@ export default function TheProof() {
   const [draggyImage, setDraggyImage] = useState(null);   // base64 data URL
   const [draggyParsing, setDraggyParsing] = useState(false);
   const [draggyError, setDraggyError] = useState("");
+  const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
 
   useEffect(() => {
     const el = document.createElement("style");
@@ -1488,7 +1553,7 @@ export default function TheProof() {
       const b64data = base64.split(",")[1];
       const mediaType = file.type || "image/jpeg";
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/parse-draggy", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
@@ -2041,7 +2106,13 @@ Fields to extract:
         ))}
       </div>
       <div className="parts-area">
-        <div className="area-title">{activeCat}</div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:2}}>
+          <div className="area-title" style={{marginBottom:0}}>{activeCat}</div>
+          <div className="perf-metric-toggle">
+            <button className={`pmtbtn${perfMetric==="et"?" pma":""}`} onClick={()=>setPerfMetric("et")}>ET</button>
+            <button className={`pmtbtn${perfMetric==="t60130"?" pma":""}`} onClick={()=>setPerfMetric("t60130")}>60–130</button>
+          </div>
+        </div>
         <div className="area-sub">
           {currentModel.engine} · {currentModel.hp} hp stock ·{" "}
           <span style={{color: buildMode==="installed"?"var(--green)":"var(--blue)"}}>
@@ -2112,6 +2183,7 @@ Fields to extract:
                               <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`} style={{color:hp>0?"var(--accent2)":undefined}}>{hp>0?`+${Math.round(hp*0.85)}`:"—"}</div></div>
                               <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
                             </div>
+                            <PerfBar slotId={slot.id} metric={perfMetric} />
                             <div className="vc-pc">
                               <div className="vc-pros">{v.pros.map((p,i)=><div key={i}>+ {p}</div>)}</div>
                               <div className="vc-cons">{v.cons.map((c,i)=><div key={i}>− {c}</div>)}</div>
