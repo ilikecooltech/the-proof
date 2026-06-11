@@ -1455,13 +1455,28 @@ export default function TheProof() {
           try { return { note: r.note.slice(0,idx).trim(), splits: JSON.parse(r.note.slice(idx+11)) }; }
           catch { return { note: r.note, splits: {} }; }
         })() : { note: r.note||"", splits: {} };
-        return { id:r.id, date:r.date, type:r.run_type, time:r.time_val, mph:r.mph,
+        // Handle both possible column names: time_val (new) and time (original schema)
+        const timeVal = r.time_val != null ? r.time_val : (r.time != null ? r.time : null);
+        return { id:r.id, date:r.date, type:r.run_type, time:timeVal, mph:r.mph,
           et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
           fuel:r.fuel, tires:r.tires, note, splits, videoUrl:r.video_url };
       });
       // Sort client-side: most recent date first
       mapped.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-      setRuns(mapped);
+      // Merge: preserve local time values if DB has null (schema mismatch protection)
+      // Also keep any temp runs (optimistic saves in flight) not yet in DB
+      setRuns(prev => {
+        const dbIds = new Set(mapped.map(r => r.id));
+        const tempRuns = prev.filter(p => String(p.id).startsWith("temp_"));
+        const merged = mapped.map(dbRun => {
+          const local = prev.find(p => p.id === dbRun.id);
+          if (local && dbRun.time == null && local.time != null) {
+            return { ...dbRun, time: local.time }; // keep local time if DB lost it
+          }
+          return dbRun;
+        });
+        return [...tempRuns, ...merged].sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      });
     } catch(e) { console.warn("Runs load error:", e); }
     finally { setRunsLoading(false); }
   }
@@ -1602,16 +1617,26 @@ export default function TheProof() {
   function addRun() {
     const toFloat = v => { const n = parseFloat(String(v).replace(/[^\d.-]/g,"")); return isNaN(n) ? null : n; };
 
+    // ── 0. VALIDATE: must have at least one timing value ────────────
+    const timeVal = toFloat(runForm.time);
+    const etVal   = toFloat(runForm.et);
+    const et8Val  = toFloat(runForm.et8th);
+    if (timeVal == null && etVal == null && et8Val == null) {
+      setSaveFeedback("⚠ Enter a time before saving — or import a Draggy screenshot");
+      setTimeout(() => setSaveFeedback(""), 4000);
+      return;
+    }
+
     // ── 1. BUILD RUN OBJECT IMMEDIATELY ─────────────────────────────
     const tempId = `temp_${Date.now()}`;
     const r = {
       id:       tempId,
       date:     runForm.date,
       type:     runForm.type,
-      time:     toFloat(runForm.time),
+      time:     timeVal,
       mph:      toFloat(runForm.mph),
-      et8th:    toFloat(runForm.et8th),
-      et:       toFloat(runForm.et),
+      et8th:    et8Val,
+      et:       etVal,
       trap:     toFloat(runForm.trap),
       da:       runForm.da,
       surface:  runForm.surface,
@@ -1638,25 +1663,43 @@ export default function TheProof() {
     setTimeout(() => setSaveFeedback(""), 3500);
 
     // ── 3. SAVE TO DB IN BACKGROUND ──────────────────────────────────
+    // Try time_val first; if schema uses "time" column it will error and we retry
     const uid = getUserId();
-    sb.from("runs").insert({
+    const insertPayload = {
       user_id:uid, date:r.date, run_type:r.type,
       time_val:r.time, mph:r.mph, et8th:r.et8th, et:r.et, trap:r.trap,
       da:r.da, surface:r.surface, fuel:r.fuel, tires:r.tires,
       note: packNote(r.note, r.splits),
       video_url:r.videoUrl
-    }).select().single()
+    };
+
+    const mapSaved = (saved) => {
+      const unp = unpackNote(saved.note);
+      // Handle both column names time_val and time
+      const savedTime = saved.time_val != null ? saved.time_val : (saved.time != null ? saved.time : r.time);
+      return {
+        id:saved.id, date:saved.date, type:saved.run_type, time:savedTime,
+        mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
+        surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
+        note:unp.note, splits:unp.splits, videoUrl:saved.video_url
+      };
+    };
+
+    sb.from("runs").insert(insertPayload).select().single()
     .then(({ data: saved, error: saveErr }) => {
-      if (saveErr) { console.warn("Run DB save error:", saveErr); return; }
+      if (saveErr) {
+        console.warn("Run DB save error (time_val):", saveErr.message);
+        // Retry with "time" column name instead of "time_val"
+        const { time_val, ...rest } = insertPayload;
+        return sb.from("runs").insert({ ...rest, time: r.time }).select().single();
+      }
+      return { data: saved, error: null };
+    })
+    .then(({ data: saved, error: saveErr2 }) => {
+      if (saveErr2) { console.warn("Run DB save error (time):", saveErr2.message); return; }
       if (saved) {
         // Swap temp ID → real DB ID so run persists on reload
-        const unp = unpackNote(saved.note);
-        const dbRun = {
-          id:saved.id, date:saved.date, type:saved.run_type, time:saved.time_val,
-          mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
-          surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
-          note:unp.note, splits:unp.splits, videoUrl:saved.video_url
-        };
+        const dbRun = mapSaved(saved);
         setRuns(prev => prev.map(x => x.id === tempId ? dbRun : x));
         setSelectedRunId(dbRun.id);
       }
