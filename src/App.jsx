@@ -306,6 +306,11 @@ const SLOTS = [
         torque:{a6_20t:265,a6_30t:250,a7_20t:265,a7_30t:250,s6:400,s7:400,a8:400,s8:425,rs6:450,rs7:450},
         notes:"Leaderboard #4 (4.80s, Adam Emm). Larger Garrett option. Bigger top-end than G40.", difficulty:"Professional",
         pros:["Higher ceiling than G40","Leaderboard proven","Good spool for size"],cons:["More lag","More complex install"] },
+      { id:"pp_rs_plus",  brand:"Pinnacle Perf.", label:"RS+ 47/60 Billet (Jon)", price:1000, rating:4.7,
+        hp:{a6_20t:155,a6_30t:145,a7_20t:155,a7_30t:145,s6:255,s7:255,a8:255,s8:280,rs6:300,rs7:300},
+        torque:{a6_20t:195,a6_30t:185,a7_20t:195,a7_30t:185,s6:320,s7:320,a8:320,s8:340,rs6:365,rs7:365},
+        notes:"Jon Gronewald / Pinnacle Performance LLC (Taylor, MO). 47mm inducer / 60mm exducer dual ball-bearing billet compressor. Vendor-rated to 750hp on a pair. Drop-in OEM fit — no housing mod. Best value turbo upgrade at ~$1,000/pair vs. $2,100+ for JHM RS7-R. Active community following. Recommend installing oil screen relocation kit (TSB-2044640) at same time.", difficulty:"Professional",
+        pros:["Best value turbo upgrade","Drop-in OEM fit","750hp ceiling","Active community support"],cons:["No published dyno data","Oil screen relocation recommended","C7/D4 only — not C8"] },
     ]
   },
 
@@ -759,6 +764,11 @@ const SLOTS = [
         torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,a8:0,s8:0,rs6:0,rs7:0},
         notes:"Race-focused ZF8 tune with full torque lockup and aggressive shift strategy. Designed for drag strip builds running 900+ whp.", difficulty:"Professional",
         pros:["Full lockup","Drag-optimized","Highest holding torque"],cons:["Harsh daily feel","Strip focused only"] },
+      { id:"slavov_tcu", brand:"Slavov / SRM", label:"Slavov ZF8HP + DL501 TCU", price:899, rating:4.9,
+        hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,a8:0,s8:0,rs6:0,rs7:0},
+        torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,a8:0,s8:0,rs6:0,rs7:0},
+        notes:"The only TCU tune covering both ZF8HP (RS6/RS7/A8/S8) and DL501 (S6/S7) platforms. Tuned by Slavov Performance, sold via Silly Rabbit Motorsport. Programmable WOT shift RPM (6200–7800 rpm in 400 rpm steps), 2nd-gear launch control, optimized clamping pressure, removed torque limits and abuse counters. First ZF8HP solution with programmable shift points per gear. Bundle with DS1 ECU for $1,795.", difficulty:"Plug & Play",
+        pros:["Covers ZF8HP + DL501","Programmable shift RPM","2nd-gear launch control","DS1 bundle available"],cons:["ZF8HP launch RPM limited without TC mod","OBD cable required ($200 if not owned)"] },
     ]
   },
 
