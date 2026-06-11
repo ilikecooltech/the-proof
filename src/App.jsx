@@ -1605,6 +1605,8 @@ export default function TheProof() {
     setRuns(prev => [r, ...prev]);
     setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{}});
     setRunFormOpen(false);
+    setSelectedRunId(r.id);   // auto-expand the new run
+    setActiveTab("times");    // jump to the run list so user sees their save
   }
 
   async function deleteRun(id) {
@@ -1790,8 +1792,12 @@ Fields to extract:
             <div className="gh-stat-lbl">60–130 est</div>
           </div>
           <div className="gh-stat">
-            <div className="gh-stat-val blue">{bestRun60130 ? `${bestRun60130.time}s` : "—"}</div>
-            <div className="gh-stat-lbl">Best run</div>
+            <div className="gh-stat-val" style={{color:bestRun60130?"var(--green)":"var(--muted)"}}>{bestRun60130 ? `${bestRun60130.time}s` : "—"}</div>
+            <div className="gh-stat-lbl">Best 60–130</div>
+          </div>
+          <div className="gh-stat">
+            <div className="gh-stat-val blue">{bestRun14 ? `${bestRun14.et}s` : "—"}</div>
+            <div className="gh-stat-lbl">Best 1/4</div>
           </div>
         </div>
       </div>
@@ -2479,7 +2485,8 @@ Fields to extract:
               <span className="hstat-val green">{speeds.t60130}s</span>
               {installedTotals.hp>0&&<span className="hstat-delta">−{(currentModel.t60130-speeds.t60130).toFixed(2)}s</span>}
             </div>
-            {bestRun60130 && <div className="hstat"><span className="hstat-label">Best</span><span className="hstat-val" style={{color:"var(--green)"}}>{bestRun60130.time}s</span></div>}
+            {bestRun60130 && <div className="hstat"><span className="hstat-label">Best 60–130</span><span className="hstat-val" style={{color:"var(--green)"}}>{bestRun60130.time}s</span></div>}
+            {bestRun14    && <div className="hstat"><span className="hstat-label">Best 1/4</span><span className="hstat-val" style={{color:"var(--blue)"}}>{bestRun14.et}s</span></div>}
           </div>
         </div>
         <div className="model-strip">
