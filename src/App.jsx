@@ -1884,8 +1884,8 @@ Fields to extract:
     return 0;
   };
   let filteredRuns = runs.filter(r =>
-    (runSurfFilter==="All" || r.surface===runSurfFilter) &&
-    (runFuelFilter==="All" || r.fuel===runFuelFilter)
+    (runSurfFilter==="All" || r.da===runSurfFilter) &&
+    (runFuelFilter==="All" || String(r.splits?.["60_100"])+"s"===runFuelFilter)
   );
   filteredRuns = [...filteredRuns].sort((a,b)=>{
     const av=getRunVal(a,runSortKey), bv=getRunVal(b,runSortKey);
@@ -1911,15 +1911,15 @@ Fields to extract:
         <option value="trap">Trap MPH</option>
       </select>
       <div className="run-ctrl-divider"/>
-      <span className="run-ctrl-label">Surface</span>
+      <span className="run-ctrl-label">DA</span>
       <select className="run-ctrl-select" value={runSurfFilter} onChange={e=>setRunSurfFilter(e.target.value)}>
         <option value="All">All</option>
-        {[...new Set(runs.map(r=>r.surface).filter(Boolean))].map(s=><option key={s}>{s}</option>)}
+        {[...new Set(runs.map(r=>r.da).filter(Boolean))].sort().map(d=><option key={d}>{d}</option>)}
       </select>
-      <span className="run-ctrl-label">Fuel</span>
+      <span className="run-ctrl-label">60–100</span>
       <select className="run-ctrl-select" value={runFuelFilter} onChange={e=>setRunFuelFilter(e.target.value)}>
         <option value="All">All</option>
-        {[...new Set(runs.map(r=>r.fuel).filter(Boolean))].map(f=><option key={f}>{f}</option>)}
+        {[...new Set(runs.map(r=>r.splits?.["60_100"]).filter(v=>v!=null))].sort((a,b)=>a-b).map(v=><option key={v}>{v}s</option>)}
       </select>
     </div>
   ) : null;
