@@ -1279,6 +1279,9 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .draggy-clear{background:transparent;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1}
 .draggy-clear:hover{color:var(--red)}
 .draggy-error{font-size:11px;color:var(--red);margin-top:7px;padding:6px 8px;background:rgba(255,59,92,.06);border-radius:5px;border-left:2px solid var(--red)}
+/* ── SAVE TOAST ── */
+.save-toast{background:rgba(0,232,135,.12);border:1px solid rgba(0,232,135,.3);border-radius:6px;padding:9px 14px;margin-bottom:10px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);text-align:center;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 /* ── RUN LIST SORT / FILTER BAR ── */
 .run-ctrl-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
 .run-ctrl-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px}
@@ -1428,6 +1431,8 @@ export default function TheProof() {
   const [draggyParsing, setDraggyParsing] = useState(false);
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
+  const [runsLoading, setRunsLoading] = useState(true);
+  const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
 
   useEffect(() => {
     const el = document.createElement("style");
@@ -1435,6 +1440,31 @@ export default function TheProof() {
     document.head.appendChild(el);
     return () => document.head.removeChild(el);
   }, []);
+
+  // ── LOAD RUNS (also callable for manual refresh) ─────────────────
+  async function loadRuns() {
+    const uid = getUserId();
+    setRunsLoading(true);
+    try {
+      // Fetch without .order() — order() on non-existent column silently returns null data
+      const { data: runRows, error: runErr } = await sb.from("runs").select("*").eq("user_id", uid);
+      if (runErr) { console.warn("Runs fetch error:", runErr); }
+      const mapped = (runRows || []).map(r => {
+        const { note, splits } = (r.note||"").includes("__splits__:") ? (() => {
+          const idx = r.note.indexOf("__splits__:");
+          try { return { note: r.note.slice(0,idx).trim(), splits: JSON.parse(r.note.slice(idx+11)) }; }
+          catch { return { note: r.note, splits: {} }; }
+        })() : { note: r.note||"", splits: {} };
+        return { id:r.id, date:r.date, type:r.run_type, time:r.time_val, mph:r.mph,
+          et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
+          fuel:r.fuel, tires:r.tires, note, splits, videoUrl:r.video_url };
+      });
+      // Sort client-side: most recent date first
+      mapped.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      setRuns(mapped);
+    } catch(e) { console.warn("Runs load error:", e); }
+    finally { setRunsLoading(false); }
+  }
 
   useEffect(() => {
     async function load() {
@@ -1450,19 +1480,6 @@ export default function TheProof() {
         if (build?.installed_map) setInstalledMap(build.installed_map);
         if (build?.wishlist_map)  setWishlistMap(build.wishlist_map);
 
-        // Personal runs
-        const { data: runRows } = await sb.from("runs").select("*").eq("user_id", uid).order("created_at", {ascending:false});
-        if (runRows?.length) setRuns(runRows.map(r => {
-          const { note, splits } = (r.note||"").includes("__splits__:") ? (() => {
-            const idx = r.note.indexOf("__splits__:");
-            try { return { note: r.note.slice(0,idx).trim(), splits: JSON.parse(r.note.slice(idx+11)) }; }
-            catch { return { note: r.note, splits: {} }; }
-          })() : { note: r.note||"", splits: {} };
-          return { id:r.id, date:r.date, type:r.run_type, time:r.time_val, mph:r.mph,
-            et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
-            fuel:r.fuel, tires:r.tires, note, splits, videoUrl:r.video_url };
-        }));
-
         // Community leaderboard (falls back to hardcoded LEADERBOARD if empty)
         const { data: lb } = await sb.from("leaderboard").select("*").order("rank");
         if (lb?.length) setLiveLeaderboard(lb.map(r => ({
@@ -1474,6 +1491,7 @@ export default function TheProof() {
       } catch(e) { console.warn("Supabase load error:", e); }
     }
     load();
+    loadRuns();   // separate so it can be called independently
   }, []);
 
   const currentModel = MODELS.find(m => m.id === profile.car) || MODELS.find(m=>m.id==="s7");
@@ -1583,9 +1601,8 @@ export default function TheProof() {
 
   async function addRun() {
     const uid = getUserId();
-    // Parse numeric fields — guard against unit strings left by AI or manual typos
     const toFloat = v => { const n = parseFloat(String(v).replace(/[^\d.-]/g,"")); return isNaN(n) ? null : n; };
-    const { data: saved } = await sb.from("runs").insert({
+    const { data: saved, error: saveErr } = await sb.from("runs").insert({
       user_id:uid, date:runForm.date, run_type:runForm.type,
       time_val: toFloat(runForm.time),
       mph:      toFloat(runForm.mph),
@@ -1595,18 +1612,30 @@ export default function TheProof() {
       da:runForm.da, surface:runForm.surface, fuel:runForm.fuel, tires:runForm.tires,
       note: packNote(runForm.note, runForm.splits),
       video_url:runForm.videoUrl
-    }).select().single().catch(()=>({data:null}));
+    }).select().single().catch(e=>({ data:null, error:e }));
+    if (saveErr) console.warn("Run save error:", saveErr);
     const unp = saved ? unpackNote(saved.note) : { note: runForm.note, splits: runForm.splits||{} };
-    const r = saved ? { id:saved.id, date:saved.date, type:saved.run_type, time:saved.time_val,
+    const r = saved ? {
+      id:saved.id, date:saved.date, type:saved.run_type, time:saved.time_val,
       mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
       surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
       note:unp.note, splits:unp.splits, videoUrl:saved.video_url
-    } : { ...runForm, id: Date.now() };
-    setRuns(prev => [r, ...prev]);
+    } : { ...runForm, id: Date.now(), time: toFloat(runForm.time), et: toFloat(runForm.et) };
+    setRuns(prev => {
+      // Prepend and re-sort by date desc
+      const next = [r, ...prev];
+      next.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      return next;
+    });
     setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{}});
     setRunFormOpen(false);
-    setSelectedRunId(r.id);   // auto-expand the new run
-    setActiveTab("times");    // jump to the run list so user sees their save
+    setDraggyImage(null);
+    setSelectedRunId(r.id);
+    setActiveTab("times");
+    // Show confirmation toast
+    const timeLabel = r.time != null ? `${r.time}s` : r.et != null ? `${r.et}s ET` : "Run";
+    setSaveFeedback(timeLabel + (saved ? " saved ✓" : " saved locally"));
+    setTimeout(() => setSaveFeedback(""), 3500);
   }
 
   async function deleteRun(id) {
@@ -1767,8 +1796,8 @@ Fields to extract:
     conflicts.forEach(c => allIssues.push({type:"conflict", msg:`${slot.name} conflicts with ${getSlotById(c)?.name||c}`}));
   });
 
-  const bestRun60130 = runs.filter(r=>r.type==="60-130"&&r.time).sort((a,b)=>parseFloat(a.time)-parseFloat(b.time))[0];
-  const bestRun14    = runs.filter(r=>r.et).sort((a,b)=>parseFloat(a.et)-parseFloat(b.et))[0];
+  const bestRun60130 = runs.filter(r=>r.type==="60-130" && r.time != null).sort((a,b)=>parseFloat(a.time)-parseFloat(b.time))[0];
+  const bestRun14    = runs.filter(r=>r.et != null).sort((a,b)=>parseFloat(a.et)-parseFloat(b.et))[0];
 
   // ── GARAGE OVERVIEW ───────────────────────────────────────────────
   const garageContent = (
@@ -1867,22 +1896,41 @@ Fields to extract:
   // ── TIMES LOG ─────────────────────────────────────────────────────
   const timesContent = (
     <div className="times-area">
+      {/* Save feedback toast */}
+      {saveFeedback && (
+        <div className="save-toast">{saveFeedback}</div>
+      )}
+
       <div className="best-times">
         <div className="bt-card speed-card">
           <div className="bt-label">Best 60–130</div>
-          <div className="bt-val">{bestRun60130 ? bestRun60130.time : "—"}<span className="bt-unit">s</span></div>
+          <div className="bt-val">
+            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
+              : bestRun60130 ? bestRun60130.time : "—"}
+            <span className="bt-unit">s</span>
+          </div>
           {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
         </div>
         <div className="bt-card strip-card">
           <div className="bt-label">Best 1/4 Mile</div>
-          <div className="bt-val blue">{bestRun14 ? bestRun14.et : "—"}<span className="bt-unit">s</span></div>
+          <div className="bt-val blue">
+            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
+              : bestRun14 ? bestRun14.et : "—"}
+            <span className="bt-unit">s</span>
+          </div>
           {bestRun14 && <div className="bt-sub">{bestRun14.trap ? `${bestRun14.trap} mph trap` : ""}</div>}
         </div>
       </div>
 
-      <button className="add-run-btn" onClick={()=>setRunFormOpen(v=>!v)}>
-        {runFormOpen ? "✕ Cancel" : "+ Log a Run"}
-      </button>
+      <div style={{display:"flex",gap:8,marginBottom:10}}>
+        <button className="add-run-btn" style={{flex:1,marginBottom:0}} onClick={()=>setRunFormOpen(v=>!v)}>
+          {runFormOpen ? "✕ Cancel" : `+ Log a Run${runs.length>0?` · ${runs.length} run${runs.length===1?"":"s"}`:""}`}
+        </button>
+        <button className="add-run-btn" style={{marginBottom:0,padding:"0 14px",flex:"none",fontSize:16}}
+          title="Refresh runs" onClick={()=>loadRuns()}>
+          {runsLoading ? "⟳" : "↺"}
+        </button>
+      </div>
 
       {runFormOpen && (
         <div className="run-form">
@@ -2051,8 +2099,11 @@ Fields to extract:
       )}
 
       {runs.length === 0 && !runFormOpen && (
-        <div style={{color:"var(--dim)",fontSize:12,textAlign:"center",padding:"24px 0"}}>
-          No runs logged yet. Tap Log a Run to record your first Draggy result or strip slip.
+        <div style={{color:"var(--dim)",fontSize:12,textAlign:"center",padding:"24px 0",lineHeight:1.7}}>
+          {runsLoading
+            ? <><span style={{display:"inline-block",animation:"spin .8s linear infinite",fontSize:18}}>⟳</span><br/>Loading your runs…</>
+            : <>No runs logged yet.<br/>Tap <strong style={{color:"var(--muted)"}}>Log a Run</strong> to record your first Draggy result or strip slip.</>
+          }
         </div>
       )}
 
