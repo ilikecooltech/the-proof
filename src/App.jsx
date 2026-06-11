@@ -56,6 +56,14 @@ const MODELS = [
   { id:"s8",     label:"S8",      engine:"4.0T TFSI",    hp:520, torque:479, t060:3.9, t60130:9.0,  et:12.2 },
 ];
 
+// 4.0T HP normalization: S6/S7/A8/S8 share the same block; stock HP differences are
+// OEM turbo sizing and factory tune — not engine differences. When aftermarket turbos
+// or tunes are added, the block normalizes to a common output baseline.
+// RS6/RS7 have higher compression pistons (genuine engine difference) so they stay higher.
+const TUNING_SLOTS        = new Set(["turbo_upgrade","ecu_s1","ecu_s2","ecu_custom"]);
+const NON_RS_4OT          = new Set(["s6","s7","a8","s8"]);
+const NORMALIZED_4OT_BASE = 450; // S6/S7 stock level — the "true" block baseline
+
 const CATEGORIES = ["Engine","Turbos","Fueling","Intake","Exhaust","Intercooler","Cooling","Manifolds","Differential","Drivetrain","Suspension","Brakes","Tires","Maintenance"];
 
 // ── SLOTS ──────────────────────────────────────────────────────────────────
@@ -394,6 +402,41 @@ const SLOTS = [
         torque:{a6_20t:18,a6_30t:16,a7_20t:18,a7_30t:16,s6:38,s7:38,a8:38,s8:42,rs6:46,rs7:46},
         notes:"Leaderboard #3, #7, #8 use meth. Cools intake charge. Lower cost alternative to full port injection.", difficulty:"DIY Friendly",
         pros:["Lower cost than port","Charge cooling","Good results"],cons:["Less power than port","Fluid tank to manage"] },
+    ]
+  },
+  {
+    id:"fuel_lines", cat:"Fueling", name:"Fuel Feed Lines",
+    desc:"Larger AN fuel lines eliminate the stock rubber feed restriction. Required when pushing past 700 HP — the factory lines become the bottleneck.",
+    tag:null, requires:[], recommends:["hpfp"], conflicts:[],
+    variants:[
+      { id:"stock_lines", brand:"OEM", label:"Stock Fuel Lines",
+        price:0, rating:3.0,
+        hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,a8:0,s8:0,rs6:0,rs7:0},
+        torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:0,s7:0,a8:0,s8:0,rs6:0,rs7:0},
+        notes:"Factory fuel feed lines. Adequate for Stage 1–2 builds up to ~650 crank HP. Inner diameter restricts flow on big turbo or port injection builds.",
+        difficulty:"N/A",
+        pros:["Already installed","Zero cost"],cons:["Flow-limiting above 650 HP","Rubber ages/cracks"] },
+      { id:"6an", brand:"Russell / Earls", label:"-6AN Fuel Lines",
+        price:285, rating:4.5,
+        hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:8,s7:8,a8:8,s8:8,rs6:10,rs7:10},
+        torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:10,s7:10,a8:10,s8:10,rs6:12,rs7:12},
+        notes:"Entry-level AN upgrade (~9.5mm ID). Removes the rubber feed restriction. Good for 650–750 HP builds. Braided stainless exterior won't degrade like OEM rubber.",
+        difficulty:"DIY Friendly",
+        pros:["Removes OEM restriction","Cost effective","DIY-friendly"],cons:["Marginal above 750 HP","Step up if running port injection"] },
+      { id:"8an", brand:"Russell / Earls", label:"-8AN Fuel Lines",
+        price:380, rating:4.8,
+        hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:15,s7:15,a8:15,s8:15,rs6:18,rs7:18},
+        torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:20,s7:20,a8:20,s8:20,rs6:24,rs7:24},
+        notes:"The popular choice for turbo and port injection builds (~11mm ID). Recommended for 750–900 HP. Pairs directly with HPFP upgrade and port injection kits. Used on most SRM and leaderboard builds.",
+        difficulty:"DIY Friendly",
+        pros:["Most popular AN choice","Supports 750–900 HP","Pairs with port injection"],cons:["Needs correct fittings for your pump"] },
+      { id:"10an", brand:"Russell / Earls", label:"-10AN Fuel Lines",
+        price:480, rating:4.9,
+        hp:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:22,s7:22,a8:22,s8:22,rs6:27,rs7:27},
+        torque:{a6_20t:0,a6_30t:0,a7_20t:0,a7_30t:0,s6:28,s7:28,a8:28,s8:28,rs6:33,rs7:33},
+        notes:"Maximum fuel flow for 900+ HP builds (~14mm ID). Standard on SRM850 and SRM1000 kits. Required if running dual port injection or very high E85 demand. Professional install recommended for proper routing.",
+        difficulty:"Professional",
+        pros:["Maximum flow capacity","Standard on SRM1000","Required at 900+ HP"],cons:["Overkill below 900 HP","Professional routing recommended"] },
     ]
   },
 
@@ -965,20 +1008,28 @@ function getDeps(slotId, selectedMap) {
 }
 
 function calcTotals(selectedMap, modelId) {
+  // Detect if any aftermarket tuning mod is present in this map
+  const hasTuningMod = Object.keys(selectedMap).some(k => TUNING_SLOTS.has(k));
   let hp=0, torque=0, cost=0;
   Object.entries(selectedMap).forEach(([slotId, varId]) => {
     const v = getVariantById(slotId, varId);
     if (!v) return;
-    hp += v.hp[modelId]||0;
+    // For non-RS 4.0T with a tuning mod: normalize turbo/tune HP to S6 reference
+    // (same block — stock HP differences are OEM turbo/tune, not engine)
+    const hpDelta = (NON_RS_4OT.has(modelId) && hasTuningMod && TUNING_SLOTS.has(slotId))
+      ? (v.hp["s6"] || 0)
+      : (v.hp[modelId] || 0);
+    hp += hpDelta;
     torque += v.torque[modelId]||0;
     cost += v.price;
   });
   return { hp, torque, cost };
 }
 
-function calcSpeeds(model, hpGain) {
-  const newHp = model.hp + hpGain;
-  const ratio = model.hp / newHp;
+function calcSpeeds(model, hpGain, baseHpOverride) {
+  const base  = baseHpOverride !== undefined ? baseHpOverride : model.hp;
+  const newHp = base + hpGain;
+  const ratio = base / newHp;
   return {
     t060:   +(model.t060   * Math.pow(ratio, 0.40)).toFixed(2),
     t60130: +(model.t60130 * Math.pow(ratio, 0.65)).toFixed(2),
@@ -1560,9 +1611,17 @@ export default function TheProof() {
   const installedTotals = calcTotals(installedMap, modelId);
   const wishlistTotals  = calcTotals(wishlistMap,  modelId);
   const totals  = buildMode === "installed" ? installedTotals : wishlistTotals;
-  const speeds  = calcSpeeds(currentModel, installedTotals.hp);
-  const wspds   = calcSpeeds(currentModel, installedTotals.hp + wishlistTotals.hp);
-  const totalHp = currentModel.hp + installedTotals.hp;
+
+  // Normalize base HP for non-RS 4.0T when aftermarket tuning mods are present
+  // (S6/S7/A8/S8 are the same block — stock differences are OEM turbo/tune only)
+  const hasTuningInst = Object.keys(installedMap).some(k => TUNING_SLOTS.has(k));
+  const hasTuningAny  = hasTuningInst || Object.keys(wishlistMap).some(k => TUNING_SLOTS.has(k));
+  const baseHp        = (NON_RS_4OT.has(modelId) && hasTuningInst) ? NORMALIZED_4OT_BASE : currentModel.hp;
+  const baseHpCombined= (NON_RS_4OT.has(modelId) && hasTuningAny)  ? NORMALIZED_4OT_BASE : currentModel.hp;
+
+  const speeds  = calcSpeeds(currentModel, installedTotals.hp, baseHp);
+  const wspds   = calcSpeeds(currentModel, installedTotals.hp + wishlistTotals.hp, baseHpCombined);
+  const totalHp = baseHp + installedTotals.hp;
   const totalTq = currentModel.torque + installedTotals.torque;
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
@@ -2053,11 +2112,11 @@ Fields to extract:
         {profile.note && <div className="gh-note">"{profile.note}"</div>}
         <div className="gh-stats">
           <div className="gh-stat">
-            <div className="gh-stat-val">{currentModel.hp + installedTotals.hp}</div>
+            <div className="gh-stat-val">{totalHp}</div>
             <div className="gh-stat-lbl">Crank HP</div>
           </div>
           <div className="gh-stat">
-            <div className="gh-stat-val" style={{color:"var(--accent2)"}}>~{calcWhp(currentModel.hp + installedTotals.hp)}</div>
+            <div className="gh-stat-val" style={{color:"var(--accent2)"}}>~{calcWhp(totalHp)}</div>
             <div className="gh-stat-lbl">Est WHP</div>
           </div>
           <div className="gh-stat">
