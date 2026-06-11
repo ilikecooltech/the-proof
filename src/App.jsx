@@ -1883,10 +1883,7 @@ Fields to extract:
     if (SPLIT_KEYS_G.includes(key)) { const v=r.splits?.[key]; return v!=null?v:999; }
     return 0;
   };
-  let filteredRuns = runs.filter(r =>
-    (runSurfFilter==="All" || r.da===runSurfFilter) &&
-    (runFuelFilter==="All" || String(r.splits?.["60_100"])+"s"===runFuelFilter)
-  );
+  let filteredRuns = [...runs];
   filteredRuns = [...filteredRuns].sort((a,b)=>{
     const av=getRunVal(a,runSortKey), bv=getRunVal(b,runSortKey);
     return runSortKey==="date" ? bv.localeCompare(av) : av-bv;
@@ -1909,17 +1906,6 @@ Fields to extract:
         <option value="mph">Exit MPH</option>
         <option value="et">1/4 ET</option>
         <option value="trap">Trap MPH</option>
-      </select>
-      <div className="run-ctrl-divider"/>
-      <span className="run-ctrl-label">DA</span>
-      <select className="run-ctrl-select" value={runSurfFilter} onChange={e=>setRunSurfFilter(e.target.value)}>
-        <option value="All">All</option>
-        {[...new Set(runs.map(r=>r.da).filter(Boolean))].sort().map(d=><option key={d}>{d}</option>)}
-      </select>
-      <span className="run-ctrl-label">60–100</span>
-      <select className="run-ctrl-select" value={runFuelFilter} onChange={e=>setRunFuelFilter(e.target.value)}>
-        <option value="All">All</option>
-        {[...new Set(runs.map(r=>r.splits?.["60_100"]).filter(v=>v!=null))].sort((a,b)=>a-b).map(v=><option key={v}>{v}s</option>)}
       </select>
     </div>
   ) : null;
