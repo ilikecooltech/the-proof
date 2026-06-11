@@ -1599,30 +1599,31 @@ export default function TheProof() {
     catch { return { note: raw, splits: {} }; }
   }
 
-  async function addRun() {
-    const uid = getUserId();
+  function addRun() {
     const toFloat = v => { const n = parseFloat(String(v).replace(/[^\d.-]/g,"")); return isNaN(n) ? null : n; };
-    const { data: saved, error: saveErr } = await sb.from("runs").insert({
-      user_id:uid, date:runForm.date, run_type:runForm.type,
-      time_val: toFloat(runForm.time),
+
+    // ── 1. BUILD RUN OBJECT IMMEDIATELY ─────────────────────────────
+    const tempId = `temp_${Date.now()}`;
+    const r = {
+      id:       tempId,
+      date:     runForm.date,
+      type:     runForm.type,
+      time:     toFloat(runForm.time),
       mph:      toFloat(runForm.mph),
       et8th:    toFloat(runForm.et8th),
       et:       toFloat(runForm.et),
       trap:     toFloat(runForm.trap),
-      da:runForm.da, surface:runForm.surface, fuel:runForm.fuel, tires:runForm.tires,
-      note: packNote(runForm.note, runForm.splits),
-      video_url:runForm.videoUrl
-    }).select().single().catch(e=>({ data:null, error:e }));
-    if (saveErr) console.warn("Run save error:", saveErr);
-    const unp = saved ? unpackNote(saved.note) : { note: runForm.note, splits: runForm.splits||{} };
-    const r = saved ? {
-      id:saved.id, date:saved.date, type:saved.run_type, time:saved.time_val,
-      mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
-      surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
-      note:unp.note, splits:unp.splits, videoUrl:saved.video_url
-    } : { ...runForm, id: Date.now(), time: toFloat(runForm.time), et: toFloat(runForm.et) };
+      da:       runForm.da,
+      surface:  runForm.surface,
+      fuel:     runForm.fuel,
+      tires:    runForm.tires,
+      note:     runForm.note,
+      splits:   runForm.splits || {},
+      videoUrl: runForm.videoUrl,
+    };
+
+    // ── 2. UPDATE UI RIGHT NOW (no await) ────────────────────────────
     setRuns(prev => {
-      // Prepend and re-sort by date desc
       const next = [r, ...prev];
       next.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
       return next;
@@ -1630,17 +1631,44 @@ export default function TheProof() {
     setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{}});
     setRunFormOpen(false);
     setDraggyImage(null);
-    setSelectedRunId(r.id);
+    setSelectedRunId(tempId);
     setActiveTab("times");
-    // Show confirmation toast
     const timeLabel = r.time != null ? `${r.time}s` : r.et != null ? `${r.et}s ET` : "Run";
-    setSaveFeedback(timeLabel + (saved ? " saved ✓" : " saved locally"));
+    setSaveFeedback(`${timeLabel} logged ✓`);
     setTimeout(() => setSaveFeedback(""), 3500);
+
+    // ── 3. SAVE TO DB IN BACKGROUND ──────────────────────────────────
+    const uid = getUserId();
+    sb.from("runs").insert({
+      user_id:uid, date:r.date, run_type:r.type,
+      time_val:r.time, mph:r.mph, et8th:r.et8th, et:r.et, trap:r.trap,
+      da:r.da, surface:r.surface, fuel:r.fuel, tires:r.tires,
+      note: packNote(r.note, r.splits),
+      video_url:r.videoUrl
+    }).select().single()
+    .then(({ data: saved, error: saveErr }) => {
+      if (saveErr) { console.warn("Run DB save error:", saveErr); return; }
+      if (saved) {
+        // Swap temp ID → real DB ID so run persists on reload
+        const unp = unpackNote(saved.note);
+        const dbRun = {
+          id:saved.id, date:saved.date, type:saved.run_type, time:saved.time_val,
+          mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
+          surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
+          note:unp.note, splits:unp.splits, videoUrl:saved.video_url
+        };
+        setRuns(prev => prev.map(x => x.id === tempId ? dbRun : x));
+        setSelectedRunId(dbRun.id);
+      }
+    })
+    .catch(e => console.warn("Run save error:", e));
   }
 
-  async function deleteRun(id) {
-    await sb.from("runs").delete().eq("id", id);
-    setRuns(prev => prev.filter(r => r.id !== id));
+  function deleteRun(id) {
+    setRuns(prev => prev.filter(r => r.id !== id));  // immediate
+    if (!String(id).startsWith("temp_")) {
+      sb.from("runs").delete().eq("id", id).catch(e => console.warn("Delete error:", e));
+    }
   }
 
   async function compressDraggyImage(file) {
