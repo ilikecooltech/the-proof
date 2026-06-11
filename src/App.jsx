@@ -1557,26 +1557,44 @@ export default function TheProof() {
     setRuns(prev => prev.filter(r => r.id !== id));
   }
 
+  async function compressDraggyImage(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const MAX = 1200;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   async function parseDraggyScreenshot(file) {
     setDraggyError("");
     setDraggyParsing(true);
     try {
-      const base64 = await new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onload = () => res(reader.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      });
+      // Compress first so we don't blow Vercel's 4.5MB body limit
+      const base64 = await compressDraggyImage(file);
       setDraggyImage(base64);
 
       const b64data = base64.split(",")[1];
-      const mediaType = file.type || "image/jpeg";
+      const mediaType = "image/jpeg";
 
       const response = await fetch("/api/parse-draggy", {
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body: JSON.stringify({
-          model:"claude-sonnet-4-20250514",
+          model:"claude-sonnet-4-5",
           max_tokens:1000,
           messages:[{
             role:"user",
@@ -1610,6 +1628,13 @@ Fields to extract:
       });
 
       const data = await response.json();
+
+      // Propagate API-level errors with detail
+      if (!response.ok || data?.error) {
+        const msg = data?.error?.message || data?.error || `API error ${response.status}`;
+        throw new Error(msg);
+      }
+
       const raw = data?.content?.[0]?.text || "";
       let parsed;
       try {
