@@ -1,5 +1,20 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import posthog from "posthog-js";
+
+// ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
+const PH_KEY = import.meta.env.VITE_POSTHOG_KEY;
+if (PH_KEY) {
+  posthog.init(PH_KEY, {
+    api_host: "https://us.i.posthog.com",
+    capture_pageview: true,
+    capture_pageleave: true,
+    autocapture: false,          // manual events only — keeps data clean
+    person_profiles: "identified_only",
+  });
+}
+// Safe wrapper — no-ops if key not set (local dev without .env)
+const track = (event, props = {}) => { if (PH_KEY) posthog.capture(event, props); };
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 const SUPABASE_URL  = "https://bqvdudylkqwpyvhshewj.supabase.co";
@@ -1438,6 +1453,9 @@ export default function TheProof() {
     const el = document.createElement("style");
     el.textContent = CSS;
     document.head.appendChild(el);
+    // Identify user in PostHog so sessions are tied to the same person
+    if (PH_KEY) posthog.identify(getUserId());
+    track("app_loaded");
     return () => document.head.removeChild(el);
   }, []);
 
@@ -1661,6 +1679,20 @@ export default function TheProof() {
     const timeLabel = r.time != null ? `${r.time}s` : r.et != null ? `${r.et}s ET` : "Run";
     setSaveFeedback(`${timeLabel} logged ✓`);
     setTimeout(() => setSaveFeedback(""), 3500);
+    track("run_logged", {
+      run_type:    r.type,
+      time:        r.time,
+      mph:         r.mph,
+      et:          r.et,
+      et8th:       r.et8th,
+      trap:        r.trap,
+      surface:     r.surface,
+      fuel:        r.fuel,
+      da:          r.da,
+      has_splits:  Object.keys(r.splits||{}).length > 0,
+      has_video:   !!r.videoUrl,
+      car_model:   currentModel.id,
+    });
 
     // ── 3. SAVE TO DB IN BACKGROUND ──────────────────────────────────
     // Try time_val first; if schema uses "time" column it will error and we retry
@@ -1825,6 +1857,7 @@ Fields to extract:
         return out;
       };
 
+      const splitsOut = cleanSplits(parsed.splits);
       setRunForm(prev => ({
         ...prev,
         ...(parsed.type    && { type:    parsed.type }),
@@ -1838,9 +1871,17 @@ Fields to extract:
         ...(parsed.fuel    && { fuel:    parsed.fuel }),
         ...(parsed.surface && { surface: parsed.surface }),
         ...(parsed.note    && { note:    parsed.note }),
-        splits: cleanSplits(parsed.splits),
+        splits: splitsOut,
       }));
+      track("draggy_parsed", {
+        success: true,
+        run_type: parsed.type,
+        has_time: !!parsed.time,
+        has_splits: Object.keys(splitsOut).length > 0,
+        has_da: !!parsed.da,
+      });
     } catch(e) {
+      track("draggy_parsed", { success: false, error: e.message });
       setDraggyError(e.message || "Failed to parse screenshot. Fill in times manually.");
     } finally {
       setDraggyParsing(false);
@@ -1851,6 +1892,9 @@ Fields to extract:
   function installFromWishlist(slotId) {
     const varId = wishlistMap[slotId];
     if (!varId) return;
+    const slot = getSlotById(slotId);
+    const v    = getVariantById(slotId, varId);
+    track("mod_installed", { slot: slotId, slot_name: slot?.name, brand: v?.brand, variant: v?.label, from_wishlist: true });
     const newInstalled = {...installedMap, [slotId]: varId};
     const newWishlist  = {...wishlistMap}; delete newWishlist[slotId];
     setInstalledMap(newInstalled);
@@ -2649,21 +2693,21 @@ Fields to extract:
       </div>
 
       <nav className="bottom-nav">
-        <button className={`bnav${activeTab==="garage"?" active":""}`} onClick={()=>setActiveTab("garage")}>
+        <button className={`bnav${activeTab==="garage"?" active":""}`} onClick={()=>{setActiveTab("garage");track("tab_viewed",{tab:"garage"});}}>
           <span className="bnav-icon">🚗</span>Garage
         </button>
-        <button className={`bnav${activeTab==="parts"?" active":""}`} onClick={()=>setActiveTab("parts")}>
+        <button className={`bnav${activeTab==="parts"?" active":""}`} onClick={()=>{setActiveTab("parts");track("tab_viewed",{tab:"parts"});}}>
           <span className="bnav-icon">⚙</span>Parts
           {(numInst+numWish)>0&&<span className="bnav-badge">{numInst+numWish}</span>}
         </button>
-        <button className={`bnav${activeTab==="times"?" active":""}`} onClick={()=>setActiveTab("times")}>
+        <button className={`bnav${activeTab==="times"?" active":""}`} onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
           <span className="bnav-icon">🏁</span>Times
           {runs.length>0&&<span className="bnav-badge">{runs.length}</span>}
         </button>
-        <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>setActiveTab("board")}>
+        <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>{setActiveTab("board");track("tab_viewed",{tab:"leaderboard"});}}>
           <span className="bnav-icon">📊</span>Board
         </button>
-        <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>setActiveTab("profile")}>
+        <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
           <span className="bnav-icon">👤</span>Profile
         </button>
       </nav>
