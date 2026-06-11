@@ -1870,6 +1870,149 @@ Fields to extract:
   const bestRun60130 = runs.filter(r=>r.type==="60-130" && r.time != null).sort((a,b)=>parseFloat(a.time)-parseFloat(b.time))[0];
   const bestRun14    = runs.filter(r=>r.et != null).sort((a,b)=>parseFloat(a.et)-parseFloat(b.et))[0];
 
+  // ── SHARED RUN LIST (used in both Garage and Times tabs) ──────────
+  const SPLIT_KEYS_G   = ["60_70","60_80","60_90","60_100","60_110","60_120","60_130"];
+  const SPLIT_LABELS_G = {"60_70":"60–70","60_80":"60–80","60_90":"60–90","60_100":"60–100","60_110":"60–110","60_120":"60–120","60_130":"60–130"};
+  const getRunVal = (r, key) => {
+    if (key==="date") return r.date||"";
+    if (key==="time") return r.time!=null ? r.time : 999;
+    if (key==="da")   { const n=parseFloat(String(r.da||"").replace(/[^\d.-]/g,"")); return isNaN(n)?999:n; }
+    if (key==="mph")  return r.mph!=null ? -r.mph : 999;
+    if (key==="et")   return r.et!=null ? r.et : 999;
+    if (key==="trap") return r.trap!=null ? -r.trap : 999;
+    if (SPLIT_KEYS_G.includes(key)) { const v=r.splits?.[key]; return v!=null?v:999; }
+    return 0;
+  };
+  let filteredRuns = runs.filter(r =>
+    (runSurfFilter==="All" || r.surface===runSurfFilter) &&
+    (runFuelFilter==="All" || r.fuel===runFuelFilter)
+  );
+  filteredRuns = [...filteredRuns].sort((a,b)=>{
+    const av=getRunVal(a,runSortKey), bv=getRunVal(b,runSortKey);
+    return runSortKey==="date" ? bv.localeCompare(av) : av-bv;
+  });
+
+  const runFilterBarJSX = runs.length > 0 ? (
+    <div className="run-ctrl-bar">
+      <span className="run-ctrl-label">Sort</span>
+      <select className="run-ctrl-select" value={runSortKey} onChange={e=>setRunSortKey(e.target.value)}>
+        <option value="date">Date</option>
+        <option value="time">Time</option>
+        <option value="da">DA</option>
+        <option value="60_70">60–70</option>
+        <option value="60_80">60–80</option>
+        <option value="60_90">60–90</option>
+        <option value="60_100">60–100</option>
+        <option value="60_110">60–110</option>
+        <option value="60_120">60–120</option>
+        <option value="60_130">60–130 (split)</option>
+        <option value="mph">Exit MPH</option>
+        <option value="et">1/4 ET</option>
+        <option value="trap">Trap MPH</option>
+      </select>
+      <div className="run-ctrl-divider"/>
+      <span className="run-ctrl-label">Surface</span>
+      <select className="run-ctrl-select" value={runSurfFilter} onChange={e=>setRunSurfFilter(e.target.value)}>
+        <option value="All">All</option>
+        {[...new Set(runs.map(r=>r.surface).filter(Boolean))].map(s=><option key={s}>{s}</option>)}
+      </select>
+      <span className="run-ctrl-label">Fuel</span>
+      <select className="run-ctrl-select" value={runFuelFilter} onChange={e=>setRunFuelFilter(e.target.value)}>
+        <option value="All">All</option>
+        {[...new Set(runs.map(r=>r.fuel).filter(Boolean))].map(f=><option key={f}>{f}</option>)}
+      </select>
+    </div>
+  ) : null;
+
+  const runCardsJSX = filteredRuns.map(run => {
+    const isOpen   = selectedRunId===run.id;
+    const hasSplits = run.splits && Object.keys(run.splits).length>0;
+    return (
+      <div key={run.id} className={`run-card${isOpen?" selected":""}`}
+        onClick={()=>setSelectedRunId(isOpen?null:run.id)}>
+        <button className="run-del" onClick={e=>{e.stopPropagation();deleteRun(run.id);}}>×</button>
+        <div className="run-top">
+          <span className="run-date">{run.date}</span>
+          <span className="run-type">{run.type}</span>
+        </div>
+        <div className="run-times">
+          {run.time!=null && (
+            <div>
+              <div className="run-time-big">{run.time}s</div>
+              <div className="run-time-lbl">{run.type}</div>
+            </div>
+          )}
+          {run.et!=null && (
+            <div>
+              <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et}s</div>
+              <div className="run-time-lbl">1/4 ET</div>
+            </div>
+          )}
+          {run.et8th!=null && (
+            <div>
+              <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et8th}s</div>
+              <div className="run-time-lbl">1/8 ET</div>
+            </div>
+          )}
+          {run.mph!=null && !run.et && !run.et8th && (
+            <div>
+              <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.mph}</div>
+              <div className="run-time-lbl">mph</div>
+            </div>
+          )}
+          {run.trap!=null && (
+            <div>
+              <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.trap}</div>
+              <div className="run-time-lbl">trap mph</div>
+            </div>
+          )}
+        </div>
+        <div className="run-chips">
+          {run.surface && <span className="run-chip">{run.surface}</span>}
+          {run.fuel    && <span className="run-chip">{run.fuel}</span>}
+          {run.tires   && <span className="run-chip">{run.tires}</span>}
+          {run.da      && <span className="run-chip">DA: {run.da}</span>}
+          {hasSplits   && <span className="run-chip" style={{color:"var(--accent)"}}>splits ▾</span>}
+        </div>
+        {isOpen && (
+          <div className="run-detail" onClick={e=>e.stopPropagation()}>
+            <div className="run-detail-grid">
+              {run.surface && <div className="rdg-item"><span className="rdg-label">Surface</span><span className="rdg-val">{run.surface}</span></div>}
+              {run.fuel    && <div className="rdg-item"><span className="rdg-label">Fuel</span><span className="rdg-val">{run.fuel}</span></div>}
+              {run.tires   && <div className="rdg-item"><span className="rdg-label">Tires</span><span className="rdg-val">{run.tires}</span></div>}
+              {run.da      && <div className="rdg-item"><span className="rdg-label">Density Alt.</span><span className="rdg-val">{run.da}</span></div>}
+              {run.mph!=null   && <div className="rdg-item"><span className="rdg-label">Exit MPH</span><span className="rdg-val">{run.mph} mph</span></div>}
+              {run.trap!=null  && <div className="rdg-item"><span className="rdg-label">Trap MPH</span><span className="rdg-val">{run.trap} mph</span></div>}
+              {run.et!=null    && <div className="rdg-item"><span className="rdg-label">1/4 ET</span><span className="rdg-val">{run.et}s</span></div>}
+              {run.et8th!=null && <div className="rdg-item"><span className="rdg-label">1/8 ET</span><span className="rdg-val">{run.et8th}s</span></div>}
+              {run.time!=null  && <div className="rdg-item"><span className="rdg-label">{run.type}</span><span className="rdg-val">{run.time}s</span></div>}
+            </div>
+            {hasSplits && (
+              <>
+                <div className="splits-title">Speed Splits</div>
+                <table className="splits-table">
+                  <thead><tr><th>Range</th><th>Time (s)</th></tr></thead>
+                  <tbody>
+                    {SPLIT_KEYS_G.filter(k=>run.splits[k]!=null).map(k=>(
+                      <tr key={k}><td>{SPLIT_LABELS_G[k]}</td><td className="split-val">{run.splits[k].toFixed(2)}s</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+            {run.note && <div className="run-note" style={{marginTop:8}}>"{run.note}"</div>}
+            {run.videoUrl && (
+              <a href={run.videoUrl} target="_blank" rel="noreferrer" className="run-video-link">
+                📹 View Slip / Video
+              </a>
+            )}
+            <button className="run-del-full" onClick={()=>deleteRun(run.id)}>Delete Run</button>
+          </div>
+        )}
+      </div>
+    );
+  });
+
   // ── GARAGE OVERVIEW ───────────────────────────────────────────────
   const garageContent = (
     <div className="garage-area">
@@ -1902,8 +2045,53 @@ Fields to extract:
         </div>
       </div>
 
+      {/* ── RUN LOG SECTION IN GARAGE ── */}
+      <div className="section-title" style={{marginTop:14}}>
+        Run Log <span style={{color:"var(--green)",fontSize:11}}>{runs.length} run{runs.length!==1?"s":""}</span>
+        <div style={{display:"flex",gap:6,marginLeft:"auto"}}>
+          <button onClick={()=>setActiveTab("times")} style={{fontSize:10,padding:"3px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer",fontFamily:"'Share Tech Mono',monospace",letterSpacing:".06em"}}>+ LOG RUN</button>
+          <button onClick={loadRuns} style={{fontSize:14,padding:"2px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer"}} title="Refresh runs">{runsLoading?"⟳":"↺"}</button>
+        </div>
+      </div>
+
+      {/* Best times cards */}
+      <div className="best-times" style={{marginBottom:12}}>
+        <div className="bt-card speed-card">
+          <div className="bt-label">Best 60–130</div>
+          <div className="bt-val">
+            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
+              : bestRun60130 ? bestRun60130.time : "—"}
+            <span className="bt-unit">s</span>
+          </div>
+          {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
+        </div>
+        <div className="bt-card strip-card">
+          <div className="bt-label">Best 1/4 Mile</div>
+          <div className="bt-val blue">
+            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
+              : bestRun14 ? bestRun14.et : "—"}
+            <span className="bt-unit">s</span>
+          </div>
+          {bestRun14 && <div className="bt-sub">{bestRun14.trap ? `${bestRun14.trap} mph trap` : ""}</div>}
+        </div>
+      </div>
+
+      {/* Filter bar */}
+      {runFilterBarJSX}
+
+      {/* Run cards */}
+      {runsLoading && runs.length===0 && (
+        <div style={{color:"var(--dim)",fontSize:12,textAlign:"center",padding:"12px 0"}}>
+          <span style={{display:"inline-block",animation:"spin .8s linear infinite",fontSize:16}}>⟳</span> Loading runs…
+        </div>
+      )}
+      {!runsLoading && runs.length===0 && (
+        <div style={{color:"var(--dim)",fontSize:12,padding:"8px 0 4px"}}>No runs logged yet. Tap Log Run to record your first Draggy result.</div>
+      )}
+      {runCardsJSX}
+
       {/* installed mods */}
-      <div className="section-title">
+      <div className="section-title" style={{marginTop:14}}>
         Installed Mods <span style={{color:"var(--green)",fontSize:11}}>{numInst} parts</span>
         <button onClick={()=>{setBuildMode("installed");setActiveTab("parts");}}>+ Add</button>
       </div>
@@ -2136,38 +2324,8 @@ Fields to extract:
         </div>
       )}
 
-      {/* ── SORT / FILTER BAR ── */}
-      {runs.length > 0 && (
-        <div className="run-ctrl-bar">
-          <span className="run-ctrl-label">Sort</span>
-          <select className="run-ctrl-select" value={runSortKey} onChange={e=>setRunSortKey(e.target.value)}>
-            <option value="date">Date</option>
-            <option value="time">Time</option>
-            <option value="da">DA</option>
-            <option value="60_70">60–70</option>
-            <option value="60_80">60–80</option>
-            <option value="60_90">60–90</option>
-            <option value="60_100">60–100</option>
-            <option value="60_110">60–110</option>
-            <option value="60_120">60–120</option>
-            <option value="60_130">60–130 (split)</option>
-            <option value="mph">Exit MPH</option>
-            <option value="et">1/4 ET</option>
-            <option value="trap">Trap MPH</option>
-          </select>
-          <div className="run-ctrl-divider"/>
-          <span className="run-ctrl-label">Surface</span>
-          <select className="run-ctrl-select" value={runSurfFilter} onChange={e=>setRunSurfFilter(e.target.value)}>
-            <option value="All">All</option>
-            {[...new Set(runs.map(r=>r.surface).filter(Boolean))].map(s=><option key={s}>{s}</option>)}
-          </select>
-          <span className="run-ctrl-label">Fuel</span>
-          <select className="run-ctrl-select" value={runFuelFilter} onChange={e=>setRunFuelFilter(e.target.value)}>
-            <option value="All">All</option>
-            {[...new Set(runs.map(r=>r.fuel).filter(Boolean))].map(f=><option key={f}>{f}</option>)}
-          </select>
-        </div>
-      )}
+      {/* ── SORT / FILTER BAR (shared) ── */}
+      {runFilterBarJSX}
 
       {runs.length === 0 && !runFormOpen && (
         <div style={{color:"var(--dim)",fontSize:12,textAlign:"center",padding:"24px 0",lineHeight:1.7}}>
@@ -2178,133 +2336,8 @@ Fields to extract:
         </div>
       )}
 
-      {(() => {
-        const SPLIT_KEYS = ["60_70","60_80","60_90","60_100","60_110","60_120","60_130"];
-        const SPLIT_LABELS = {"60_70":"60–70","60_80":"60–80","60_90":"60–90","60_100":"60–100","60_110":"60–110","60_120":"60–120","60_130":"60–130"};
-
-        // filter
-        let filtered = runs.filter(r =>
-          (runSurfFilter==="All" || r.surface===runSurfFilter) &&
-          (runFuelFilter==="All" || r.fuel===runFuelFilter)
-        );
-
-        // sort
-        const getVal = (r, key) => {
-          if (key==="date") return r.date||"";
-          if (key==="time") return r.time!=null ? r.time : 999;
-          if (key==="da") { const n=parseFloat(String(r.da||"").replace(/[^\d.-]/g,"")); return isNaN(n)?999:n; }
-          if (key==="mph") return r.mph!=null ? -r.mph : 999;
-          if (key==="et") return r.et!=null ? r.et : 999;
-          if (key==="trap") return r.trap!=null ? -r.trap : 999;
-          if (SPLIT_KEYS.includes(key)) { const v=r.splits?.[key]; return v!=null?v:999; }
-          return 0;
-        };
-        filtered = [...filtered].sort((a,b)=> {
-          const av=getVal(a,runSortKey), bv=getVal(b,runSortKey);
-          if (runSortKey==="date") return bv.localeCompare(av);
-          return av-bv;
-        });
-
-        return filtered.map(run => {
-          const isOpen = selectedRunId===run.id;
-          const hasSplits = run.splits && Object.keys(run.splits).length>0;
-          return (
-            <div key={run.id} className={`run-card${isOpen?" selected":""}`}
-              onClick={()=>setSelectedRunId(isOpen?null:run.id)}>
-              <button className="run-del" onClick={e=>{e.stopPropagation();deleteRun(run.id);}}>×</button>
-              <div className="run-top">
-                <span className="run-date">{run.date}</span>
-                <span className="run-type">{run.type}</span>
-              </div>
-              <div className="run-times">
-                {run.time!=null && (
-                  <div>
-                    <div className="run-time-big">{run.time}s</div>
-                    <div className="run-time-lbl">{run.type}</div>
-                  </div>
-                )}
-                {run.et!=null && (
-                  <div>
-                    <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et}s</div>
-                    <div className="run-time-lbl">1/4 ET</div>
-                  </div>
-                )}
-                {run.et8th!=null && (
-                  <div>
-                    <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et8th}s</div>
-                    <div className="run-time-lbl">1/8 ET</div>
-                  </div>
-                )}
-                {run.mph!=null && !run.et && !run.et8th && (
-                  <div>
-                    <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.mph}</div>
-                    <div className="run-time-lbl">mph</div>
-                  </div>
-                )}
-                {run.trap!=null && (
-                  <div>
-                    <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.trap}</div>
-                    <div className="run-time-lbl">trap mph</div>
-                  </div>
-                )}
-              </div>
-              <div className="run-chips">
-                {run.surface && <span className="run-chip">{run.surface}</span>}
-                {run.fuel && <span className="run-chip">{run.fuel}</span>}
-                {run.tires && <span className="run-chip">{run.tires}</span>}
-                {run.da && <span className="run-chip">DA: {run.da}</span>}
-                {hasSplits && <span className="run-chip" style={{color:"var(--accent)"}}>splits ▾</span>}
-              </div>
-
-              {/* ── EXPANDED DETAIL ── */}
-              {isOpen && (
-                <div className="run-detail" onClick={e=>e.stopPropagation()}>
-                  <div className="run-detail-grid">
-                    {run.surface && <div className="rdg-item"><span className="rdg-label">Surface</span><span className="rdg-val">{run.surface}</span></div>}
-                    {run.fuel    && <div className="rdg-item"><span className="rdg-label">Fuel</span><span className="rdg-val">{run.fuel}</span></div>}
-                    {run.tires   && <div className="rdg-item"><span className="rdg-label">Tires</span><span className="rdg-val">{run.tires}</span></div>}
-                    {run.da      && <div className="rdg-item"><span className="rdg-label">Density Alt.</span><span className="rdg-val">{run.da}</span></div>}
-                    {run.mph!=null  && <div className="rdg-item"><span className="rdg-label">Exit MPH</span><span className="rdg-val">{run.mph} mph</span></div>}
-                    {run.trap!=null && <div className="rdg-item"><span className="rdg-label">Trap MPH</span><span className="rdg-val">{run.trap} mph</span></div>}
-                    {run.et!=null   && <div className="rdg-item"><span className="rdg-label">1/4 ET</span><span className="rdg-val">{run.et}s</span></div>}
-                    {run.et8th!=null&& <div className="rdg-item"><span className="rdg-label">1/8 ET</span><span className="rdg-val">{run.et8th}s</span></div>}
-                    {run.time!=null && <div className="rdg-item"><span className="rdg-label">{run.type}</span><span className="rdg-val">{run.time}s</span></div>}
-                  </div>
-
-                  {hasSplits && (
-                    <>
-                      <div className="splits-title">Speed Splits</div>
-                      <table className="splits-table">
-                        <thead>
-                          <tr>
-                            <th>Range</th>
-                            <th>Time (s)</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {SPLIT_KEYS.filter(k=>run.splits[k]!=null).map(k=>(
-                            <tr key={k}>
-                              <td>{SPLIT_LABELS[k]}</td>
-                              <td className="split-val">{run.splits[k].toFixed(2)}s</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </>
-                  )}
-
-                  {run.note && <div className="run-note" style={{marginTop:8}}>"{run.note}"</div>}
-                  {run.videoUrl && (
-                    <a href={run.videoUrl} target="_blank" rel="noreferrer" className="run-video-link">
-                      📹 View Slip / Video
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        });
-      })()}
+      {/* ── RUN CARDS (shared) ── */}
+      {runCardsJSX}
     </div>
   );
 
