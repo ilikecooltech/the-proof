@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { Analytics } from "@vercel/analytics/react";
 
 // ── SUPABASE CLIENT ──────────────────────────────────────────────────────────
 const SUPABASE_URL  = "https://bqvdudylkqwpyvhshewj.supabase.co";
@@ -2667,6 +2668,7 @@ Fields to extract:
           <span className="bnav-icon">👤</span>Profile
         </button>
       </nav>
+      <Analytics />
     </div>
   );
 }
