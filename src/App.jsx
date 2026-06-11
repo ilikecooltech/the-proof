@@ -1537,9 +1537,15 @@ export default function TheProof() {
 
   async function addRun() {
     const uid = getUserId();
+    // Parse numeric fields — guard against unit strings left by AI or manual typos
+    const toFloat = v => { const n = parseFloat(String(v).replace(/[^\d.-]/g,"")); return isNaN(n) ? null : n; };
     const { data: saved } = await sb.from("runs").insert({
-      user_id:uid, date:runForm.date, run_type:runForm.type, time_val:runForm.time,
-      mph:runForm.mph, et8th:runForm.et8th, et:runForm.et, trap:runForm.trap,
+      user_id:uid, date:runForm.date, run_type:runForm.type,
+      time_val: toFloat(runForm.time),
+      mph:      toFloat(runForm.mph),
+      et8th:    toFloat(runForm.et8th),
+      et:       toFloat(runForm.et),
+      trap:     toFloat(runForm.trap),
       da:runForm.da, surface:runForm.surface, fuel:runForm.fuel, tires:runForm.tires,
       note:runForm.note, video_url:runForm.videoUrl
     }).select().single().catch(()=>({data:null}));
@@ -1646,19 +1652,22 @@ Fields to extract:
 
       if (!parsed) throw new Error("Could not read timing data from image.");
 
+      // Strip units from numeric fields (AI sometimes returns "5.03s", "130 mph", "-261ft")
+      const cleanNum = v => v != null ? String(v).replace(/[^\d.-]/g, "") : "";
+
       setRunForm(prev => ({
         ...prev,
-        ...(parsed.type   && { type:   parsed.type   }),
-        ...(parsed.time   && { time:   parsed.time   }),
-        ...(parsed.mph    && { mph:    parsed.mph    }),
-        ...(parsed.et8th  && { et8th:  parsed.et8th  }),
-        ...(parsed.et     && { et:     parsed.et     }),
-        ...(parsed.trap   && { trap:   parsed.trap   }),
-        ...(parsed.da     && { da:     parsed.da     }),
-        ...(parsed.date   && { date:   parsed.date   }),
-        ...(parsed.fuel   && { fuel:   parsed.fuel   }),
-        ...(parsed.surface&& { surface:parsed.surface}),
-        ...(parsed.note   && { note:   parsed.note   }),
+        ...(parsed.type    && { type:    parsed.type }),
+        ...(parsed.time    && { time:    cleanNum(parsed.time) }),
+        ...(parsed.mph     && { mph:     cleanNum(parsed.mph) }),
+        ...(parsed.et8th   && { et8th:   cleanNum(parsed.et8th) }),
+        ...(parsed.et      && { et:      cleanNum(parsed.et) }),
+        ...(parsed.trap    && { trap:    cleanNum(parsed.trap) }),
+        ...(parsed.da      && { da:      String(parsed.da) }),   // keep as text e.g. "-261ft"
+        ...(parsed.date    && { date:    parsed.date }),
+        ...(parsed.fuel    && { fuel:    parsed.fuel }),
+        ...(parsed.surface && { surface: parsed.surface }),
+        ...(parsed.note    && { note:    parsed.note }),
       }));
     } catch(e) {
       setDraggyError(e.message || "Failed to parse screenshot. Fill in times manually.");
