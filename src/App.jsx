@@ -1279,6 +1279,30 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .draggy-clear{background:transparent;border:none;color:var(--dim);font-size:16px;cursor:pointer;padding:2px 4px;line-height:1}
 .draggy-clear:hover{color:var(--red)}
 .draggy-error{font-size:11px;color:var(--red);margin-top:7px;padding:6px 8px;background:rgba(255,59,92,.06);border-radius:5px;border-left:2px solid var(--red)}
+/* ── RUN LIST SORT / FILTER BAR ── */
+.run-ctrl-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.run-ctrl-label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.run-ctrl-select{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:5px;padding:5px 8px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;outline:none;-webkit-appearance:none;cursor:pointer}
+.run-ctrl-select:focus{border-color:var(--accent)}
+.run-ctrl-select option{background:var(--card2);color:var(--text)}
+.run-ctrl-divider{width:1px;height:16px;background:var(--border);align-self:center}
+/* ── RUN CARD EXPANDED DETAIL ── */
+.run-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative;cursor:pointer;transition:border-color .15s}
+.run-card:hover{border-color:rgba(232,85,10,.3)}
+.run-card.selected{border-color:var(--accent);background:rgba(232,85,10,.04)}
+.run-detail{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.run-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-bottom:10px}
+.rdg-item{display:flex;flex-direction:column;gap:1px}
+.rdg-label{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.rdg-val{font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff}
+.splits-title{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.splits-table{width:100%;border-collapse:collapse}
+.splits-table th{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:3px 6px;border-bottom:1px solid var(--border)}
+.splits-table td{font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;padding:4px 6px;border-bottom:1px solid rgba(255,255,255,.04)}
+.splits-table tr:last-child td{border-bottom:none}
+.splits-table td.split-val{color:var(--green);font-weight:700}
+.run-video-link{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);text-decoration:none;border:1px solid rgba(232,85,10,.3);border-radius:4px;padding:4px 10px}
+.run-video-link:hover{background:rgba(232,85,10,.08)}
 
 /* ── PROFILE FORM ── */
 .profile-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
@@ -1392,9 +1416,13 @@ export default function TheProof() {
   const [runForm, setRunForm]       = useState({
     date: new Date().toISOString().slice(0,10),
     type:"60-130", time:"", mph:"", et8th:"", et:"", trap:"",
-    da:"", surface:"Street", fuel:"", tires:"", note:"", videoUrl:""
+    da:"", surface:"Street", fuel:"", tires:"", note:"", videoUrl:"", splits:{}
   });
   const [runFormOpen, setRunFormOpen] = useState(false);
+  const [selectedRunId, setSelectedRunId] = useState(null);
+  const [runSortKey,    setRunSortKey]    = useState("date");
+  const [runSurfFilter, setRunSurfFilter] = useState("All");
+  const [runFuelFilter, setRunFuelFilter] = useState("All");
   const [liveLeaderboard, setLiveLeaderboard] = useState(LEADERBOARD);
   const [draggyImage, setDraggyImage] = useState(null);   // base64 data URL
   const [draggyParsing, setDraggyParsing] = useState(false);
@@ -1424,11 +1452,16 @@ export default function TheProof() {
 
         // Personal runs
         const { data: runRows } = await sb.from("runs").select("*").eq("user_id", uid).order("created_at", {ascending:false});
-        if (runRows?.length) setRuns(runRows.map(r => ({
-          id:r.id, date:r.date, type:r.run_type, time:r.time_val, mph:r.mph,
-          et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
-          fuel:r.fuel, tires:r.tires, note:r.note, videoUrl:r.video_url
-        })));
+        if (runRows?.length) setRuns(runRows.map(r => {
+          const { note, splits } = (r.note||"").includes("__splits__:") ? (() => {
+            const idx = r.note.indexOf("__splits__:");
+            try { return { note: r.note.slice(0,idx).trim(), splits: JSON.parse(r.note.slice(idx+11)) }; }
+            catch { return { note: r.note, splits: {} }; }
+          })() : { note: r.note||"", splits: {} };
+          return { id:r.id, date:r.date, type:r.run_type, time:r.time_val, mph:r.mph,
+            et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
+            fuel:r.fuel, tires:r.tires, note, splits, videoUrl:r.video_url };
+        }));
 
         // Community leaderboard (falls back to hardcoded LEADERBOARD if empty)
         const { data: lb } = await sb.from("leaderboard").select("*").order("rank");
@@ -1535,6 +1568,19 @@ export default function TheProof() {
     setTimeout(() => setProfileSaved(false), 2000);
   }
 
+  // Pack splits into DB note field and unpack on load
+  function packNote(note, splits) {
+    const s = splits && Object.keys(splits).length ? '__splits__:' + JSON.stringify(splits) : '';
+    return [note, s].filter(Boolean).join('\n');
+  }
+  function unpackNote(raw) {
+    if (!raw) return { note:'', splits:{} };
+    const idx = raw.indexOf('__splits__:');
+    if (idx === -1) return { note: raw, splits: {} };
+    try { return { note: raw.slice(0, idx).trim(), splits: JSON.parse(raw.slice(idx + 11)) }; }
+    catch { return { note: raw, splits: {} }; }
+  }
+
   async function addRun() {
     const uid = getUserId();
     // Parse numeric fields — guard against unit strings left by AI or manual typos
@@ -1547,14 +1593,17 @@ export default function TheProof() {
       et:       toFloat(runForm.et),
       trap:     toFloat(runForm.trap),
       da:runForm.da, surface:runForm.surface, fuel:runForm.fuel, tires:runForm.tires,
-      note:runForm.note, video_url:runForm.videoUrl
+      note: packNote(runForm.note, runForm.splits),
+      video_url:runForm.videoUrl
     }).select().single().catch(()=>({data:null}));
+    const unp = saved ? unpackNote(saved.note) : { note: runForm.note, splits: runForm.splits||{} };
     const r = saved ? { id:saved.id, date:saved.date, type:saved.run_type, time:saved.time_val,
       mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
-      surface:saved.surface, fuel:saved.fuel, tires:saved.tires, note:saved.note, videoUrl:saved.video_url
+      surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
+      note:unp.note, splits:unp.splits, videoUrl:saved.video_url
     } : { ...runForm, id: Date.now() };
     setRuns(prev => [r, ...prev]);
-    setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:""});
+    setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{}});
     setRunFormOpen(false);
   }
 
@@ -1616,16 +1665,25 @@ export default function TheProof() {
 Fields to extract:
 {
   "type": "run type — one of: 60-130, 0-60, 1/8 Mile, 1/4 Mile, Roll Race",
-  "time": "primary elapsed time in seconds as a decimal string, e.g. '4.97'",
-  "mph": "exit or trap speed in mph as a decimal string, e.g. '143.2'",
+  "time": "primary elapsed time in seconds as a plain decimal number string with no units, e.g. '5.03'",
+  "mph": "exit speed in mph as a plain decimal number string with no units, e.g. '130.0'",
   "et8th": "eighth mile elapsed time in seconds if shown, e.g. '6.28'",
   "et": "quarter mile elapsed time in seconds if shown, e.g. '9.67'",
   "trap": "trap speed in mph if this is a strip slip, e.g. '143.0'",
-  "da": "density altitude in feet if shown, e.g. '-65 ft'",
+  "da": "density altitude in feet if shown, include unit, e.g. '-261ft'",
   "date": "date in YYYY-MM-DD format if shown",
   "fuel": "fuel type if shown or visible on the screen",
   "surface": "surface type if visible — Street, Prepped Strip, Dragway, or Roll Race",
-  "note": "any other relevant data from the screen — reaction time, 60ft, conditions"
+  "note": "any other relevant data — reaction time, 60ft, slope, conditions",
+  "splits": {
+    "60_70": "elapsed time for 60-70 mph split in seconds as a number, e.g. 0.51",
+    "60_80": "elapsed time for 60-80 mph split in seconds as a number, e.g. 1.04",
+    "60_90": "elapsed time for 60-90 mph split in seconds as a number, e.g. 1.66",
+    "60_100": "elapsed time for 60-100 mph split in seconds as a number, e.g. 2.38",
+    "60_110": "elapsed time for 60-110 mph split in seconds as a number, e.g. 3.15",
+    "60_120": "elapsed time for 60-120 mph split in seconds as a number, e.g. 4.07",
+    "60_130": "elapsed time for 60-130 mph split in seconds as a number, e.g. 5.03"
+  }
 }`
               }
             ]
@@ -1652,8 +1710,18 @@ Fields to extract:
 
       if (!parsed) throw new Error("Could not read timing data from image.");
 
-      // Strip units from numeric fields (AI sometimes returns "5.03s", "130 mph", "-261ft")
+      // Strip units from numeric fields (AI sometimes returns "5.03s", "130 mph")
       const cleanNum = v => v != null ? String(v).replace(/[^\d.-]/g, "") : "";
+      // Sanitize splits object — keep only numeric values
+      const cleanSplits = raw => {
+        if (!raw || typeof raw !== "object") return {};
+        const out = {};
+        Object.entries(raw).forEach(([k,v]) => {
+          const n = parseFloat(String(v).replace(/[^\d.-]/g,""));
+          if (!isNaN(n)) out[k] = n;
+        });
+        return out;
+      };
 
       setRunForm(prev => ({
         ...prev,
@@ -1663,11 +1731,12 @@ Fields to extract:
         ...(parsed.et8th   && { et8th:   cleanNum(parsed.et8th) }),
         ...(parsed.et      && { et:      cleanNum(parsed.et) }),
         ...(parsed.trap    && { trap:    cleanNum(parsed.trap) }),
-        ...(parsed.da      && { da:      String(parsed.da) }),   // keep as text e.g. "-261ft"
+        ...(parsed.da      && { da:      String(parsed.da) }),
         ...(parsed.date    && { date:    parsed.date }),
         ...(parsed.fuel    && { fuel:    parsed.fuel }),
         ...(parsed.surface && { surface: parsed.surface }),
         ...(parsed.note    && { note:    parsed.note }),
+        splits: cleanSplits(parsed.splits),
       }));
     } catch(e) {
       setDraggyError(e.message || "Failed to parse screenshot. Fill in times manually.");
@@ -1942,72 +2011,172 @@ Fields to extract:
         </div>
       )}
 
+      {/* ── SORT / FILTER BAR ── */}
+      {runs.length > 0 && (
+        <div className="run-ctrl-bar">
+          <span className="run-ctrl-label">Sort</span>
+          <select className="run-ctrl-select" value={runSortKey} onChange={e=>setRunSortKey(e.target.value)}>
+            <option value="date">Date</option>
+            <option value="time">Time</option>
+            <option value="da">DA</option>
+            <option value="60_70">60–70</option>
+            <option value="60_80">60–80</option>
+            <option value="60_90">60–90</option>
+            <option value="60_100">60–100</option>
+            <option value="60_110">60–110</option>
+            <option value="60_120">60–120</option>
+            <option value="60_130">60–130 (split)</option>
+            <option value="mph">Exit MPH</option>
+            <option value="et">1/4 ET</option>
+            <option value="trap">Trap MPH</option>
+          </select>
+          <div className="run-ctrl-divider"/>
+          <span className="run-ctrl-label">Surface</span>
+          <select className="run-ctrl-select" value={runSurfFilter} onChange={e=>setRunSurfFilter(e.target.value)}>
+            <option value="All">All</option>
+            {[...new Set(runs.map(r=>r.surface).filter(Boolean))].map(s=><option key={s}>{s}</option>)}
+          </select>
+          <span className="run-ctrl-label">Fuel</span>
+          <select className="run-ctrl-select" value={runFuelFilter} onChange={e=>setRunFuelFilter(e.target.value)}>
+            <option value="All">All</option>
+            {[...new Set(runs.map(r=>r.fuel).filter(Boolean))].map(f=><option key={f}>{f}</option>)}
+          </select>
+        </div>
+      )}
+
       {runs.length === 0 && !runFormOpen && (
         <div style={{color:"var(--dim)",fontSize:12,textAlign:"center",padding:"24px 0"}}>
           No runs logged yet. Tap Log a Run to record your first Draggy result or strip slip.
         </div>
       )}
 
-      {runs.map(run => (
-        <div key={run.id} className="run-card">
-          <button className="run-del" onClick={()=>deleteRun(run.id)}>×</button>
-          <div className="run-top">
-            <span className="run-date">{run.date}</span>
-            <span className="run-type">{run.type}</span>
-          </div>
-          <div className="run-times">
-            {run.time && (
-              <div>
-                <div className="run-time-big">{run.time}s</div>
-                <div className="run-time-lbl">{run.type}</div>
+      {(() => {
+        const SPLIT_KEYS = ["60_70","60_80","60_90","60_100","60_110","60_120","60_130"];
+        const SPLIT_LABELS = {"60_70":"60–70","60_80":"60–80","60_90":"60–90","60_100":"60–100","60_110":"60–110","60_120":"60–120","60_130":"60–130"};
+
+        // filter
+        let filtered = runs.filter(r =>
+          (runSurfFilter==="All" || r.surface===runSurfFilter) &&
+          (runFuelFilter==="All" || r.fuel===runFuelFilter)
+        );
+
+        // sort
+        const getVal = (r, key) => {
+          if (key==="date") return r.date||"";
+          if (key==="time") return r.time!=null ? r.time : 999;
+          if (key==="da") { const n=parseFloat(String(r.da||"").replace(/[^\d.-]/g,"")); return isNaN(n)?999:n; }
+          if (key==="mph") return r.mph!=null ? -r.mph : 999;
+          if (key==="et") return r.et!=null ? r.et : 999;
+          if (key==="trap") return r.trap!=null ? -r.trap : 999;
+          if (SPLIT_KEYS.includes(key)) { const v=r.splits?.[key]; return v!=null?v:999; }
+          return 0;
+        };
+        filtered = [...filtered].sort((a,b)=> {
+          const av=getVal(a,runSortKey), bv=getVal(b,runSortKey);
+          if (runSortKey==="date") return bv.localeCompare(av);
+          return av-bv;
+        });
+
+        return filtered.map(run => {
+          const isOpen = selectedRunId===run.id;
+          const hasSplits = run.splits && Object.keys(run.splits).length>0;
+          return (
+            <div key={run.id} className={`run-card${isOpen?" selected":""}`}
+              onClick={()=>setSelectedRunId(isOpen?null:run.id)}>
+              <button className="run-del" onClick={e=>{e.stopPropagation();deleteRun(run.id);}}>×</button>
+              <div className="run-top">
+                <span className="run-date">{run.date}</span>
+                <span className="run-type">{run.type}</span>
               </div>
-            )}
-            {run.et && (
-              <div>
-                <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et}s</div>
-                <div className="run-time-lbl">1/4 ET</div>
+              <div className="run-times">
+                {run.time!=null && (
+                  <div>
+                    <div className="run-time-big">{run.time}s</div>
+                    <div className="run-time-lbl">{run.type}</div>
+                  </div>
+                )}
+                {run.et!=null && (
+                  <div>
+                    <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et}s</div>
+                    <div className="run-time-lbl">1/4 ET</div>
+                  </div>
+                )}
+                {run.et8th!=null && (
+                  <div>
+                    <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et8th}s</div>
+                    <div className="run-time-lbl">1/8 ET</div>
+                  </div>
+                )}
+                {run.mph!=null && !run.et && !run.et8th && (
+                  <div>
+                    <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.mph}</div>
+                    <div className="run-time-lbl">mph</div>
+                  </div>
+                )}
+                {run.trap!=null && (
+                  <div>
+                    <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.trap}</div>
+                    <div className="run-time-lbl">trap mph</div>
+                  </div>
+                )}
               </div>
-            )}
-            {run.et8th && (
-              <div>
-                <div className="run-time-big" style={{color:"var(--blue)"}}>{run.et8th}s</div>
-                <div className="run-time-lbl">1/8 ET</div>
+              <div className="run-chips">
+                {run.surface && <span className="run-chip">{run.surface}</span>}
+                {run.fuel && <span className="run-chip">{run.fuel}</span>}
+                {run.tires && <span className="run-chip">{run.tires}</span>}
+                {run.da && <span className="run-chip">DA: {run.da}</span>}
+                {hasSplits && <span className="run-chip" style={{color:"var(--accent)"}}>splits ▾</span>}
               </div>
-            )}
-            {run.mph && !run.et && !run.et8th && (
-              <div>
-                <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.mph}</div>
-                <div className="run-time-lbl">mph</div>
-              </div>
-            )}
-            {run.trap && (
-              <div>
-                <div className="run-time-big" style={{color:"var(--accent2)"}}>{run.trap}</div>
-                <div className="run-time-lbl">trap mph</div>
-              </div>
-            )}
-          </div>
-          <div className="run-chips">
-            {run.surface && <span className="run-chip">{run.surface}</span>}
-            {run.fuel && <span className="run-chip">{run.fuel}</span>}
-            {run.tires && <span className="run-chip">{run.tires}</span>}
-            {run.da && <span className="run-chip">DA: {run.da}</span>}
-            {run.videoUrl && <span className="run-chip" style={{color:"var(--accent)"}}>📹 slip</span>}
-          </div>
-          {run.slipImage && (
-            <div style={{marginTop:6}}>
-              <img
-                src={run.slipImage}
-                alt="Draggy screenshot"
-                style={{width:"100%",maxHeight:120,objectFit:"cover",borderRadius:5,border:"1px solid var(--border)",cursor:"pointer"}}
-                onClick={()=>window.open(run.slipImage,"_blank")}
-              />
-              <div style={{fontSize:9,color:"var(--dim)",marginTop:2,fontFamily:"'Share Tech Mono',monospace",letterSpacing:".06em"}}>DRAGGY SCREENSHOT · TAP TO EXPAND</div>
+
+              {/* ── EXPANDED DETAIL ── */}
+              {isOpen && (
+                <div className="run-detail" onClick={e=>e.stopPropagation()}>
+                  <div className="run-detail-grid">
+                    {run.surface && <div className="rdg-item"><span className="rdg-label">Surface</span><span className="rdg-val">{run.surface}</span></div>}
+                    {run.fuel    && <div className="rdg-item"><span className="rdg-label">Fuel</span><span className="rdg-val">{run.fuel}</span></div>}
+                    {run.tires   && <div className="rdg-item"><span className="rdg-label">Tires</span><span className="rdg-val">{run.tires}</span></div>}
+                    {run.da      && <div className="rdg-item"><span className="rdg-label">Density Alt.</span><span className="rdg-val">{run.da}</span></div>}
+                    {run.mph!=null  && <div className="rdg-item"><span className="rdg-label">Exit MPH</span><span className="rdg-val">{run.mph} mph</span></div>}
+                    {run.trap!=null && <div className="rdg-item"><span className="rdg-label">Trap MPH</span><span className="rdg-val">{run.trap} mph</span></div>}
+                    {run.et!=null   && <div className="rdg-item"><span className="rdg-label">1/4 ET</span><span className="rdg-val">{run.et}s</span></div>}
+                    {run.et8th!=null&& <div className="rdg-item"><span className="rdg-label">1/8 ET</span><span className="rdg-val">{run.et8th}s</span></div>}
+                    {run.time!=null && <div className="rdg-item"><span className="rdg-label">{run.type}</span><span className="rdg-val">{run.time}s</span></div>}
+                  </div>
+
+                  {hasSplits && (
+                    <>
+                      <div className="splits-title">Speed Splits</div>
+                      <table className="splits-table">
+                        <thead>
+                          <tr>
+                            <th>Range</th>
+                            <th>Time (s)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {SPLIT_KEYS.filter(k=>run.splits[k]!=null).map(k=>(
+                            <tr key={k}>
+                              <td>{SPLIT_LABELS[k]}</td>
+                              <td className="split-val">{run.splits[k].toFixed(2)}s</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </>
+                  )}
+
+                  {run.note && <div className="run-note" style={{marginTop:8}}>"{run.note}"</div>}
+                  {run.videoUrl && (
+                    <a href={run.videoUrl} target="_blank" rel="noreferrer" className="run-video-link">
+                      📹 View Slip / Video
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-          {run.note && <div className="run-note">"{run.note}"</div>}
-        </div>
-      ))}
+          );
+        });
+      })()}
     </div>
   );
 
