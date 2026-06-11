@@ -29,16 +29,16 @@ const LEADERBOARD = [
 
 // ── MODELS ─────────────────────────────────────────────────────────────────
 const MODELS = [
-  { id:"a6_20t", label:"A6 2.0T", engine:"2.0T TFSI",    hp:252, torque:273, t060:6.1, t60130:15.2 },
-  { id:"a6_30t", label:"A6 3.0T", engine:"3.0T TFSI SC", hp:310, torque:325, t060:5.5, t60130:13.1 },
-  { id:"a7_20t", label:"A7 2.0T", engine:"2.0T TFSI",    hp:252, torque:273, t060:6.2, t60130:15.5 },
-  { id:"a7_30t", label:"A7 3.0T", engine:"3.0T TFSI SC", hp:310, torque:325, t060:5.6, t60130:13.4 },
-  { id:"s6",     label:"S6",      engine:"4.0T TFSI",    hp:450, torque:516, t060:4.4, t60130:9.8 },
-  { id:"s7",     label:"S7",      engine:"4.0T TFSI",    hp:450, torque:516, t060:4.5, t60130:10.1 },
-  { id:"rs6",    label:"RS6",     engine:"4.0T TFSI",    hp:560, torque:516, t060:3.9, t60130:8.2 },
-  { id:"rs7",    label:"RS7",     engine:"4.0T TFSI",    hp:560, torque:516, t060:3.9, t60130:8.4 },
-  { id:"a8",     label:"A8 4.0T", engine:"4.0T TFSI",    hp:420, torque:479, t060:4.9, t60130:11.5 },
-  { id:"s8",     label:"S8",      engine:"4.0T TFSI",    hp:520, torque:479, t060:3.9, t60130:9.0 },
+  { id:"a6_20t", label:"A6 2.0T", engine:"2.0T TFSI",    hp:252, torque:273, t060:6.1, t60130:15.2, et:15.1 },
+  { id:"a6_30t", label:"A6 3.0T", engine:"3.0T TFSI SC", hp:310, torque:325, t060:5.5, t60130:13.1, et:13.8 },
+  { id:"a7_20t", label:"A7 2.0T", engine:"2.0T TFSI",    hp:252, torque:273, t060:6.2, t60130:15.5, et:15.2 },
+  { id:"a7_30t", label:"A7 3.0T", engine:"3.0T TFSI SC", hp:310, torque:325, t060:5.6, t60130:13.4, et:13.9 },
+  { id:"s6",     label:"S6",      engine:"4.0T TFSI",    hp:450, torque:516, t060:4.4, t60130:9.8,  et:12.6 },
+  { id:"s7",     label:"S7",      engine:"4.0T TFSI",    hp:450, torque:516, t060:4.5, t60130:10.1, et:12.7 },
+  { id:"rs6",    label:"RS6",     engine:"4.0T TFSI",    hp:560, torque:516, t060:3.9, t60130:8.2,  et:11.8 },
+  { id:"rs7",    label:"RS7",     engine:"4.0T TFSI",    hp:560, torque:516, t060:3.9, t60130:8.4,  et:11.9 },
+  { id:"a8",     label:"A8 4.0T", engine:"4.0T TFSI",    hp:420, torque:479, t060:4.9, t60130:11.5, et:13.0 },
+  { id:"s8",     label:"S8",      engine:"4.0T TFSI",    hp:520, torque:479, t060:3.9, t60130:9.0,  et:12.2 },
 ];
 
 const CATEGORIES = ["Engine","Turbos","Fueling","Intake","Exhaust","Intercooler","Cooling","Manifolds","Differential","Drivetrain","Suspension","Brakes","Tires","Maintenance"];
@@ -1095,6 +1095,13 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .vc-btn.vsel{background:var(--accent);border-color:var(--accent);color:#fff}
 .vc-btn.vsel:active,.vc-btn.vsel:hover{background:var(--red);border-color:var(--red)}
 
+/* ── TIME ESTIMATES ── */
+.t-est-row{display:flex;align-items:stretch;margin:6px 0 8px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.t-est-box{flex:1;padding:7px 9px;display:flex;flex-direction:column;gap:2px}
+.t-est-divider{width:1px;background:var(--border);flex-shrink:0}
+.t-est-label{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.t-est-val{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:17px;color:var(--accent2);letter-spacing:.02em;line-height:1}
+
 /* ── PERF BAR ── */
 .perf-bar-wrap{margin:6px 0 8px;padding:8px 9px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px}
 .perf-bar-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
@@ -2118,13 +2125,7 @@ Fields to extract:
         ))}
       </div>
       <div className="parts-area">
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:2}}>
-          <div className="area-title" style={{marginBottom:0}}>{activeCat}</div>
-          <div className="perf-metric-toggle">
-            <button className={`pmtbtn${perfMetric==="et"?" pma":""}`} onClick={()=>setPerfMetric("et")}>ET</button>
-            <button className={`pmtbtn${perfMetric==="t60130"?" pma":""}`} onClick={()=>setPerfMetric("t60130")}>60–130</button>
-          </div>
-        </div>
+        <div className="area-title">{activeCat}</div>
         <div className="area-sub">
           {currentModel.engine} · {currentModel.hp} hp stock ·{" "}
           <span style={{color: buildMode==="installed"?"var(--green)":"var(--blue)"}}>
@@ -2195,7 +2196,19 @@ Fields to extract:
                               <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`} style={{color:hp>0?"var(--accent2)":undefined}}>{hp>0?`+${Math.round(hp*0.85)}`:"—"}</div></div>
                               <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
                             </div>
-                            <PerfBar slotId={slot.id} metric={perfMetric} />
+                            {hp > 0 && (
+                              <div className="t-est-row">
+                                <div className="t-est-box">
+                                  <div className="t-est-label">1/4 Mile Est.</div>
+                                  <div className="t-est-val">−{(currentModel.et * hp / (currentModel.hp + hp)).toFixed(2)}s</div>
+                                </div>
+                                <div className="t-est-divider"/>
+                                <div className="t-est-box">
+                                  <div className="t-est-label">60–130 Est.</div>
+                                  <div className="t-est-val">−{(currentModel.t60130 * hp / (currentModel.hp + hp)).toFixed(2)}s</div>
+                                </div>
+                              </div>
+                            )}
                             <div className="vc-pc">
                               <div className="vc-pros">{v.pros.map((p,i)=><div key={i}>+ {p}</div>)}</div>
                               <div className="vc-cons">{v.cons.map((c,i)=><div key={i}>− {c}</div>)}</div>
