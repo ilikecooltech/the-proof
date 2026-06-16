@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import posthog from "posthog-js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
-const PH_KEY = import.meta.env.VITE_POSTHOG_KEY;
+const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
 if (PH_KEY) {
   posthog.init(PH_KEY, {
     api_host: "https://us.i.posthog.com",
