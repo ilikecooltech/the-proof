@@ -56,6 +56,67 @@ const MODELS = [
   { id:"s8",     label:"S8",      engine:"4.0T TFSI",    hp:520, torque:479, t060:3.9, t60130:9.0,  et:12.2 },
 ];
 
+// ── TRAP SPEED REFERENCE LIBRARY ─────────────────────────────────────────────
+// Maps a 60–130 mph roll time (seconds) → expected 1/4-mile trap speed (mph).
+// Baseline reference curve sourced from the Dragy Talk 60-130-vs-trap-speed chart.
+//
+// This is intentionally a standalone, extensible data library — the product's
+// reference "spine." As real runs accumulate (LEADERBOARD + user-logged runs), the
+// Trap Chart overlays actual data points on top of this curve so the baseline can be
+// tuned against reality over time. Extending it:
+//   • Widen coverage      → add { t60130, trap } rows (keep it ordered slowest→fastest).
+//   • Per-vehicle tables  → add sibling tables in the same shape and select by model.
+//   • Blend with data     → weight trapForTime() toward observed points as they grow.
+// Ordered slowest → fastest (descending t60130). Steps are non-uniform by design.
+const TRAP_TABLE = [
+  { t60130:12.0, trap:109   }, { t60130:11.9, trap:109.5 }, { t60130:11.8, trap:110   }, { t60130:11.7, trap:110.5 }, { t60130:11.6, trap:111   },
+  { t60130:11.5, trap:111.5 }, { t60130:11.4, trap:112   }, { t60130:11.3, trap:112.5 }, { t60130:11.2, trap:113   }, { t60130:11.1, trap:113.5 },
+  { t60130:11.0, trap:114   }, { t60130:10.9, trap:114.5 }, { t60130:10.8, trap:115   }, { t60130:10.7, trap:115.5 }, { t60130:10.6, trap:116   },
+  { t60130:10.5, trap:116.5 }, { t60130:10.4, trap:117   }, { t60130:10.3, trap:117.5 }, { t60130:10.2, trap:118   }, { t60130:10.1, trap:118.5 },
+  { t60130:10.0, trap:119   }, { t60130:9.9,  trap:119.5 }, { t60130:9.8,  trap:120   }, { t60130:9.7,  trap:120.5 }, { t60130:9.6,  trap:121   },
+  { t60130:9.5,  trap:121.5 }, { t60130:9.4,  trap:122   }, { t60130:9.3,  trap:122.5 }, { t60130:9.2,  trap:123   }, { t60130:9.1,  trap:123.5 },
+  { t60130:9.0,  trap:124   }, { t60130:8.9,  trap:124.5 }, { t60130:8.8,  trap:125   }, { t60130:8.7,  trap:125.5 }, { t60130:8.6,  trap:126   },
+  { t60130:8.5,  trap:126.5 }, { t60130:8.4,  trap:127   }, { t60130:8.3,  trap:127.5 }, { t60130:8.2,  trap:128   }, { t60130:8.1,  trap:128.5 },
+  { t60130:8.0,  trap:129   }, { t60130:7.9,  trap:129.5 }, { t60130:7.8,  trap:130   }, { t60130:7.7,  trap:130.5 }, { t60130:7.6,  trap:131   },
+  { t60130:7.5,  trap:131.5 }, { t60130:7.4,  trap:132   }, { t60130:7.3,  trap:132.5 }, { t60130:7.2,  trap:133   }, { t60130:7.1,  trap:133.5 },
+  { t60130:7.0,  trap:134   }, { t60130:6.9,  trap:134.5 }, { t60130:6.8,  trap:135   }, { t60130:6.7,  trap:135.5 }, { t60130:6.6,  trap:136   },
+  { t60130:6.5,  trap:136.5 }, { t60130:6.4,  trap:137   }, { t60130:6.3,  trap:137.5 }, { t60130:6.2,  trap:138   }, { t60130:6.1,  trap:138.5 },
+  { t60130:6.0,  trap:139   }, { t60130:5.9,  trap:140   }, { t60130:5.8,  trap:142   }, { t60130:5.7,  trap:143   }, { t60130:5.6,  trap:144   },
+  { t60130:5.5,  trap:145   }, { t60130:5.4,  trap:146   }, { t60130:5.3,  trap:147   }, { t60130:5.2,  trap:148   }, { t60130:5.1,  trap:148.5 },
+  { t60130:5.0,  trap:149   }, { t60130:4.9,  trap:149.5 }, { t60130:4.8,  trap:150   }, { t60130:4.7,  trap:151   }, { t60130:4.6,  trap:152   },
+  { t60130:4.5,  trap:153   }, { t60130:4.4,  trap:154.25}, { t60130:4.3,  trap:155.5 }, { t60130:4.2,  trap:156   }, { t60130:4.1,  trap:157.5 },
+  { t60130:4.0,  trap:159   }, { t60130:3.9,  trap:160.5 }, { t60130:3.8,  trap:161.75}, { t60130:3.7,  trap:163   }, { t60130:3.6,  trap:164.25},
+  { t60130:3.5,  trap:165.5 }, { t60130:3.4,  trap:166.75}, { t60130:3.3,  trap:168   }, { t60130:3.2,  trap:169.25}, { t60130:3.1,  trap:170.5 },
+  { t60130:3.0,  trap:171.75}, { t60130:2.9,  trap:173   }, { t60130:2.8,  trap:174.5 }, { t60130:2.7,  trap:176   }, { t60130:2.6,  trap:177.5 },
+  { t60130:2.5,  trap:180   }, { t60130:2.4,  trap:182   }, { t60130:2.3,  trap:184   }, { t60130:2.2,  trap:186   }, { t60130:2.1,  trap:188   },
+  { t60130:2.0,  trap:190   },
+];
+
+// Estimate 1/4-mile trap speed for ANY 60–130 time — including values that fall
+// between table rows — via linear interpolation. Clamps to the table's covered
+// range at both ends. Returns null for non-numeric input. This is the seam where
+// the reference model can later be blended with observed data.
+function trapForTime(t60130) {
+  const t = Number(t60130);
+  if (!Number.isFinite(t)) return null;
+  const rows = TRAP_TABLE;                  // descending t60130: rows[0] slowest, last fastest
+  const slowest = rows[0];
+  const fastest = rows[rows.length - 1];
+  if (t >= slowest.t60130) return slowest.trap;   // clamp slow end
+  if (t <= fastest.t60130) return fastest.trap;   // clamp fast end
+  for (let i = 0; i < rows.length - 1; i++) {
+    const hi = rows[i];        // larger time
+    const lo = rows[i + 1];    // smaller time
+    if (t <= hi.t60130 && t >= lo.t60130) {
+      const span = hi.t60130 - lo.t60130;
+      if (span === 0) return hi.trap;
+      const frac = (hi.t60130 - t) / span;          // 0 at hi → 1 at lo
+      return +(hi.trap + frac * (lo.trap - hi.trap)).toFixed(2);
+    }
+  }
+  return null;
+}
+
 // 4.0T HP normalization: S6/S7/A8/S8 share the same block; stock HP differences are
 // OEM turbo sizing and factory tune — not engine differences. When aftermarket turbos
 // or tunes are added, the block normalizes to a common output baseline.
@@ -1347,6 +1408,49 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .draggy-error{font-size:11px;color:var(--red);margin-top:7px;padding:6px 8px;background:rgba(255,59,92,.06);border-radius:5px;border-left:2px solid var(--red)}
 /* ── SAVE TOAST ── */
 .save-toast{background:rgba(0,232,135,.12);border:1px solid rgba(0,232,135,.3);border-radius:6px;padding:9px 14px;margin-bottom:10px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);text-align:center;animation:fadeIn .2s ease}
+
+/* ── TRAP CHART ── */
+.times-view-toggle{display:flex;gap:6px;margin-bottom:12px}
+.tvbtn{flex:1;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.08em;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
+.tvbtn.tva{background:var(--accent);border-color:var(--accent);color:#fff}
+.tvbtn:not(.tva):hover{border-color:var(--muted);color:var(--muted)}
+.trap-chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.tc-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1}
+.tc-sub{font-size:11px;color:var(--muted);margin:3px 0 12px;font-weight:300}
+.tc-svg{width:100%;height:auto;display:block;background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:8px}
+.tc-grid{stroke:rgba(255,255,255,.06);stroke-width:1}
+.tc-axis-lbl{fill:var(--dim);font-family:'Share Tech Mono',monospace;font-size:8px}
+.tc-ref-line{stroke:var(--accent2);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.tc-real-dot{fill:var(--blue);stroke:#0a0a0c;stroke-width:1}
+.tc-you-dot{fill:var(--green);stroke:#0a0a0c;stroke-width:1.5}
+.tc-you-line{stroke:var(--green);stroke-width:1;stroke-dasharray:3 3;opacity:.5}
+.tc-legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+.tc-legend-item{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.tc-legend-item i{width:12px;height:3px;border-radius:2px;display:inline-block;flex-shrink:0}
+.tc-sw-ref{background:var(--accent2)}
+.tc-sw-real{background:var(--blue);width:8px;height:8px;border-radius:50%}
+.tc-sw-you{background:var(--green);width:8px;height:8px;border-radius:50%}
+.tc-stat{margin-top:10px;padding:8px 10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text);line-height:1.5}
+.tc-stat strong{color:var(--accent2)}
+.tc-lookup{margin-top:10px;padding:10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px}
+.tc-lookup-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px}
+.tc-lookup-row{display:flex;align-items:center;gap:8px}
+.tc-lookup-input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:#fff;font-family:'Share Tech Mono',monospace;font-size:13px}
+.tc-lookup-input:focus{outline:none;border-color:var(--accent)}
+.tc-lookup-arrow{color:var(--dim);font-size:14px;flex-shrink:0}
+.tc-lookup-out{min-width:90px;flex-shrink:0;text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--accent2);background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:6px 8px}
+.tc-you-note{margin-top:8px;font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace}
+.tc-you-note strong{color:var(--green)}
+.tc-table-wrap{margin-top:10px}
+.tc-table-toggle{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:6px 0;list-style:none}
+.tc-table-toggle::-webkit-details-marker{display:none}
+.tc-table-toggle::before{content:'▸ ';color:var(--accent)}
+details[open] .tc-table-toggle::before{content:'▾ '}
+.tc-table-scroll{max-height:220px;overflow-y:auto;margin-top:6px;border:1px solid var(--border);border-radius:6px}
+.tc-table{width:100%;border-collapse:collapse}
+.tc-table th{position:sticky;top:0;background:var(--card2);font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.tc-table td{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04)}
+.tc-table td:last-child{color:var(--accent2);font-weight:700}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 /* ── RUN LIST SORT / FILTER BAR ── */
 .run-ctrl-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
@@ -1465,6 +1569,119 @@ function PerfBar({ slotId, metric }) {
   );
 }
 
+// ── TRAP CHART ─────────────────────────────────────────────────────────────
+// Reference curve (TRAP_TABLE) with real logged runs overlaid. Gets more useful
+// as data accumulates: real leaderboard runs are plotted against the baseline and
+// their average deviation is surfaced, and any 60–130 time can be interpolated to
+// an estimated trap via trapForTime(). Lightweight inline SVG — no chart deps.
+function TrapChart({ leaderboard, bestRun60130 }) {
+  const [lookup, setLookup] = useState("");
+
+  // Plot geometry (SVG user units)
+  const W = 340, H = 240;
+  const plotL = 34, plotR = W - 12, plotT = 14, plotB = H - 28;
+  const T_MIN = 2, T_MAX = 12;      // 60–130 time domain (s) — slow(left) → fast(right)
+  const V_MIN = 105, V_MAX = 195;   // trap range (mph)
+  const xOf = t => plotL + ((T_MAX - t) / (T_MAX - T_MIN)) * (plotR - plotL);
+  const yOf = v => plotB - ((v - V_MIN) / (V_MAX - V_MIN)) * (plotB - plotT);
+
+  const refPts = TRAP_TABLE.map(r => `${xOf(r.t60130).toFixed(1)},${yOf(r.trap).toFixed(1)}`).join(" ");
+
+  // Real runs overlaid on the baseline (leaderboard entries with both time + trap)
+  const real = (leaderboard || [])
+    .filter(d => d.t60130 != null && d.mph != null)
+    .map(d => ({ ...d, x: xOf(d.t60130), y: yOf(d.mph), ref: trapForTime(d.t60130) }));
+
+  // "Gets smarter with data" stat: how far real runs sit from the reference curve
+  const deltas = real.map(d => d.mph - d.ref).filter(Number.isFinite);
+  const avgDelta = deltas.length ? deltas.reduce((a, b) => a + b, 0) / deltas.length : null;
+
+  // The user's own best 60–130 projected onto the curve (estimated trap)
+  const youT = bestRun60130 && bestRun60130.time != null ? parseFloat(bestRun60130.time) : NaN;
+  const you = Number.isFinite(youT) && youT >= T_MIN && youT <= T_MAX
+    ? { t: youT, x: xOf(youT), y: yOf(trapForTime(youT)), est: trapForTime(youT) }
+    : null;
+
+  const lookupT = parseFloat(lookup);
+  const lookupTrap = Number.isFinite(lookupT) ? trapForTime(lookupT) : null;
+
+  const xTicks = [12, 10, 8, 6, 4, 2];
+  const yTicks = [110, 130, 150, 170, 190];
+
+  return (
+    <div className="trap-chart-card">
+      <div className="tc-title">60–130 → Trap Speed</div>
+      <div className="tc-sub">Reference curve vs. real logged runs — sharpens as more data lands.</div>
+
+      <svg viewBox={`0 0 ${W} ${H}`} className="tc-svg" preserveAspectRatio="xMidYMid meet">
+        {yTicks.map(v => (
+          <g key={`y${v}`}>
+            <line x1={plotL} y1={yOf(v)} x2={plotR} y2={yOf(v)} className="tc-grid" />
+            <text x={plotL - 6} y={yOf(v) + 3} className="tc-axis-lbl" textAnchor="end">{v}</text>
+          </g>
+        ))}
+        {xTicks.map(t => (
+          <text key={`x${t}`} x={xOf(t)} y={plotB + 16} className="tc-axis-lbl" textAnchor="middle">{t}s</text>
+        ))}
+        <polyline points={refPts} className="tc-ref-line" fill="none" />
+        {you && (
+          <g>
+            <line x1={you.x} y1={plotT} x2={you.x} y2={plotB} className="tc-you-line" />
+            <circle cx={you.x} cy={you.y} r="4" className="tc-you-dot" />
+          </g>
+        )}
+        {real.map((d, i) => (
+          <circle key={i} cx={d.x} cy={d.y} r="3.4" className="tc-real-dot">
+            <title>{`#${d.rank} ${d.driver}: ${d.t60130}s → ${d.mph} mph (ref ${d.ref})`}</title>
+          </circle>
+        ))}
+      </svg>
+
+      <div className="tc-legend">
+        <span className="tc-legend-item"><i className="tc-sw-ref" />Reference</span>
+        <span className="tc-legend-item"><i className="tc-sw-real" />Real runs ({real.length})</span>
+        {you && <span className="tc-legend-item"><i className="tc-sw-you" />You (est)</span>}
+      </div>
+
+      {avgDelta != null && (
+        <div className="tc-stat">
+          {real.length} real run{real.length === 1 ? "" : "s"} plotted · actual trap averages{" "}
+          <strong>{Math.abs(avgDelta).toFixed(1)} mph {avgDelta < 0 ? "below" : "above"}</strong> the reference at matched 60–130 times.
+        </div>
+      )}
+
+      <div className="tc-lookup">
+        <label className="tc-lookup-lbl">Estimate trap from any 60–130 time</label>
+        <div className="tc-lookup-row">
+          <input className="tc-lookup-input" type="number" step="0.1" inputMode="decimal" placeholder="e.g. 4.6"
+            value={lookup} onChange={e => setLookup(e.target.value)} />
+          <span className="tc-lookup-arrow">→</span>
+          <div className="tc-lookup-out">{lookupTrap != null ? `${lookupTrap} mph` : "— mph"}</div>
+        </div>
+        {you && (
+          <div className="tc-you-note">
+            Your best 60–130 ({you.t}s) projects to ~<strong>{you.est} mph</strong> trap
+          </div>
+        )}
+      </div>
+
+      <details className="tc-table-wrap">
+        <summary className="tc-table-toggle">Full reference table ({TRAP_TABLE.length} rows)</summary>
+        <div className="tc-table-scroll">
+          <table className="tc-table">
+            <thead><tr><th>60–130 (s)</th><th>Trap (mph)</th></tr></thead>
+            <tbody>
+              {TRAP_TABLE.map(r => (
+                <tr key={r.t60130}><td>{r.t60130.toFixed(1)}</td><td>{r.trap}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  );
+}
+
 // ── APP ──────────────────────────────────────────────────────────────────
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
@@ -1497,6 +1714,7 @@ export default function TheProof() {
   const [draggyParsing, setDraggyParsing] = useState(false);
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
+  const [timesView, setTimesView]     = useState("runs"); // "runs" | "chart"
   const [runsLoading, setRunsLoading] = useState(true);
   const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
 
@@ -2249,6 +2467,18 @@ Fields to extract:
         <div className="save-toast">{saveFeedback}</div>
       )}
 
+      {/* ── SUB-VIEW TOGGLE: My Runs ↔ Trap Chart ── */}
+      <div className="times-view-toggle">
+        <button className={`tvbtn${timesView==="runs"?" tva":""}`}
+          onClick={()=>{setTimesView("runs");track("times_view",{view:"runs"});}}>My Runs</button>
+        <button className={`tvbtn${timesView==="chart"?" tva":""}`}
+          onClick={()=>{setTimesView("chart");track("times_view",{view:"chart"});}}>Trap Chart</button>
+      </div>
+
+      {timesView === "chart" ? (
+        <TrapChart leaderboard={liveLeaderboard} bestRun60130={bestRun60130} />
+      ) : (
+      <>
       <div className="best-times">
         <div className="bt-card speed-card">
           <div className="bt-label">Best 60–130</div>
@@ -2427,6 +2657,8 @@ Fields to extract:
 
       {/* ── RUN CARDS (shared) ── */}
       {runCardsJSX}
+      </>
+      )}
     </div>
   );
 
