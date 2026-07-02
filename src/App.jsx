@@ -145,26 +145,25 @@ const TUNE_GAINS = {
   disclaimer:"Reference figures are estimates from published dyno results, not guarantees. Actual gains vary with hardware, fuel blend, DA, and tuner.",
 };
 
-// ── DYNO SCORPION — ADD-ON FEATURES (not a power tune) ───────────────────────
-// Dyno Scorpion publishes NO gain figures. "Scorpion" is a modular ADD-ON FEATURE
-// package that layers onto the DS1 platform — functionality, not dyno numbers.
-// Facts summarized in our own words; see source link. Extend `features`/`platforms`
-// as the lineup changes.
-const SCORPION_FEATURES = {
-  source:"Dyno Scorpion",
-  url:"https://dynoscorpion.com/",
-  tagline:"Modular add-on feature package layered on the DS1 platform — adds capability, not power.",
-  features:[
-    { id:"launch",   name:"Launch Control", desc:"Set-and-hold RPM target for consistent, repeatable launches." },
-    { id:"antilag",  name:"Antilag",        desc:"Keeps the turbo spooled off-throttle to cut lag between shifts and out of corners." },
-    { id:"flames",   name:"Flames",         desc:"Exhaust flame effect on lift / overrun." },
-    { id:"guardian", name:"Guardian",       desc:"Safety monitoring — watches knock, HPFP/LPFP fuel pressure, overboost, and fuel trims." },
-  ],
-  pricing:{ perFeature:200, bundle:800, currency:"USD", note:"~$200 per feature · ~$800 for the full bundle" },
-  platforms:["S6","S7","RS6","RS7","A8","S8","RS3 (2.5T)","TT RS (2.5T)","R8"],
-  unsupported:"No EA888 / 2.0T support.",
-  delivery:["Per-VIN licensing","Remote web-patching","Set up via authorized partners"],
-};
+// ── CUSTOM TUNE ADD-ON FEATURES (provider-agnostic) ──────────────────────────
+// Selectable add-on features a custom tune can include — independent of tuner.
+// NO pricing / bundles / commerce here: pricing and checkout are a FUTURE feature.
+// Dyno Scorpion is credited (linked in-module) as the origin of the "Scorpion"
+// feature set, but the SELECTION is provider-agnostic — any custom-tune owner can
+// record which features they run and who tuned them. Extend the list as needed.
+const CUSTOM_FEATURES = [
+  { id:"flames",    name:"Flames",             desc:"Exhaust flame effect on lift / overrun." },
+  { id:"launch",    name:"Launch Control",     desc:"Set-and-hold RPM target for consistent, repeatable launches." },
+  { id:"ral",       name:"Rolling Anti-Lag",   desc:"Keeps boost alive on rolling starts and part-throttle for instant response (RAL)." },
+  { id:"antilag",   name:"Anti-Lag",           desc:"Keeps the turbo spooled off-throttle to cut lag between shifts and out of corners." },
+  { id:"fuelprot",  name:"Fuel Protection",    desc:"Safety monitoring — watches knock, HPFP/LPFP fuel pressure, overboost, and fuel trims." },
+  { id:"nls",       name:"No-Lift Shift",      desc:"Full-throttle upshifts without lifting — holds boost through the gear change." },
+  { id:"coldstart", name:"Cold Start Control", desc:"Manages cold-start behavior — smoother warm-up or a controlled cold-start routine." },
+  { id:"valet",     name:"Valet / Security",   desc:"Power-limited valet mode and anti-theft immobilizer profile." },
+];
+
+// Dyno Scorpion credit — the provider whose Scorpion feature set these map to.
+const SCORPION = { name:"Dyno Scorpion", url:"https://dynoscorpion.com/" };
 
 // 4.0T HP normalization: S6/S7/A8/S8 share the same block; stock HP differences are
 // OEM turbo sizing and factory tune — not engine differences. When aftermarket turbos
@@ -1539,24 +1538,21 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .tcmp-val-note{font-size:10px;color:var(--muted);flex:1;min-width:140px}
 .tcmp-disclaimer{margin-top:10px;font-size:9px;color:var(--dim);line-height:1.5;font-style:italic}
 
-/* ── DYNO SCORPION ADD-ONS ── */
+/* ── CUSTOM FEATURES (selectable, provider-agnostic) ── */
 .scp-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px}
-.scp-feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-.scp-feat{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:9px}
-.scp-feat-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:var(--accent2)}
-.scp-feat-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45}
-.scp-pricing{display:flex;gap:8px;margin-bottom:10px}
-.scp-price-box{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:9px;text-align:center}
-.scp-price-box.hot{border-color:rgba(232,85,10,.4);background:rgba(232,85,10,.08)}
-.scp-price-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.scp-price-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff;margin-top:2px}
-.scp-price-box.hot .scp-price-val{color:var(--accent2)}
-.scp-meta{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
-.scp-meta-row{display:flex;gap:8px;align-items:baseline}
-.scp-meta-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:64px;flex-shrink:0}
-.scp-meta-txt{font-size:11px;color:var(--text);line-height:1.4}
-.scp-chips{display:flex;flex-wrap:wrap;gap:4px}
-.scp-chip{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:4px;padding:2px 6px}
+.cf-field{margin-bottom:10px}
+.cf-feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cf-feat{text-align:left;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:9px;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit}
+.cf-feat:hover{border-color:var(--muted)}
+.cf-feat.on{border-color:var(--accent);background:rgba(232,85,10,.1)}
+.cf-feat-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.cf-feat-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:#fff}
+.cf-feat.on .cf-feat-name{color:var(--accent2)}
+.cf-check{width:18px;height:18px;flex-shrink:0;border-radius:50%;border:1px solid var(--border);color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1}
+.cf-check.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cf-feat-desc{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.45}
+.cf-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.cf-count{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .scp-source{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(232,85,10,.4);padding-bottom:1px}
 .scp-source:hover{color:var(--accent2)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
@@ -1918,53 +1914,60 @@ function TuneComparison({ runs }) {
   );
 }
 
-// ── DYNO SCORPION ADD-ON FEATURES (Feature B) ──────────────────────────────
-// Add-on FEATURE module (not a power comparison). Data from SCORPION_FEATURES.
-function ScorpionFeatures() {
-  const S = SCORPION_FEATURES;
+// ── CUSTOM FEATURES MODULE (Feature B, generalized) ────────────────────────
+// Provider-agnostic add-on feature selector: pick a tuner/provider, then toggle
+// which custom features the tune includes. NO pricing/commerce (future feature).
+// Dyno Scorpion is credited/linked as the origin of the Scorpion feature set.
+// Provider list reuses the app's existing custom-tuner variants + an "Other tuner"
+// catch-all. Selection is lifted to App state and persisted (see customFeatures).
+function CustomFeatures({ value, onChange }) {
+  const providers = [
+    SCORPION.name,
+    ...((getSlotById("ecu_custom")?.variants) || []).map(v => v.brand),
+    "Other tuner",
+  ];
+  const selected = value.selected || {};
+  const selCount = Object.values(selected).filter(Boolean).length;
+
+  // Functional updates so rapid/batched changes can't clobber each other via a stale prop.
+  const toggle = id => onChange(v => ({ ...v, selected: { ...(v.selected || {}), [id]: !(v.selected || {})[id] } }));
+  const setProvider = provider => onChange(v => ({ ...v, provider }));
+
   return (
     <div className="scp-card">
-      <div className="tc-title">Add-on Features</div>
-      <div className="tc-sub">{S.tagline}</div>
+      <div className="tc-title">Custom Features</div>
+      <div className="tc-sub">Select the add-on features your custom tune includes — for any tuner.</div>
 
-      <div className="scp-feat-grid">
-        {S.features.map(f => (
-          <div className="scp-feat" key={f.id}>
-            <div className="scp-feat-name">{f.name}</div>
-            <div className="scp-feat-desc">{f.desc}</div>
-          </div>
-        ))}
+      <div className="cf-field">
+        <label className="rf-label">Tuner / Provider</label>
+        <select className="rf-input" value={value.provider}
+          onChange={e => setProvider(e.target.value)}>
+          {providers.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
       </div>
 
-      <div className="scp-pricing">
-        <div className="scp-price-box">
-          <div className="scp-price-lbl">Per feature</div>
-          <div className="scp-price-val">~${S.pricing.perFeature}</div>
-        </div>
-        <div className="scp-price-box hot">
-          <div className="scp-price-lbl">Full bundle</div>
-          <div className="scp-price-val">~${S.pricing.bundle}</div>
-        </div>
+      <div className="cf-feat-grid">
+        {CUSTOM_FEATURES.map(f => {
+          const on = !!selected[f.id];
+          return (
+            <button key={f.id} type="button" className={`cf-feat${on ? " on" : ""}`}
+              aria-pressed={on} onClick={() => toggle(f.id)}>
+              <div className="cf-feat-top">
+                <span className="cf-feat-name">{f.name}</span>
+                <span className={`cf-check${on ? " on" : ""}`}>{on ? "✓" : "+"}</span>
+              </div>
+              <div className="cf-feat-desc">{f.desc}</div>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="scp-meta">
-        <div className="scp-meta-row">
-          <span className="scp-meta-lbl">Platforms</span>
-          <span className="scp-chips">{S.platforms.map(p => <span className="scp-chip" key={p}>{p}</span>)}</span>
-        </div>
-        <div className="scp-meta-row">
-          <span className="scp-meta-lbl">Delivery</span>
-          <span className="scp-meta-txt">{S.delivery.join(" · ")}</span>
-        </div>
-        <div className="scp-meta-row">
-          <span className="scp-meta-lbl">Note</span>
-          <span className="scp-meta-txt">{S.unsupported}</span>
-        </div>
+      <div className="cf-footer">
+        <span className="cf-count">{selCount} selected{value.provider ? ` · ${value.provider}` : ""}</span>
+        <a className="scp-source" href={SCORPION.url} target="_blank" rel="noopener noreferrer">
+          Scorpion feature set by {SCORPION.name} ↗
+        </a>
       </div>
-
-      <a className="scp-source" href={S.url} target="_blank" rel="noopener noreferrer">
-        Source: {S.source} ↗
-      </a>
     </div>
   );
 }
@@ -2002,6 +2005,23 @@ export default function TheProof() {
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
   const [timesView, setTimesView]     = useState("runs"); // "runs" | "chart"
+  // Custom-tune add-on features (provider + selected feature ids). Persisted to
+  // localStorage — no DB migration, doesn't touch existing run/profile data.
+  // Lazy initializer (runs once) so we don't add a set-state-in-effect.
+  const [customFeatures, setCustomFeaturesState] = useState(() => {
+    try {
+      const raw = localStorage.getItem("proof-custom-features");
+      if (raw) return JSON.parse(raw);
+    } catch { /* ignore malformed / unavailable storage */ }
+    return { provider: SCORPION.name, selected: {} };
+  });
+  function setCustomFeatures(next) {
+    setCustomFeaturesState(prev => {
+      const val = typeof next === "function" ? next(prev) : next;
+      try { localStorage.setItem("proof-custom-features", JSON.stringify(val)); } catch { /* ignore */ }
+      return val;
+    });
+  }
   const [runsLoading, setRunsLoading] = useState(true);
   const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
 
@@ -3217,7 +3237,7 @@ Fields to extract:
                     {slot.id === "ecu_custom" && (
                       <>
                         <TuneComparison runs={runs} />
-                        <ScorpionFeatures />
+                        <CustomFeatures value={customFeatures} onChange={setCustomFeatures} />
                       </>
                     )}
                   </div>
