@@ -117,6 +117,55 @@ function trapForTime(t60130) {
   return null;
 }
 
+// ── OTS vs CUSTOM TUNE — REFERENCE GAINS ─────────────────────────────────────
+// Extensible reference library (same style as TRAP_TABLE) for the "OTS vs Custom"
+// comparison. These are research-derived ESTIMATES from published dyno results —
+// not guarantees. The headline lever is ETHANOL, not the OTS-vs-custom peak gap.
+// Extend by adding platform rows / hardware entries as more dyno data is gathered.
+const TUNE_GAINS = {
+  // Fuel is the biggest single lever: same map, swap 93 oct → E-blend.
+  ethanol: [
+    { platform:"C8 RS6 / RS7 (4.0T)", from:"93 oct", to:"E85 / E40", hp:[75,110], tq:[80,130],
+      evidence:"034 743→817 HP; IE 690→800 HP / 862 ft-lb on E40 (dyno-verified)." },
+    { platform:"C7 S6 / S7 (4.0T)",   from:"93 oct", to:"E85 / E40", hp:[50,70],  tq:[114,114],
+      evidence:"~+50–70 HP and ~+114 ft-lb from the ethanol swap." },
+  ],
+  // Peak-power gap between a strong OTS flex map and a custom map on STOCK turbos.
+  otsVsCustomPeak: { whp:[0,25],
+    note:"Small today — major OTS flex maps are strong. Custom's real value is elsewhere." },
+  // Where custom actually pulls ahead: matching hardware an OTS file can't account for.
+  customValue: [
+    { factor:"Catted downpipes", whp:[23,35], note:"Gains a generic OTS file cannot see or claim." },
+    { factor:"Knock margin",     whp:null,    note:"Calibrated to your fuel, IATs, and octane — safer at the edge." },
+    { factor:"Fuel-specific cal",whp:null,    note:"Dialed for your exact blend rather than a conservative catch-all." },
+  ],
+  // Rolling-metric anchor — the number to feature prominently.
+  rollingAnchor: { label:"APR S6 / S7 · 60–130 mph", fromS:11.32, toS:9.93, deltaS:-1.4 },
+  drivetrainLossPct:[15,18],   // used to reconcile crank vs wheel on the 4.0T
+  disclaimer:"Reference figures are estimates from published dyno results, not guarantees. Actual gains vary with hardware, fuel blend, DA, and tuner.",
+};
+
+// ── DYNO SCORPION — ADD-ON FEATURES (not a power tune) ───────────────────────
+// Dyno Scorpion publishes NO gain figures. "Scorpion" is a modular ADD-ON FEATURE
+// package that layers onto the DS1 platform — functionality, not dyno numbers.
+// Facts summarized in our own words; see source link. Extend `features`/`platforms`
+// as the lineup changes.
+const SCORPION_FEATURES = {
+  source:"Dyno Scorpion",
+  url:"https://dynoscorpion.com/",
+  tagline:"Modular add-on feature package layered on the DS1 platform — adds capability, not power.",
+  features:[
+    { id:"launch",   name:"Launch Control", desc:"Set-and-hold RPM target for consistent, repeatable launches." },
+    { id:"antilag",  name:"Antilag",        desc:"Keeps the turbo spooled off-throttle to cut lag between shifts and out of corners." },
+    { id:"flames",   name:"Flames",         desc:"Exhaust flame effect on lift / overrun." },
+    { id:"guardian", name:"Guardian",       desc:"Safety monitoring — watches knock, HPFP/LPFP fuel pressure, overboost, and fuel trims." },
+  ],
+  pricing:{ perFeature:200, bundle:800, currency:"USD", note:"~$200 per feature · ~$800 for the full bundle" },
+  platforms:["S6","S7","RS6","RS7","A8","S8","RS3 (2.5T)","TT RS (2.5T)","R8"],
+  unsupported:"No EA888 / 2.0T support.",
+  delivery:["Per-VIN licensing","Remote web-patching","Set up via authorized partners"],
+};
+
 // 4.0T HP normalization: S6/S7/A8/S8 share the same block; stock HP differences are
 // OEM turbo sizing and factory tune — not engine differences. When aftermarket turbos
 // or tunes are added, the block normalizes to a common output baseline.
@@ -1451,6 +1500,65 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .tc-table th{position:sticky;top:0;background:var(--card2);font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
 .tc-table td{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text);padding:5px 10px;border-bottom:1px solid rgba(255,255,255,.04)}
 .tc-table td:last-child{color:var(--accent2);font-weight:700}
+
+/* ── OTS vs CUSTOM TUNE COMPARISON ── */
+.tcmp-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px}
+.tcmp-grid{display:flex;gap:8px}
+.tcmp-col{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;position:relative;overflow:hidden}
+.tcmp-col::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.tcmp-col.ots::before{background:var(--dim)}
+.tcmp-col.custom::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.tcmp-col-hd{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tcmp-big{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:30px;line-height:1;color:#fff}
+.tcmp-col.custom .tcmp-big{color:var(--accent2)}
+.tcmp-u{font-size:14px;font-weight:400;color:var(--muted);margin-left:1px}
+.tcmp-sub{font-size:9px;color:var(--muted);margin-top:4px;font-family:'Share Tech Mono',monospace;line-height:1.4}
+.tcmp-delta{display:flex;gap:8px;margin-top:8px}
+.tcmp-delta-item{flex:1;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+.tcmp-delta-lbl{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tcmp-delta-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:17px;color:#fff}
+.tcmp-delta-val.good{color:var(--green)}
+.tcmp-delta-val.bad{color:var(--red)}
+.tcmp-empty{text-align:center;padding:14px 8px;color:var(--text);font-size:12px;line-height:1.55}
+.tcmp-empty-icon{font-size:26px;opacity:.5;margin-bottom:6px}
+.tcmp-empty strong{color:var(--accent2)}
+.tcmp-empty-note{font-size:10px;color:var(--muted);margin-top:8px;font-family:'Share Tech Mono',monospace;line-height:1.5}
+.tcmp-empty-note strong{color:var(--accent)}
+.tcmp-anchor{margin-top:10px;padding:8px 10px;background:rgba(232,85,10,.08);border:1px solid rgba(232,85,10,.2);border-radius:6px;font-size:11px;color:var(--text);text-align:center}
+.tcmp-anchor strong{color:var(--accent2)}
+.tcmp-headline{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px;padding:8px 10px;background:rgba(0,232,135,.06);border:1px solid rgba(0,232,135,.18);border-radius:6px}
+.tcmp-headline strong{color:var(--green);text-transform:uppercase;letter-spacing:.03em}
+.tcmp-ref-row{padding:8px 0;border-top:1px solid rgba(255,255,255,.05)}
+.tcmp-ref-hd{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#fff}
+.tcmp-ref-line{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:3px;flex-wrap:wrap}
+.tcmp-ref-swap{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)}
+.tcmp-ref-gain{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;color:var(--accent2)}
+.tcmp-ref-note{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45}
+.tcmp-val-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:5px 0;font-size:11px;color:var(--text)}
+.tcmp-val-factor{font-weight:600;color:#fff;min-width:110px}
+.tcmp-val-note{font-size:10px;color:var(--muted);flex:1;min-width:140px}
+.tcmp-disclaimer{margin-top:10px;font-size:9px;color:var(--dim);line-height:1.5;font-style:italic}
+
+/* ── DYNO SCORPION ADD-ONS ── */
+.scp-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px}
+.scp-feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.scp-feat{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:9px}
+.scp-feat-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:var(--accent2)}
+.scp-feat-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.45}
+.scp-pricing{display:flex;gap:8px;margin-bottom:10px}
+.scp-price-box{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;padding:9px;text-align:center}
+.scp-price-box.hot{border-color:rgba(232,85,10,.4);background:rgba(232,85,10,.08)}
+.scp-price-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.scp-price-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:#fff;margin-top:2px}
+.scp-price-box.hot .scp-price-val{color:var(--accent2)}
+.scp-meta{display:flex;flex-direction:column;gap:7px;margin-bottom:10px}
+.scp-meta-row{display:flex;gap:8px;align-items:baseline}
+.scp-meta-lbl{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:64px;flex-shrink:0}
+.scp-meta-txt{font-size:11px;color:var(--text);line-height:1.4}
+.scp-chips{display:flex;flex-wrap:wrap;gap:4px}
+.scp-chip{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:4px;padding:2px 6px}
+.scp-source{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(232,85,10,.4);padding-bottom:1px}
+.scp-source:hover{color:var(--accent2)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 /* ── RUN LIST SORT / FILTER BAR ── */
 .run-ctrl-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
@@ -1682,6 +1790,185 @@ function TrapChart({ leaderboard, bestRun60130 }) {
   );
 }
 
+// ── OTS vs CUSTOM TUNE COMPARISON (Feature A) ──────────────────────────────
+// Two layers: (1) data-driven delta from the user's own OTS-tagged vs Custom-tagged
+// runs (60–130 time + reference-curve trap via trapForTime); (2) research reference
+// ranges from TUNE_GAINS when there isn't enough tagged data yet.
+function TuneComparison({ runs }) {
+  const [view, setView] = useState("data");
+  const G = TUNE_GAINS;
+
+  const withTime = (runs || []).filter(r => r.time != null && !isNaN(parseFloat(r.time)));
+  const bestBy = tag => withTime
+    .filter(r => r.tuneType === tag)
+    .reduce((best, r) => (best == null || parseFloat(r.time) < parseFloat(best.time)) ? r : best, null);
+  const otsBest = bestBy("OTS");
+  const customBest = bestBy("Custom");
+  const hasBoth = !!(otsBest && customBest);
+  const taggedCount = withTime.filter(r => r.tuneType === "OTS" || r.tuneType === "Custom").length;
+
+  const rng = (a, unit) => !a ? "" : (a[0] === a[1] ? `+${a[0]} ${unit}` : `+${a[0]}–${a[1]} ${unit}`);
+
+  let cmp = null;
+  if (hasBoth) {
+    const oT = parseFloat(otsBest.time), cT = parseFloat(customBest.time);
+    const dTime = +(oT - cT).toFixed(2);              // positive → custom faster
+    const oTrap = trapForTime(oT), cTrap = trapForTime(cT);
+    const dTrap = +(cTrap - oTrap).toFixed(1);
+    cmp = { oT, cT, dTime, oTrap, cTrap, dTrap, oFuel: otsBest.fuel, cFuel: customBest.fuel };
+  }
+
+  return (
+    <div className="tcmp-card">
+      <div className="tc-title">OTS vs Custom Tune</div>
+      <div className="tc-sub">What a custom map buys you — measured from your runs, backed by reference data.</div>
+
+      <div className="times-view-toggle" style={{ marginBottom: 12 }}>
+        <button className={`tvbtn${view === "data" ? " tva" : ""}`} onClick={() => setView("data")}>Your Data</button>
+        <button className={`tvbtn${view === "ref" ? " tva" : ""}`} onClick={() => setView("ref")}>Reference</button>
+      </div>
+
+      {view === "data" ? (
+        hasBoth ? (
+          <>
+            <div className="tcmp-grid">
+              <div className="tcmp-col ots">
+                <div className="tcmp-col-hd">OTS baseline</div>
+                <div className="tcmp-big">{cmp.oT}<span className="tcmp-u">s</span></div>
+                <div className="tcmp-sub">60–130 · est {cmp.oTrap} mph trap{cmp.oFuel ? ` · ${cmp.oFuel}` : ""}</div>
+              </div>
+              <div className="tcmp-col custom">
+                <div className="tcmp-col-hd">Custom</div>
+                <div className="tcmp-big">{cmp.cT}<span className="tcmp-u">s</span></div>
+                <div className="tcmp-sub">60–130 · est {cmp.cTrap} mph trap{cmp.cFuel ? ` · ${cmp.cFuel}` : ""}</div>
+              </div>
+            </div>
+            <div className="tcmp-delta">
+              <div className="tcmp-delta-item">
+                <span className="tcmp-delta-lbl">60–130</span>
+                <span className={`tcmp-delta-val${cmp.dTime > 0 ? " good" : cmp.dTime < 0 ? " bad" : ""}`}>
+                  {cmp.dTime > 0 ? `−${cmp.dTime}s` : cmp.dTime < 0 ? `+${Math.abs(cmp.dTime)}s` : "±0s"}
+                </span>
+              </div>
+              <div className="tcmp-delta-item">
+                <span className="tcmp-delta-lbl">Est. trap</span>
+                <span className={`tcmp-delta-val${cmp.dTrap > 0 ? " good" : cmp.dTrap < 0 ? " bad" : ""}`}>
+                  {cmp.dTrap > 0 ? `+${cmp.dTrap}` : cmp.dTrap} mph
+                </span>
+              </div>
+            </div>
+            <div className="tc-you-note">From your best OTS vs best Custom 60–130. Trap estimated via the reference curve.</div>
+          </>
+        ) : (
+          <div className="tcmp-empty">
+            <div className="tcmp-empty-icon">📊</div>
+            <div>Tag your runs <strong>OTS</strong> or <strong>Custom</strong> when logging — once you have one of each, the real 60–130 and trap delta shows here.</div>
+            <div className="tcmp-empty-note">
+              {taggedCount === 0 ? "No tagged runs yet." : `${taggedCount} tagged run${taggedCount === 1 ? "" : "s"} so far.`} Sharpens as more land. Meanwhile, see <strong>Reference</strong> ↑
+            </div>
+            <div className="tcmp-anchor">
+              {G.rollingAnchor.label}: <strong>{G.rollingAnchor.fromS}s → {G.rollingAnchor.toS}s</strong> ({G.rollingAnchor.deltaS}s)
+            </div>
+          </div>
+        )
+      ) : (
+        <>
+          <div className="tcmp-headline">
+            The biggest lever is <strong>ethanol</strong>, not the OTS-vs-custom peak gap.
+          </div>
+
+          {G.ethanol.map((e, i) => (
+            <div className="tcmp-ref-row" key={i}>
+              <div className="tcmp-ref-hd">{e.platform}</div>
+              <div className="tcmp-ref-line">
+                <span className="tcmp-ref-swap">{e.from} → {e.to}</span>
+                <span className="tcmp-ref-gain">{rng(e.hp, "HP")} · {rng(e.tq, "ft-lb")}</span>
+              </div>
+              <div className="tcmp-ref-note">{e.evidence}</div>
+            </div>
+          ))}
+
+          <div className="tcmp-anchor" style={{ marginTop: 10 }}>
+            🏁 {G.rollingAnchor.label}: <strong>{G.rollingAnchor.fromS}s → {G.rollingAnchor.toS}s</strong> ({G.rollingAnchor.deltaS}s)
+          </div>
+
+          <div className="tcmp-ref-row">
+            <div className="tcmp-ref-hd">OTS vs Custom — peak (stock turbos)</div>
+            <div className="tcmp-ref-line">
+              <span className="tcmp-ref-gain">{rng(G.otsVsCustomPeak.whp, "WHP")}</span>
+            </div>
+            <div className="tcmp-ref-note">{G.otsVsCustomPeak.note}</div>
+          </div>
+
+          <div className="tcmp-ref-hd" style={{ marginTop: 8 }}>Where custom actually pulls ahead</div>
+          {G.customValue.map((c, i) => (
+            <div className="tcmp-val-line" key={i}>
+              <span className="tcmp-val-factor">{c.factor}</span>
+              {c.whp && <span className="tcmp-ref-gain">{rng(c.whp, "WHP")}</span>}
+              <span className="tcmp-val-note">{c.note}</span>
+            </div>
+          ))}
+
+          <div className="tcmp-disclaimer">
+            {G.disclaimer} Crank↔wheel reconciled at ~{G.drivetrainLossPct[0]}–{G.drivetrainLossPct[1]}% drivetrain loss (4.0T).
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── DYNO SCORPION ADD-ON FEATURES (Feature B) ──────────────────────────────
+// Add-on FEATURE module (not a power comparison). Data from SCORPION_FEATURES.
+function ScorpionFeatures() {
+  const S = SCORPION_FEATURES;
+  return (
+    <div className="scp-card">
+      <div className="tc-title">Add-on Features</div>
+      <div className="tc-sub">{S.tagline}</div>
+
+      <div className="scp-feat-grid">
+        {S.features.map(f => (
+          <div className="scp-feat" key={f.id}>
+            <div className="scp-feat-name">{f.name}</div>
+            <div className="scp-feat-desc">{f.desc}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="scp-pricing">
+        <div className="scp-price-box">
+          <div className="scp-price-lbl">Per feature</div>
+          <div className="scp-price-val">~${S.pricing.perFeature}</div>
+        </div>
+        <div className="scp-price-box hot">
+          <div className="scp-price-lbl">Full bundle</div>
+          <div className="scp-price-val">~${S.pricing.bundle}</div>
+        </div>
+      </div>
+
+      <div className="scp-meta">
+        <div className="scp-meta-row">
+          <span className="scp-meta-lbl">Platforms</span>
+          <span className="scp-chips">{S.platforms.map(p => <span className="scp-chip" key={p}>{p}</span>)}</span>
+        </div>
+        <div className="scp-meta-row">
+          <span className="scp-meta-lbl">Delivery</span>
+          <span className="scp-meta-txt">{S.delivery.join(" · ")}</span>
+        </div>
+        <div className="scp-meta-row">
+          <span className="scp-meta-lbl">Note</span>
+          <span className="scp-meta-txt">{S.unsupported}</span>
+        </div>
+      </div>
+
+      <a className="scp-source" href={S.url} target="_blank" rel="noopener noreferrer">
+        Source: {S.source} ↗
+      </a>
+    </div>
+  );
+}
+
 // ── APP ──────────────────────────────────────────────────────────────────
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
@@ -1702,7 +1989,7 @@ export default function TheProof() {
   const [runForm, setRunForm]       = useState({
     date: new Date().toISOString().slice(0,10),
     type:"60-130", time:"", mph:"", et8th:"", et:"", trap:"",
-    da:"", surface:"Street", fuel:"", tires:"", note:"", videoUrl:"", splits:{}
+    da:"", surface:"Street", fuel:"", tires:"", note:"", videoUrl:"", splits:{}, tuneType:""
   });
   const [runFormOpen, setRunFormOpen] = useState(false);
   const [selectedRunId, setSelectedRunId] = useState(null);
@@ -1737,16 +2024,12 @@ export default function TheProof() {
       const { data: runRows, error: runErr } = await sb.from("runs").select("*").eq("user_id", uid);
       if (runErr) { console.warn("Runs fetch error:", runErr); }
       const mapped = (runRows || []).map(r => {
-        const { note, splits } = (r.note||"").includes("__splits__:") ? (() => {
-          const idx = r.note.indexOf("__splits__:");
-          try { return { note: r.note.slice(0,idx).trim(), splits: JSON.parse(r.note.slice(idx+11)) }; }
-          catch { return { note: r.note, splits: {} }; }
-        })() : { note: r.note||"", splits: {} };
+        const { note, splits, tuneType } = unpackNote(r.note || "");
         // Handle both possible column names: time_val (new) and time (original schema)
         const timeVal = r.time_val != null ? r.time_val : (r.time != null ? r.time : null);
         return { id:r.id, date:r.date, type:r.run_type, time:timeVal, mph:r.mph,
           et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
-          fuel:r.fuel, tires:r.tires, note, splits, videoUrl:r.video_url };
+          fuel:r.fuel, tires:r.tires, note, splits, tuneType, videoUrl:r.video_url };
       });
       // Sort client-side: most recent date first
       mapped.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
@@ -1897,16 +2180,30 @@ export default function TheProof() {
   }
 
   // Pack splits into DB note field and unpack on load
-  function packNote(note, splits) {
-    const s = splits && Object.keys(splits).length ? '__splits__:' + JSON.stringify(splits) : '';
-    return [note, s].filter(Boolean).join('\n');
+  // Extra fields (splits, tuneType) are packed into the note text column since the
+  // DB schema is fixed. Each marker lives on its own line so parsing one can't corrupt
+  // another (splits JSON is single-line via JSON.stringify).
+  function packNote(note, splits, tuneType) {
+    const parts = [];
+    if (note) parts.push(note);
+    if (tuneType) parts.push('__tune__:' + tuneType);
+    if (splits && Object.keys(splits).length) parts.push('__splits__:' + JSON.stringify(splits));
+    return parts.join('\n');
   }
   function unpackNote(raw) {
-    if (!raw) return { note:'', splits:{} };
-    const idx = raw.indexOf('__splits__:');
-    if (idx === -1) return { note: raw, splits: {} };
-    try { return { note: raw.slice(0, idx).trim(), splits: JSON.parse(raw.slice(idx + 11)) }; }
-    catch { return { note: raw, splits: {} }; }
+    if (!raw) return { note:'', splits:{}, tuneType:'' };
+    let splits = {}, tuneType = '';
+    const noteLines = [];
+    for (const line of String(raw).split('\n')) {
+      if (line.startsWith('__splits__:')) {
+        try { splits = JSON.parse(line.slice(11)); } catch { /* ignore malformed */ }
+      } else if (line.startsWith('__tune__:')) {
+        tuneType = line.slice(9);
+      } else {
+        noteLines.push(line);
+      }
+    }
+    return { note: noteLines.join('\n').trim(), splits, tuneType };
   }
 
   function addRun() {
@@ -1940,6 +2237,7 @@ export default function TheProof() {
       note:     runForm.note,
       splits:   runForm.splits || {},
       videoUrl: runForm.videoUrl,
+      tuneType: runForm.tuneType || "",
     };
 
     // ── 2. UPDATE UI RIGHT NOW (no await) ────────────────────────────
@@ -1948,7 +2246,7 @@ export default function TheProof() {
       next.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
       return next;
     });
-    setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{}});
+    setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{},tuneType:""});
     setRunFormOpen(false);
     setDraggyImage(null);
     setSelectedRunId(tempId);
@@ -1978,7 +2276,7 @@ export default function TheProof() {
       user_id:uid, date:r.date, run_type:r.type,
       time_val:r.time, mph:r.mph, et8th:r.et8th, et:r.et, trap:r.trap,
       da:r.da, surface:r.surface, fuel:r.fuel, tires:r.tires,
-      note: packNote(r.note, r.splits),
+      note: packNote(r.note, r.splits, r.tuneType),
       video_url:r.videoUrl
     };
 
@@ -1990,7 +2288,7 @@ export default function TheProof() {
         id:saved.id, date:saved.date, type:saved.run_type, time:savedTime,
         mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
         surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
-        note:unp.note, splits:unp.splits, videoUrl:saved.video_url
+        note:unp.note, splits:unp.splits, tuneType:unp.tuneType, videoUrl:saved.video_url
       };
     };
 
@@ -2286,6 +2584,7 @@ Fields to extract:
             <div className="run-detail-grid">
               {run.surface && <div className="rdg-item"><span className="rdg-label">Surface</span><span className="rdg-val">{run.surface}</span></div>}
               {run.fuel    && <div className="rdg-item"><span className="rdg-label">Fuel</span><span className="rdg-val">{run.fuel}</span></div>}
+              {run.tuneType && <div className="rdg-item"><span className="rdg-label">Tune</span><span className="rdg-val">{run.tuneType}</span></div>}
               {run.tires   && <div className="rdg-item"><span className="rdg-label">Tires</span><span className="rdg-val">{run.tires}</span></div>}
               {run.da      && <div className="rdg-item"><span className="rdg-label">Density Alt.</span><span className="rdg-val">{run.da}</span></div>}
               {run.mph!=null   && <div className="rdg-item"><span className="rdg-label">Exit MPH</span><span className="rdg-val">{run.mph} mph</span></div>}
@@ -2616,6 +2915,15 @@ Fields to extract:
                 value={runForm.fuel} onChange={e=>setRunForm(p=>({...p,fuel:e.target.value}))}/>
             </div>
             <div className="rf-field">
+              <label className="rf-label">Tune Type</label>
+              <select className="rf-input" value={runForm.tuneType}
+                onChange={e=>setRunForm(p=>({...p,tuneType:e.target.value}))}>
+                <option value="">— not set —</option>
+                <option value="OTS">OTS (off-the-shelf)</option>
+                <option value="Custom">Custom</option>
+              </select>
+            </div>
+            <div className="rf-field">
               <label className="rf-label">DA / Elevation</label>
               <input className="rf-input" type="text" placeholder="-65 ft"
                 value={runForm.da} onChange={e=>setRunForm(p=>({...p,da:e.target.value}))}/>
@@ -2906,6 +3214,12 @@ Fields to extract:
                         );
                       })}
                     </div>
+                    {slot.id === "ecu_custom" && (
+                      <>
+                        <TuneComparison runs={runs} />
+                        <ScorpionFeatures />
+                      </>
+                    )}
                   </div>
                 )}
               </div>
