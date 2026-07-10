@@ -1735,6 +1735,13 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .sc-chip{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.05em;padding:2px 7px;background:rgba(232,85,10,.1);border:1px solid rgba(232,85,10,.25);border-radius:3px;color:var(--accent2)}
 .sc-preview{width:100%;padding:8px;border:1px solid rgba(232,85,10,.3);border-radius:5px;background:transparent;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .sc-preview:hover{background:rgba(232,85,10,.07)}
+/* ── COMMUNITY TEASER (Garage shortcut) ── */
+.cmt-teaser{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid rgba(232,85,10,.25);border-radius:10px;padding:12px 14px;cursor:pointer;margin:10px 0 6px;text-align:left;transition:border-color .15s,background .15s;box-sizing:border-box;font-family:inherit}
+.cmt-teaser:hover,.cmt-teaser:active{border-color:var(--accent);background:rgba(232,85,10,.05)}
+.cmt-teaser-left{flex:1;min-width:0}
+.cmt-teaser-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.1}
+.cmt-teaser-sub{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.06em;color:var(--muted);margin-top:3px}
+.cmt-teaser-arr{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:22px;color:var(--accent);flex-shrink:0;margin-left:10px;line-height:1}
 /* ── PUBLIC PAGE BOTTOM SHEET ── */
 .pub-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .18s ease}
 .pub-sheet{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
@@ -3154,6 +3161,18 @@ Fields to extract:
         Recommended Next <span style={{color:"var(--accent2)",fontSize:11}}>proven path</span>
       </div>
       <RecommendedNext installedMap={installedMap} onAddSlot={goToSlot} />
+      <button className="cmt-teaser" onClick={()=>{
+        setBoardView("builds");
+        setActiveTab("board");
+        if (communityBuilds.length === 0) loadCommunityBuilds();
+        track("community_builds_opened", {from:"garage"});
+      }}>
+        <div className="cmt-teaser-left">
+          <div className="cmt-teaser-title">Browse community builds</div>
+          <div className="cmt-teaser-sub">See what other 4.0T owners are running</div>
+        </div>
+        <span className="cmt-teaser-arr">→</span>
+      </button>
 
       {/* wishlist */}
       <div className="section-title">
@@ -3864,7 +3883,7 @@ Fields to extract:
           {runs.length>0&&<span className="bnav-badge">{runs.length}</span>}
         </button>
         <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>{setActiveTab("board");track("tab_viewed",{tab:"leaderboard"});}}>
-          <span className="bnav-icon">📊</span>Board
+          <span className="bnav-icon">👥</span>Community
         </button>
         <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
           <span className="bnav-icon">👤</span>Profile
