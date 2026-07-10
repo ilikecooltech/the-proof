@@ -1698,6 +1698,69 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .mtbtn-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dot-inst{background:var(--green)}
 .dot-wish{background:var(--blue)}
+/* ── BOARD TOGGLE (Times ↔ Builds) ── */
+.board-toggle{display:flex;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;flex-shrink:0}
+.btog{flex:1;padding:8px;background:transparent;border:none;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.btog.on{background:rgba(232,85,10,.12);color:var(--accent2)}
+/* ── MODEL FILTER BAR ── */
+.mf-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;padding:0 14px}
+.mfbtn{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.06em;padding:4px 8px;border:1px solid var(--border);border-radius:12px;color:var(--muted);background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
+.mfbtn.on{background:rgba(232,85,10,.12);border-color:var(--accent);color:var(--accent2)}
+/* ── COMMUNITY BUILD CARDS ── */
+.cmt-hdr{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0 14px}
+.cmt-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:0 14px 6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s}
+.cmt-card:hover{border-color:rgba(232,85,10,.3)}
+.cmt-card.hot{border-color:rgba(232,85,10,.35)}
+.cmt-av{width:32px;height:32px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:var(--text);flex-shrink:0}
+.cmt-info{flex:1;min-width:0}
+.cmt-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:#fff;line-height:1.1}
+.cmt-car{font-size:10px;color:var(--muted);margin-top:1px}
+.cmt-mods{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmt-ct{text-align:right;flex-shrink:0}
+.cmt-n{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--accent2);line-height:1}
+.cmt-nlbl{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;line-height:1.2;margin-top:1px}
+/* ── SHARE CARD PREVIEW (Profile tab) ── */
+.sc-sect{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
+.sc-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px}
+.sc-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sc-av{width:36px;height:36px;border-radius:50%;background:rgba(232,85,10,.15);border:1px solid rgba(232,85,10,.4);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:var(--accent);flex-shrink:0}
+.sc-namewrap{min-width:0}
+.sc-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.1}
+.sc-car{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent2);letter-spacing:.05em;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.sc-stat{background:rgba(0,0,0,.3);border-radius:5px;padding:7px 5px;text-align:center}
+.sc-stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;line-height:1}
+.sc-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+.sc-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.sc-chip{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.05em;padding:2px 7px;background:rgba(232,85,10,.1);border:1px solid rgba(232,85,10,.25);border-radius:3px;color:var(--accent2)}
+.sc-preview{width:100%;padding:8px;border:1px solid rgba(232,85,10,.3);border-radius:5px;background:transparent;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.sc-preview:hover{background:rgba(232,85,10,.07)}
+/* ── PUBLIC PAGE BOTTOM SHEET ── */
+.pub-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .18s ease}
+.pub-sheet{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
+.pub-close{position:absolute;top:10px;right:14px;background:transparent;border:none;color:var(--dim);font-size:22px;cursor:pointer;padding:4px;z-index:10}
+.pub-hero{background:linear-gradient(180deg,rgba(232,85,10,.12) 0%,transparent 100%);padding:20px 16px 12px;position:relative}
+.pub-handle{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--accent2)}
+.pub-hname{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:24px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1;margin:3px 0}
+.pub-hcar{font-size:11px;color:var(--muted)}
+.pub-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pub-stat-cell{padding:10px 8px;text-align:center;border-right:1px solid var(--border)}
+.pub-stat-cell:last-child{border-right:none}
+.pub-stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;line-height:1}
+.pub-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.pub-ptabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.pub-ptab{flex:1;padding:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.pub-ptab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.pub-body{padding:10px 16px}
+.pub-mod-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}
+.pub-mod-row:last-child{border-bottom:none}
+.pub-mod-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.pub-mod-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.02em;color:#fff;flex:1;line-height:1.1}
+.pub-mod-brand{font-size:10px;color:var(--accent2);margin-top:2px}
+.pub-empty{font-size:12px;color:var(--muted);padding:16px 0;text-align:center}
+.pub-footer{padding:10px 16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.pub-flogo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;letter-spacing:.12em;color:var(--dim)}
+.pub-fcta{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(232,85,10,.35);border-radius:5px;padding:7px 12px;background:transparent;cursor:pointer}
 `;
 
 // ── TAG CLASS ────────────────────────────────────────────────────────────
@@ -2120,6 +2183,136 @@ function RecommendedNext({ installedMap, onAddSlot }) {
   );
 }
 
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function getInitials(name) {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// ── PUBLIC PAGE SHEET ──────────────────────────────────────────────────────
+// Bottom-sheet preview of a build's public profile page.
+// Opened by the owner (Profile → "Preview public page →") or community browsers
+// (Board → Builds → tap a card).
+function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose }) {
+  const [pubTab, setPubTab] = useState("build");
+  const model = MODELS.find(m => m.id === (profile.car || "s7")) || MODELS.find(m=>m.id==="s7");
+  const handle = profile.name
+    ? `@${profile.name.toLowerCase().replace(/\s+/g, "_")}`
+    : "@yourname";
+  const installedSlots = Object.entries(installedMap || {})
+    .filter(([, vid]) => !!vid)
+    .map(([slotId, vid]) => {
+      const slot = getSlotById(slotId);
+      if (!slot) return null;
+      const variant = getVariantById(slotId, vid);
+      return { name: slot.name, brand: variant?.brand || "" };
+    })
+    .filter(Boolean);
+  const modCount = installedSlots.length;
+  const best60130 = runs.filter(r => r.type === "60-130" && r.time != null).sort((a,b) => a.time - b.time)[0];
+  const bestTime  = best60130 ? `${best60130.time}s` : (bestRun60130 ? `${bestRun60130.time}s` : "—");
+  const fuelGuess = (runs.find(r => r.fuel) || {}).fuel || "—";
+  const slug = `proof.build/${handle}/${model.label.toLowerCase().replace(/\s+/g, "-")}`;
+
+  return (
+    <div className="pub-overlay" onClick={onClose}>
+      <div className="pub-sheet" onClick={e => e.stopPropagation()}>
+        <button className="pub-close" onClick={onClose}>×</button>
+        <div className="pub-hero">
+          <div className="pub-handle">{handle}</div>
+          <div className="pub-hname">{profile.name || "Your Name"}</div>
+          <div className="pub-hcar">
+            {profile.year} {model.label}
+            {profile.tuner ? ` · ${profile.tuner}` : ""}
+            {profile.color ? ` · ${profile.color}` : ""}
+          </div>
+        </div>
+        <div className="pub-stats-row">
+          <div className="pub-stat-cell">
+            <div className="pub-stat-val" style={{color:"var(--green)"}}>{bestTime}</div>
+            <div className="pub-stat-lbl">Best 60–130</div>
+          </div>
+          <div className="pub-stat-cell">
+            <div className="pub-stat-val" style={{color:"var(--accent2)"}}>{modCount || "—"}</div>
+            <div className="pub-stat-lbl">Mods</div>
+          </div>
+          <div className="pub-stat-cell">
+            <div className="pub-stat-val" style={{color:"var(--blue)"}}>{fuelGuess}</div>
+            <div className="pub-stat-lbl">Fuel</div>
+          </div>
+        </div>
+        <div className="pub-ptabs">
+          <button className={`pub-ptab${pubTab==="build"?" on":""}`} onClick={()=>setPubTab("build")}>Build</button>
+          <button className={`pub-ptab${pubTab==="runs"?" on":""}`} onClick={()=>setPubTab("runs")}>Runs ({runs.length})</button>
+        </div>
+        <div className="pub-body">
+          {pubTab === "build" && (installedSlots.length === 0
+            ? <div className="pub-empty">No mods logged yet.</div>
+            : installedSlots.map((s, i) => (
+              <div key={i} className="pub-mod-row">
+                <div className="pub-mod-dot"/>
+                <div>
+                  <div className="pub-mod-name">{s.name}</div>
+                  {s.brand && <div className="pub-mod-brand">{s.brand}</div>}
+                </div>
+              </div>
+            ))
+          )}
+          {pubTab === "runs" && (runs.length === 0
+            ? <div className="pub-empty">No runs logged yet.</div>
+            : runs.slice(0, 10).map((r, i) => (
+              <div key={i} className="pub-mod-row">
+                <div className="pub-mod-dot"/>
+                <div>
+                  <div className="pub-mod-name">
+                    {r.time != null ? `${r.time}s` : r.et != null ? `${r.et}s ET` : "—"}
+                    {" "}<span style={{fontSize:10,color:"var(--muted)",fontFamily:"'Barlow',sans-serif",fontWeight:300}}>{r.type}</span>
+                  </div>
+                  <div className="pub-mod-brand">
+                    {r.date}{r.fuel ? ` · ${r.fuel}` : ""}{r.da ? ` · DA: ${r.da}` : ""}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="pub-footer">
+          <div className="pub-flogo">PROOF<span style={{color:"var(--accent)"}}>.</span>BUILD</div>
+          <button className="pub-fcta" onClick={()=>{ try{navigator.clipboard?.writeText(slug);}catch{} }}>Copy link</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── COMMUNITY BUILD CARD ────────────────────────────────────────────────────
+function CommunityBuildCard({ build, onView }) {
+  const model = MODELS.find(m => m.id === build.car) || MODELS.find(m=>m.id==="s7");
+  const initials = getInitials(build.name);
+  const slotNames = Object.entries(build.installed_map || {})
+    .filter(([, vid]) => !!vid)
+    .map(([sid]) => getSlotById(sid)?.name || sid)
+    .filter(Boolean);
+  const modSummary = slotNames.slice(0, 3).join(" · ") + (slotNames.length > 3 ? " …" : "");
+  const isHot = build.modCount >= 5;
+  return (
+    <div className={`cmt-card${isHot ? " hot" : ""}`} onClick={onView}>
+      <div className="cmt-av">{initials}</div>
+      <div className="cmt-info">
+        <div className="cmt-name">{build.name || "Anonymous"}</div>
+        <div className="cmt-car">{build.year || ""} {model.label}{build.tuner ? ` · ${build.tuner}` : ""}</div>
+        {modSummary && <div className="cmt-mods">{modSummary}</div>}
+      </div>
+      <div className="cmt-ct">
+        <div className="cmt-n">{build.modCount}</div>
+        <div className="cmt-nlbl">mods</div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ──────────────────────────────────────────────────────────────────
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
@@ -2153,6 +2346,12 @@ export default function TheProof() {
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
   const [timesView, setTimesView]     = useState("runs"); // "runs" | "chart"
+  const [boardView, setBoardView]       = useState("times");  // "times" | "builds"
+  const [buildModelFilter, setBuildModelFilter] = useState("all");
+  const [communityBuilds, setCommunityBuilds]   = useState([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [viewedBuild, setViewedBuild]   = useState(null);  // {profile, installedMap} for community sheet
+  const [showPublicPage, setShowPublicPage]     = useState(false); // own public page preview
   // Custom-tune add-on features (provider + selected feature ids). Persisted to
   // localStorage — no DB migration, doesn't touch existing run/profile data.
   // Lazy initializer (runs once) so we don't add a set-state-in-effect.
@@ -2233,6 +2432,30 @@ export default function TheProof() {
       });
     } catch(e) { console.warn("Runs load error:", e); }
     finally { setRunsLoading(false); }
+  }
+
+  async function loadCommunityBuilds() {
+    if (communityLoading) return;
+    setCommunityLoading(true);
+    try {
+      // Both tables use USING(true) RLS — all rows readable by any authenticated or anon client.
+      const [{ data: profs }, { data: blds }] = await Promise.all([
+        sb.from("profiles").select("user_id,name,car,year,color,tuner,note").not("name","is",null).neq("name",""),
+        sb.from("builds").select("user_id,installed_map,updated_at")
+      ]);
+      const buildMap = Object.fromEntries((blds || []).map(b => [b.user_id, b]));
+      const joined = (profs || [])
+        .map(p => {
+          const b = buildMap[p.user_id] || {};
+          const installed = b.installed_map || {};
+          const modCount = Object.keys(installed).filter(k => installed[k]).length;
+          return { ...p, installed_map: installed, modCount };
+        })
+        .filter(p => p.name && p.modCount > 0)
+        .sort((a, b) => b.modCount - a.modCount);
+      setCommunityBuilds(joined);
+    } catch(e) { console.warn("Community builds load error:", e); }
+    finally { setCommunityLoading(false); }
   }
 
   useEffect(() => {
@@ -3183,16 +3406,62 @@ Fields to extract:
   // ── PROFILE SETTINGS ──────────────────────────────────────────────
   const profileContent = (
     <div className="profile-area">
+      {/* ── SHARE SECTION ── */}
       <div className="share-box">
-        <div className="share-title">🏁 Proof.Build is coming</div>
+        <div className="share-title">Your build link</div>
         <div className="share-sub">
-          Create an account to save your garage, share your build link, and post your times to the community leaderboard. Your data is already stored locally — sign up to sync it to the cloud and claim your build URL.
+          Share your setup with the community. Anyone with this link sees your full mod list and best time.
         </div>
-        <div className="share-url">proof.build/@{profile.name ? profile.name.toLowerCase().replace(/\s/g,"_") : "yourname"}/{currentModel.label.toLowerCase().replace(/\s/,"-")}</div>
+        <div className="share-url">proof.build/@{profile.name ? profile.name.toLowerCase().replace(/\s+/g,"_") : "yourname"}/{currentModel.label.toLowerCase().replace(/\s+/g,"-")}</div>
         <button className="share-copy" onClick={()=>{
-          navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s/g,"_")}/${currentModel.label.toLowerCase().replace(/\s/,"-")}`);
-        }}>Copy Build Link</button>
+          try { navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s+/g,"_")}/${currentModel.label.toLowerCase().replace(/\s+/g,"-")}`); } catch {}
+        }}>Copy Link</button>
       </div>
+
+      {/* ── SHARE CARD PREVIEW ── */}
+      {(() => {
+        const instSlots = Object.entries(installedMap)
+          .filter(([,vid])=>!!vid)
+          .map(([sid,vid])=>{ const s=getSlotById(sid); return s ? {name:s.name, brand:getVariantById(sid,vid)?.brand||""} : null; })
+          .filter(Boolean);
+        const best = runs.filter(r=>r.type==="60-130"&&r.time!=null).sort((a,b)=>a.time-b.time)[0];
+        const fuel = (runs.find(r=>r.fuel)||{}).fuel||"—";
+        const initials = getInitials(profile.name);
+        return (
+          <>
+            <div className="sc-sect">Your share card</div>
+            <div className="sc-wrap">
+              <div className="sc-head">
+                <div className="sc-av">{initials}</div>
+                <div className="sc-namewrap">
+                  <div className="sc-name">{profile.name || "Your Name"}</div>
+                  <div className="sc-car">{profile.year} {currentModel.label}{profile.tuner ? ` · ${profile.tuner}` : ""}</div>
+                </div>
+              </div>
+              <div className="sc-stats">
+                <div className="sc-stat">
+                  <div className="sc-stat-val" style={{color:"var(--green)"}}>{best ? `${best.time}s` : "—"}</div>
+                  <div className="sc-stat-lbl">Best run</div>
+                </div>
+                <div className="sc-stat">
+                  <div className="sc-stat-val" style={{color:"var(--accent2)"}}>{instSlots.length || "—"}</div>
+                  <div className="sc-stat-lbl">Mods</div>
+                </div>
+                <div className="sc-stat">
+                  <div className="sc-stat-val" style={{color:"var(--blue)"}}>{fuel}</div>
+                  <div className="sc-stat-lbl">Fuel</div>
+                </div>
+              </div>
+              {instSlots.length > 0 && (
+                <div className="sc-chips">
+                  {instSlots.map((s,i)=><span key={i} className="sc-chip">{s.name}</span>)}
+                </div>
+              )}
+              <button className="sc-preview" onClick={()=>setShowPublicPage(true)}>Preview public page →</button>
+            </div>
+          </>
+        );
+      })()}
 
       <div className="pf-card">
         <div className="pf-title">Car Profile</div>
@@ -3282,35 +3551,88 @@ Fields to extract:
   );
 
   // ── LEADERBOARD CONTENT ───────────────────────────────────────────
+  const MODEL_FILTERS = [
+    { id:"all", label:"All" },
+    { id:"rs7", label:"RS7" }, { id:"rs6", label:"RS6" },
+    { id:"s7",  label:"S7"  }, { id:"s6",  label:"S6"  },
+    { id:"s8",  label:"S8"  }, { id:"a8",  label:"A8"  },
+  ];
+  const filteredCommunity = buildModelFilter === "all"
+    ? communityBuilds
+    : communityBuilds.filter(b => b.car === buildModelFilter);
+
   const boardContent = (
     <div className="lb-area">
-      <div className="lb-title">60–130 Leaderboard</div>
-      <div className="lb-sub">Real runs · Audi 4.0T community · All catless downpipes</div>
-      {liveLeaderboard.map(run => (
-        <div key={run.rank} className={`lb-card ${rankClass(run.rank)}`}>
-          <div className="lb-top">
-            <div className={`lb-rank ${rankNumClass(run.rank)}`}>#{run.rank}</div>
-            <div className="lb-driver">
-              <div className="lb-name">{run.driver}</div>
-              <div className="lb-car">{run.car}</div>
-            </div>
-            <div className="lb-time">
-              <div className="lb-t60130">{run.t60130}s</div>
-              <div className="lb-time-label">60–130</div>
-            </div>
-          </div>
-          <div className="lb-chips">
-            <span className="lb-chip lc-tuner">{run.tuner}</span>
-            <span className="lb-chip lc-turbo">{run.turbo}</span>
-            <span className="lb-chip lc-fuel">{run.fuel}</span>
-            {run.manifolds !== "Unknown" && <span className="lb-chip lc-mani">{run.manifolds} mani</span>}
-            <span className="lb-chip lc-port">{run.supFuel}</span>
-            <span className="lb-chip lc-dp">{run.dp}</span>
-            {run.trans !== "Stock" && <span className="lb-chip lc-mani">{run.trans}</span>}
-          </div>
-          {run.da && <div className="lb-da">DA: {run.da}{run.et ? `  ·  1/4: ${run.et} @ ${run.mph} mph` : ""}</div>}
+      {/* Times / Builds toggle */}
+      <div style={{padding:"10px 14px 0"}}>
+        <div className="board-toggle">
+          <button className={`btog${boardView==="times"?" on":""}`}
+            onClick={()=>setBoardView("times")}>Times</button>
+          <button className={`btog${boardView==="builds"?" on":""}`}
+            onClick={()=>{
+              setBoardView("builds");
+              if (communityBuilds.length === 0) loadCommunityBuilds();
+            }}>Builds</button>
         </div>
-      ))}
+      </div>
+
+      {/* ── TIMES VIEW (existing leaderboard) ── */}
+      {boardView === "times" && (
+        <>
+          <div className="lb-title">60–130 Leaderboard</div>
+          <div className="lb-sub">Real runs · Audi 4.0T community · All catless downpipes</div>
+          {liveLeaderboard.map(run => (
+            <div key={run.rank} className={`lb-card ${rankClass(run.rank)}`}>
+              <div className="lb-top">
+                <div className={`lb-rank ${rankNumClass(run.rank)}`}>#{run.rank}</div>
+                <div className="lb-driver">
+                  <div className="lb-name">{run.driver}</div>
+                  <div className="lb-car">{run.car}</div>
+                </div>
+                <div className="lb-time">
+                  <div className="lb-t60130">{run.t60130}s</div>
+                  <div className="lb-time-label">60–130</div>
+                </div>
+              </div>
+              <div className="lb-chips">
+                <span className="lb-chip lc-tuner">{run.tuner}</span>
+                <span className="lb-chip lc-turbo">{run.turbo}</span>
+                <span className="lb-chip lc-fuel">{run.fuel}</span>
+                {run.manifolds !== "Unknown" && <span className="lb-chip lc-mani">{run.manifolds} mani</span>}
+                <span className="lb-chip lc-port">{run.supFuel}</span>
+                <span className="lb-chip lc-dp">{run.dp}</span>
+                {run.trans !== "Stock" && <span className="lb-chip lc-mani">{run.trans}</span>}
+              </div>
+              {run.da && <div className="lb-da">DA: {run.da}{run.et ? `  ·  1/4: ${run.et} @ ${run.mph} mph` : ""}</div>}
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* ── BUILDS VIEW (community browser) ── */}
+      {boardView === "builds" && (
+        <>
+          <div className="mf-bar">
+            {MODEL_FILTERS.map(f => (
+              <button key={f.id} className={`mfbtn${buildModelFilter===f.id?" on":""}`}
+                onClick={()=>setBuildModelFilter(f.id)}>{f.label}</button>
+            ))}
+          </div>
+          {communityLoading
+            ? <div className="cmt-hdr">Loading builds…</div>
+            : <>
+                <div className="cmt-hdr">{filteredCommunity.length} builds · sorted by mod count</div>
+                {filteredCommunity.length === 0
+                  ? <div style={{padding:"20px 14px",fontSize:12,color:"var(--muted)"}}>No builds logged yet for this model.</div>
+                  : filteredCommunity.map((b, i) => (
+                    <CommunityBuildCard key={b.user_id || i} build={b}
+                      onView={()=>setViewedBuild(b)} />
+                  ))
+                }
+              </>
+          }
+        </>
+      )}
     </div>
   );
 
@@ -3506,6 +3828,28 @@ Fields to extract:
         {activeTab==="board"  && boardContent}
         {activeTab==="profile"&& profileContent}
       </div>
+
+      {/* Public page sheet — own profile preview */}
+      {showPublicPage && (
+        <PublicPageSheet
+          profile={profile}
+          installedMap={installedMap}
+          bestRun60130={bestRun60130}
+          runs={runs}
+          onClose={()=>setShowPublicPage(false)}
+        />
+      )}
+
+      {/* Community build sheet — tapped from Builds view */}
+      {viewedBuild && (
+        <PublicPageSheet
+          profile={viewedBuild}
+          installedMap={viewedBuild.installed_map || {}}
+          bestRun60130={null}
+          runs={[]}
+          onClose={()=>setViewedBuild(null)}
+        />
+      )}
 
       <nav className="bottom-nav">
         <button className={`bnav${activeTab==="garage"?" active":""}`} onClick={()=>{setActiveTab("garage");track("tab_viewed",{tab:"garage"});}}>
