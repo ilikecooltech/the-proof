@@ -165,6 +165,66 @@ const CUSTOM_FEATURES = [
 // Dyno Scorpion credit — the provider whose Scorpion feature set these map to.
 const SCORPION = { name:"Dyno Scorpion", url:"https://dynoscorpion.com/" };
 
+// ── BUILD PATH / MOD POPULARITY (recommendation-engine seed) ─────────────────
+// Real usage data: of 63 users who have logged parts, `builds` = how many run each
+// mod. Ordered top-to-bottom by the community's proven progression (intake → downpipe
+// → flex fuel → tune → fueling support → turbo → supporting hardware), which also
+// tracks popularity. `pick` = the popular specific product for that slot, referenced
+// by the catalog's existing variant id. Extend / reweight as the lineup grows.
+//
+// LIVE-DATA SEAM: this is a static seed. To make "What's Next" sharpen over time,
+// replace/merge `builds` with live aggregate counts from real builds (see recommendNext).
+const MOD_PATH_TOTAL = 63;   // denominator for social-proof %
+const MOD_PATH = [
+  { slot:"cai",           builds:48, pick:"tgk_4in" },       // Cold Air / High-Flow Intake
+  { slot:"downpipe",      builds:36, pick:"arm_dp" },        // High-Flow Downpipe
+  { slot:"flex_fuel",     builds:28, pick:"cobb_flex" },     // Flex Fuel / Ethanol Kit
+  { slot:"ecu_s2",        builds:24, pick:"apr_s2" },        // Stage 2 OTS Tune
+  { slot:"ecu_custom",    builds:27, pick:"ds1_srm" },       // Custom ECU Tune
+  { slot:"hpfp",          builds:26, pick:"autotech_hpfp" }, // HPFP internals
+  { slot:"port_inj",      builds:14, pick:"srm_port" },      // Port Injection
+  { slot:"turbo_upgrade", builds:31, pick:"ts1" },           // Turbo Upgrade
+  { slot:"wastegate",     builds:18, pick:"tgk_wg" },        // Wastegate
+  { slot:"manifolds",     builds:12, pick:"srm_mani" },      // Upgraded Manifolds
+  { slot:"intercooler",   builds:14, pick:"srm_a2a" },       // Intercooler Upgrade
+  // supporting / secondary mods, by popularity
+  { slot:"catback",       builds:20, pick:"awe_cb" },        // Cat-Back Exhaust
+  { slot:"tcu_tune",      builds:17, pick:"etspec_tcu" },    // TCU / ZF8 Tune
+  { slot:"spark_plugs",   builds:16, pick:"brisk_er10s" },   // Spark Plugs
+  { slot:"bov",           builds:13, pick:"tgk_bov" },       // BOV / Blow-Off Valve
+  { slot:"dsg_tune",      builds:10, pick:"apr_dsg" },       // DSG / S-Tronic Tune
+  { slot:"resx",          builds:9,  pick:"034_resx" },      // Resonator Delete + X-Pipe
+  { slot:"ecu_s1",        builds:6,  pick:"apr_s1" },        // Stage 1 OTS Tune
+];
+
+// Recommend the next 1–3 mods the user doesn't have, following MOD_PATH order (proven
+// path + popularity). Conflict-aware: skips slots that clash with an installed part
+// (e.g. won't suggest a second ECU-tune slot). Returns enriched rows with the popular
+// pick resolved from the catalog and a social-proof %.
+function recommendNext(installedMap, count = 3) {
+  // LIVE-DATA SEAM: swap MOD_PATH.builds for live aggregate counts here to make
+  // recommendations reflect what real builds are actually running over time.
+  const installed = installedMap || {};
+  const installedIds = new Set(Object.keys(installed).filter(k => installed[k]));
+  const conflictSet = new Set();
+  installedIds.forEach(id => (getSlotById(id)?.conflicts || []).forEach(c => conflictSet.add(c)));
+  return MOD_PATH
+    .filter(m => !installedIds.has(m.slot) && !conflictSet.has(m.slot))
+    .slice(0, count)
+    .map(m => {
+      const slot = getSlotById(m.slot);
+      const variant = getVariantById(m.slot, m.pick) || slot?.variants?.[0] || null;
+      return {
+        slot: m.slot,
+        name: slot?.name || m.slot,
+        cat: slot?.cat || "",
+        builds: m.builds,
+        pct: Math.round((m.builds / MOD_PATH_TOTAL) * 100),
+        variant,
+      };
+    });
+}
+
 // 4.0T HP normalization: S6/S7/A8/S8 share the same block; stock HP differences are
 // OEM turbo sizing and factory tune — not engine differences. When aftermarket turbos
 // or tunes are added, the block normalizes to a common output baseline.
@@ -1555,6 +1615,35 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .cf-count{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .scp-source{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border-bottom:1px dashed rgba(232,85,10,.4);padding-bottom:1px}
 .scp-source:hover{color:var(--accent2)}
+
+/* ── ACTIVATION NUDGE ── */
+.act-nudge{position:relative;margin:14px 0 4px;padding:14px;border-radius:12px;border:1px solid rgba(232,85,10,.35);background:linear-gradient(135deg,rgba(232,85,10,.14),rgba(255,140,0,.05));overflow:hidden}
+.act-dismiss{position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--dim);font-size:20px;line-height:1;cursor:pointer;padding:2px 4px;transition:color .15s}
+.act-dismiss:hover{color:var(--text)}
+.act-kicker{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent2)}
+.act-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;line-height:1.1;color:#fff;text-transform:uppercase;letter-spacing:.02em;margin:4px 0 6px;padding-right:20px}
+.act-body{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px}
+.act-body strong{color:var(--accent2)}
+.act-steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.act-step{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.04em;color:var(--muted);background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
+.act-cta{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:filter .15s}
+.act-cta:hover{filter:brightness(1.08)}
+
+/* ── RECOMMENDED NEXT ── */
+.reco-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.reco-sub{font-size:11px;color:var(--muted);margin-bottom:2px;line-height:1.4}
+.reco-card{position:relative;display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 12px;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit}
+.reco-card:hover{border-color:var(--accent);background:rgba(232,85,10,.05)}
+.reco-card.top{border-color:rgba(232,85,10,.4)}
+.reco-badge{position:absolute;top:-8px;left:10px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--accent);border-radius:4px;padding:2px 7px}
+.reco-main{flex:1;min-width:0}
+.reco-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.1}
+.reco-pick{font-size:11px;color:var(--accent2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reco-meta{text-align:center;flex-shrink:0;min-width:52px}
+.reco-pct{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--green);line-height:1}
+.reco-pct-lbl{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);line-height:1.2;margin-top:1px}
+.reco-add{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(232,85,10,.12);border:1px solid rgba(232,85,10,.3);color:var(--accent2);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1}
+.reco-done{font-size:12px;color:var(--green);background:rgba(0,232,135,.06);border:1px solid rgba(0,232,135,.2);border-radius:8px;padding:10px 12px;margin-bottom:6px}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 /* ── RUN LIST SORT / FILTER BAR ── */
 .run-ctrl-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
@@ -1972,6 +2061,65 @@ function CustomFeatures({ value, onChange }) {
   );
 }
 
+// ── ACTIVATION NUDGE (Feature 1) ───────────────────────────────────────────
+// Prominent, dismissible card for users with a car but zero installed parts. Drives
+// them into the build flow by tying the payoff to features that already exist
+// (projected 60–130 + trap via the Trap Chart, leaderboard comparison).
+function ActivationNudge({ onBuild, onDismiss }) {
+  return (
+    <div className="act-nudge">
+      <button className="act-dismiss" onClick={onDismiss} aria-label="Dismiss">×</button>
+      <div className="act-kicker">Your build · 0 parts</div>
+      <div className="act-title">Add your first mod to unlock your projections</div>
+      <div className="act-body">
+        Log what's on your car and PROOF projects your <strong>60–130</strong> and <strong>trap speed</strong>,
+        then shows how your build stacks up against the leaderboard.
+      </div>
+      <div className="act-steps">
+        <span className="act-step">① Add a mod</span>
+        <span className="act-step">② See your projection</span>
+        <span className="act-step">③ Compare &amp; build</span>
+      </div>
+      <button className="act-cta" onClick={onBuild}>Start my build →</button>
+    </div>
+  );
+}
+
+// ── WHAT'S NEXT / RECOMMENDED (Feature 2) ──────────────────────────────────
+// Recommends the next 1–3 mods from the community's proven path + popularity
+// (recommendNext / MOD_PATH), with the popular specific product and social proof.
+// `empty` tweaks the copy for users just starting out.
+function RecommendedNext({ installedMap, onAddSlot }) {
+  const recs = recommendNext(installedMap, 3);
+  if (!recs.length) {
+    return (
+      <div className="reco-done">✓ You're running every mod on the proven path. You're deep in it.</div>
+    );
+  }
+  const empty = Object.keys(installedMap || {}).filter(k => (installedMap || {})[k]).length === 0;
+  return (
+    <div className="reco-wrap">
+      <div className="reco-sub">
+        {empty ? "Most 4.0T builds start here — the community's proven path:" : "Your next step on the proven build path:"}
+      </div>
+      {recs.map((r, i) => (
+        <button key={r.slot} className={`reco-card${i === 0 ? " top" : ""}`} onClick={() => onAddSlot(r.slot)}>
+          {i === 0 && <span className="reco-badge">Next up</span>}
+          <div className="reco-main">
+            <div className="reco-name">{r.name}</div>
+            {r.variant && <div className="reco-pick">{r.variant.brand} · {r.variant.label}</div>}
+          </div>
+          <div className="reco-meta">
+            <div className="reco-pct">{r.pct}%</div>
+            <div className="reco-pct-lbl">of builds run this</div>
+          </div>
+          <span className="reco-add">+</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ── APP ──────────────────────────────────────────────────────────────────
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
@@ -2021,6 +2169,22 @@ export default function TheProof() {
       try { localStorage.setItem("proof-custom-features", JSON.stringify(val)); } catch { /* ignore */ }
       return val;
     });
+  }
+  // Activation-nudge dismissal, persisted (lazy init, no effect). It's auto-cleared
+  // when the user installs a part (see pick / installFromWishlist), so it can reappear
+  // if they ever return to an empty build — tasteful, not a permanent one-time dismissal.
+  const [activationDismissed, setActivationDismissed] = useState(() => {
+    try { return localStorage.getItem("proof-activation-nudge") === "dismissed"; }
+    catch { return false; }
+  });
+  function dismissActivation() {
+    setActivationDismissed(true);
+    try { localStorage.setItem("proof-activation-nudge", "dismissed"); } catch { /* ignore */ }
+    track("activation_nudge_dismissed");
+  }
+  function clearActivationDismissal() {
+    setActivationDismissed(false);
+    try { localStorage.removeItem("proof-activation-nudge"); } catch { /* ignore */ }
   }
   const [runsLoading, setRunsLoading] = useState(true);
   const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
@@ -2162,9 +2326,20 @@ export default function TheProof() {
       if (prev[slotId] === varId) { const n={...prev}; delete n[slotId]; return n; }
       return { ...prev, [slotId]: varId };
     });
+    if (buildMode === "installed" && selectedMap[slotId] !== varId) clearActivationDismissal();
   }
   function remove(slotId) { setSelectedMap(prev => { const n={...prev}; delete n[slotId]; return n; }); }
   function toggleSlot(id) { setOpenSlot(prev => prev===id ? null : id); }
+  // Jump straight into the build flow at a specific slot (used by "What's Next").
+  function goToSlot(slotId) {
+    const slot = getSlotById(slotId);
+    if (!slot) return;
+    setBuildMode("installed");
+    setActiveCat(slot.cat);
+    setActiveTab("parts");
+    setOpenSlot(slotId);
+    track("reco_slot_clicked", { slot: slotId });
+  }
 
   useEffect(() => {
     const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
@@ -2495,6 +2670,7 @@ Fields to extract:
     setInstalledMap(newInstalled);
     setWishlistMap(newWishlist);
     saveBuild(newInstalled, newWishlist);
+    clearActivationDismissal();
   }
 
   const allIssues = [];
@@ -2671,6 +2847,14 @@ Fields to extract:
         </div>
       </div>
 
+      {/* ── ACTIVATION NUDGE (car but no build) ── */}
+      {numInst === 0 && !activationDismissed && (
+        <ActivationNudge
+          onBuild={() => { setBuildMode("installed"); setActiveTab("parts"); track("activation_nudge_cta"); }}
+          onDismiss={dismissActivation}
+        />
+      )}
+
       {/* ── RUN LOG SECTION IN GARAGE ── */}
       <div className="section-title" style={{marginTop:14}}>
         Run Log <span style={{color:"var(--green)",fontSize:11}}>{runs.length} run{runs.length!==1?"s":""}</span>
@@ -2741,6 +2925,12 @@ Fields to extract:
             );
           })
       }
+
+      {/* ── WHAT'S NEXT / RECOMMENDED ── */}
+      <div className="section-title" style={{marginTop:14}}>
+        Recommended Next <span style={{color:"var(--accent2)",fontSize:11}}>proven path</span>
+      </div>
+      <RecommendedNext installedMap={installedMap} onAddSlot={goToSlot} />
 
       {/* wishlist */}
       <div className="section-title">
