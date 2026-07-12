@@ -29,17 +29,18 @@ function getUserId() {
 
 
 // ── REAL LEADERBOARD DATA (from Audi 4.0T Drag Racing Leaderboard) ────────
+// Last synced: July 2026 · source: docs.google.com/spreadsheets/d/1TDiEgneJfZaGbl3e6lSyOnUFGZA8ljMi
 const LEADERBOARD = [
-  { rank:1,  driver:"Miguel Romero",    car:"B8.5 S5",   tuner:"Load Logic / ET Spec", t60130:4.10, et:"9.26", mph:153.57, turbo:"Xona 5657", fuel:"E75",     trans:"Built",    manifolds:"SRM",     supFuel:"Port+NOS", ic:"SRM W2A",    dp:"Catless", da:"7932ft" },
-  { rank:2,  driver:"Chris Clayton",    car:"C7 RS7",    tuner:"C4 / ET Spec",         t60130:4.49, et:null,   mph:null,   turbo:"Xona 6564", fuel:"E65",     trans:"Stock",    manifolds:"SRM",     supFuel:"Port",     ic:"SRM W2A",    dp:"Catless", da:"-65ft" },
-  { rank:3,  driver:"Skip Hickey",      car:"D4.5 S8",   tuner:"Load Logic / ET Spec", t60130:4.71, et:"9.66", mph:140.57, turbo:"71mm",       fuel:"E45",     trans:"Stock",    manifolds:"Klassen", supFuel:"Meth",     ic:"Unknown",    dp:"Catless", da:"192ft" },
-  { rank:4,  driver:"Adam Emm",         car:"D4 A8L",    tuner:"C4 / ET Spec",         t60130:4.80, et:null,   mph:null,   turbo:"G45-1500",   fuel:"Pump E85",trans:"Stock",    manifolds:"Unknown", supFuel:"Port",     ic:"Unknown",    dp:"Catless", da:"1990ft" },
-  { rank:5,  driver:"Neil Otis",        car:"D4.5 A8L",  tuner:"Self Tuned",           t60130:4.96, et:"9.73", mph:145.34, turbo:"Xona 5357",  fuel:"E78",     trans:"Stock",    manifolds:"FRA",     supFuel:"Port",     ic:"Sean East W2A",dp:"Catless",da:"-95ft" },
-  { rank:6,  driver:"Matt Jones",       car:"C7.5 RS7",  tuner:"C4",                   t60130:4.97, et:"10.06",mph:145.16, turbo:"Xona 5657",  fuel:"E77",     trans:"Stock",    manifolds:"SRM",     supFuel:"Port",     ic:"SRM W2A",    dp:"Catless", da:"567ft" },
-  { rank:7,  driver:"Marcus Maroney",   car:"C7.5 RS7",  tuner:"Kyle / Unknown",       t60130:5.04, et:"9.67", mph:143.90, turbo:"TS1",         fuel:"E38",     trans:"Stock",    manifolds:"SRM",     supFuel:"Meth",     ic:"SRM W2A",    dp:"Catless", da:"-2539ft" },
-  { rank:8,  driver:"Reggie MacNelly",  car:"C7 S7",     tuner:"Load Logic / ET Spec", t60130:5.11, et:"9.91", mph:144.75, turbo:"G40-1150",   fuel:"E30",     trans:"ZF8 Swap", manifolds:"Unknown", supFuel:"Meth",     ic:"Unknown",    dp:"Catless", da:"1899ft" },
-  { rank:9,  driver:"Saif Sultan",      car:"D4 S8",     tuner:"C4 / ET Spec",         t60130:5.23, et:null,   mph:null,   turbo:"G40-1150",   fuel:"Pump E85",trans:"Stock",    manifolds:"Unknown", supFuel:"Port",     ic:"SRM W2A",    dp:"Catless", da:"-230ft" },
-  { rank:10, driver:"Sean Fallon",      car:"C7.5 RS7",  tuner:"Unknown",              t60130:5.24, et:null,   mph:null,   turbo:"TS2+",        fuel:"E60",     trans:"Stock",    manifolds:"Unknown", supFuel:"Port",     ic:"SRM W2A",    dp:"Catless", da:"-1933ft" },
+  { rank:1,  driver:"Level Performance",  car:"C7.5 RS6",   tuner:"Level Performance",    t60130:4.03, et:"9.168",mph:156.60, turbo:"G30-990a",  fuel:"VP Race",   trans:"ZF8HP90",  manifolds:"Billet",  supFuel:"Port/Meth", ic:"W2A",       dp:"Catless", da:"-90ft" },
+  { rank:2,  driver:"FE Performance",     car:"D4 S8",      tuner:"C4 / Slavov",          t60130:4.33, et:"9.22", mph:153.33, turbo:"G42",        fuel:"Pump E85",  trans:"Built",    manifolds:"Unknown", supFuel:"Port",      ic:"SRM",       dp:"Catless", da:"-141ft" },
+  { rank:3,  driver:"Miguel Romero",      car:"B8.5 S5",    tuner:"Load Logic / ET Spec", t60130:4.10, et:"9.26", mph:153.57, turbo:"XR5756",     fuel:"E75",       trans:"Built",    manifolds:"SRM",     supFuel:"Port/NOS",  ic:"SRM",       dp:"Catless", da:"7932ft" },
+  { rank:4,  driver:"Chris Clayton",      car:"C7 RS7",     tuner:"C4 / ET Spec",         t60130:4.49, et:null,   mph:null,   turbo:"Xona 6564",  fuel:"E65",       trans:"Stock",    manifolds:"SRM",     supFuel:"Port",      ic:"SRM",       dp:"Catless", da:"-65ft" },
+  { rank:5,  driver:"Skip Hickey",        car:"D4.5 S8",    tuner:"Load Logic / ET Spec", t60130:4.71, et:"9.66", mph:140.57, turbo:"71mm",       fuel:"E45",       trans:"Stock",    manifolds:"Klassen", supFuel:"Meth",      ic:"Unknown",   dp:"Catless", da:"192ft" },
+  { rank:6,  driver:"Adam Emm",           car:"D4 A8L",     tuner:"C4 / ET Spec",         t60130:4.80, et:null,   mph:null,   turbo:"G45-1500",   fuel:"Pump E85",  trans:"Stock",    manifolds:"Unknown", supFuel:"Port",      ic:"Unknown",   dp:"Catless", da:"1990ft" },
+  { rank:7,  driver:"Daniel Trombley",    car:"C7.5 RS7P",  tuner:"C4 / Slavov",          t60130:4.91, et:null,   mph:null,   turbo:"XR5756",     fuel:"Pump E85",  trans:"Stock",    manifolds:"SRM",     supFuel:"Port",      ic:"SRM",       dp:"Catless", da:"-514ft" },
+  { rank:8,  driver:"Neil Otis",          car:"D4.5 A8L",   tuner:"Self Tuned",           t60130:4.96, et:"9.73", mph:145.34, turbo:"XRC5357S",   fuel:"E78",       trans:"Stock",    manifolds:"FRA",     supFuel:"Port",      ic:"Sean East", dp:"Catless", da:"-95ft" },
+  { rank:9,  driver:"Matt Jones",         car:"C7.5 RS7",   tuner:"C4",                   t60130:4.97, et:"10.06",mph:145.16, turbo:"XR5756",     fuel:"E77",       trans:"Stock",    manifolds:"SRM",     supFuel:"Port",      ic:"SRM",       dp:"Catless", da:"567ft" },
+  { rank:10, driver:"Marcus J. Maroney",  car:"C7.5 RS7",   tuner:"Kyle / Unknown",       t60130:5.04, et:"9.67", mph:143.90, turbo:"TS1",        fuel:"E38",       trans:"Stock",    manifolds:"SRM",     supFuel:"Meth",      ic:"SRM",       dp:"Catless", da:"-2539ft" },
 ];
 
 // ── MODELS ─────────────────────────────────────────────────────────────────
@@ -1707,7 +1708,14 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .mfbtn{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.06em;padding:4px 8px;border:1px solid var(--border);border-radius:12px;color:var(--muted);background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
 .mfbtn.on{background:rgba(232,85,10,.12);border-color:var(--accent);color:var(--accent2)}
 /* ── COMMUNITY BUILD CARDS ── */
-.cmt-hdr{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0 14px}
+.cmt-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0 14px}
+.cmt-sort{display:flex;gap:4px}
+.csbtn{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);border-radius:12px;color:var(--muted);background:transparent;cursor:pointer;transition:all .15s}
+.csbtn.on{background:rgba(232,85,10,.12);border-color:var(--accent);color:var(--accent2)}
+.cmt-like{margin-left:6px;font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.25);border-radius:8px;padding:1px 6px;vertical-align:middle}
+.cmt-perf{display:flex;gap:10px;margin-top:3px}
+.cmt-perf-i{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
+.cmt-perf-i b{font-family:'Share Tech Mono',monospace;font-size:7px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-left:2px}
 .cmt-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:0 14px 6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s}
 .cmt-card:hover{border-color:rgba(232,85,10,.3)}
 .cmt-card.hot{border-color:rgba(232,85,10,.35)}
@@ -2295,7 +2303,7 @@ function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose })
 }
 
 // ── COMMUNITY BUILD CARD ────────────────────────────────────────────────────
-function CommunityBuildCard({ build, onView }) {
+function CommunityBuildCard({ build, onView, userCar }) {
   const model = MODELS.find(m => m.id === build.car) || MODELS.find(m=>m.id==="s7");
   const initials = getInitials(build.name);
   const slotNames = Object.entries(build.installed_map || {})
@@ -2304,13 +2312,24 @@ function CommunityBuildCard({ build, onView }) {
     .filter(Boolean);
   const modSummary = slotNames.slice(0, 3).join(" · ") + (slotNames.length > 3 ? " …" : "");
   const isHot = build.modCount >= 5;
+  const likeYours = userCar && build.car === userCar;
+  const hasPerf = build.bestT60130 != null || build.bestTrap != null;
   return (
     <div className={`cmt-card${isHot ? " hot" : ""}`} onClick={onView}>
       <div className="cmt-av">{initials}</div>
       <div className="cmt-info">
-        <div className="cmt-name">{build.name || "Anonymous"}</div>
+        <div className="cmt-name">
+          {build.name || "Anonymous"}
+          {likeYours && <span className="cmt-like">like yours</span>}
+        </div>
         <div className="cmt-car">{build.year || ""} {model.label}{build.tuner ? ` · ${build.tuner}` : ""}</div>
         {modSummary && <div className="cmt-mods">{modSummary}</div>}
+        {hasPerf && (
+          <div className="cmt-perf">
+            {build.bestT60130 != null && <span className="cmt-perf-i">{build.bestT60130}s <b>60–130</b></span>}
+            {build.bestTrap != null && <span className="cmt-perf-i">{build.bestTrap} <b>mph trap</b></span>}
+          </div>
+        )}
       </div>
       <div className="cmt-ct">
         <div className="cmt-n">{build.modCount}</div>
@@ -2353,8 +2372,9 @@ export default function TheProof() {
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
   const [timesView, setTimesView]     = useState("runs"); // "runs" | "chart"
-  const [boardView, setBoardView]       = useState("times");  // "times" | "builds"
+  const [boardView, setBoardView]       = useState("builds"); // "builds" | "times"
   const [buildModelFilter, setBuildModelFilter] = useState("all");
+  const [buildSort, setBuildSort]       = useState("mods");   // "mods" | "fast"
   const [communityBuilds, setCommunityBuilds]   = useState([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [viewedBuild, setViewedBuild]   = useState(null);  // {profile, installedMap} for community sheet
@@ -2445,18 +2465,35 @@ export default function TheProof() {
     if (communityLoading) return;
     setCommunityLoading(true);
     try {
-      // Both tables use USING(true) RLS — all rows readable by any authenticated or anon client.
-      const [{ data: profs }, { data: blds }] = await Promise.all([
+      // profiles + builds are USING(true) RLS — all rows readable. runs adds each
+      // owner's performance (best 60-130 + best trap); degrades gracefully to none
+      // if the runs table isn't readable to this client.
+      const [{ data: profs }, { data: blds }, { data: runRows }] = await Promise.all([
         sb.from("profiles").select("user_id,name,car,year,color,tuner,note").not("name","is",null).neq("name",""),
-        sb.from("builds").select("user_id,installed_map,updated_at")
+        sb.from("builds").select("user_id,installed_map,updated_at"),
+        sb.from("runs").select("user_id,run_type,time_val,time,et,trap,mph,fuel,da,date"),
       ]);
       const buildMap = Object.fromEntries((blds || []).map(b => [b.user_id, b]));
+      // group each user's runs, mapped to the app's run shape (same as loadRuns)
+      const runsByUser = {};
+      (runRows || []).forEach(r => {
+        const t = r.time_val != null ? r.time_val : (r.time != null ? r.time : null);
+        const mapped = { type: r.run_type, time: t, et: r.et, trap: r.trap, mph: r.mph, fuel: r.fuel, da: r.da, date: r.date };
+        (runsByUser[r.user_id] || (runsByUser[r.user_id] = [])).push(mapped);
+      });
       const joined = (profs || [])
         .map(p => {
           const b = buildMap[p.user_id] || {};
           const installed = b.installed_map || {};
           const modCount = Object.keys(installed).filter(k => installed[k]).length;
-          return { ...p, installed_map: installed, modCount };
+          const userRuns = (runsByUser[p.user_id] || []).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+          const best60 = userRuns.filter(r => r.type === "60-130" && r.time != null).sort((a, b) => a.time - b.time)[0];
+          const bestTrapRun = userRuns.filter(r => r.trap != null).sort((a, b) => b.trap - a.trap)[0];
+          return {
+            ...p, installed_map: installed, modCount, runs: userRuns,
+            bestT60130: best60?.time ?? null,
+            bestTrap: bestTrapRun?.trap ?? null,
+          };
         })
         .filter(p => p.name && p.modCount > 0)
         .sort((a, b) => b.modCount - a.modCount);
@@ -3576,22 +3613,30 @@ Fields to extract:
     { id:"s7",  label:"S7"  }, { id:"s6",  label:"S6"  },
     { id:"s8",  label:"S8"  }, { id:"a8",  label:"A8"  },
   ];
-  const filteredCommunity = buildModelFilter === "all"
+  const filteredCommunity = (buildModelFilter === "all"
     ? communityBuilds
-    : communityBuilds.filter(b => b.car === buildModelFilter);
+    : communityBuilds.filter(b => b.car === buildModelFilter)
+  ).slice().sort((a, b) => {
+    if (buildSort === "fast") {
+      // fastest 60-130 first; builds without a time sink to the bottom
+      const av = a.bestT60130 ?? Infinity, bv = b.bestT60130 ?? Infinity;
+      if (av !== bv) return av - bv;
+    }
+    return b.modCount - a.modCount;
+  });
 
   const boardContent = (
     <div className="lb-area">
-      {/* Times / Builds toggle */}
+      {/* Builds / Leaderboard toggle */}
       <div style={{padding:"10px 14px 0"}}>
         <div className="board-toggle">
-          <button className={`btog${boardView==="times"?" on":""}`}
-            onClick={()=>setBoardView("times")}>Times</button>
           <button className={`btog${boardView==="builds"?" on":""}`}
             onClick={()=>{
               setBoardView("builds");
               if (communityBuilds.length === 0) loadCommunityBuilds();
             }}>Builds</button>
+          <button className={`btog${boardView==="times"?" on":""}`}
+            onClick={()=>setBoardView("times")}>Leaderboard</button>
         </div>
       </div>
 
@@ -3640,11 +3685,18 @@ Fields to extract:
           {communityLoading
             ? <div className="cmt-hdr">Loading builds…</div>
             : <>
-                <div className="cmt-hdr">{filteredCommunity.length} builds · sorted by mod count</div>
+                <div className="cmt-hdr">
+                  <span>{filteredCommunity.length} build{filteredCommunity.length===1?"":"s"}</span>
+                  <div className="cmt-sort">
+                    <button className={`csbtn${buildSort==="mods"?" on":""}`} onClick={()=>setBuildSort("mods")}>Most mods</button>
+                    <button className={`csbtn${buildSort==="fast"?" on":""}`} onClick={()=>setBuildSort("fast")}>Fastest</button>
+                  </div>
+                </div>
                 {filteredCommunity.length === 0
                   ? <div style={{padding:"20px 14px",fontSize:12,color:"var(--muted)"}}>No builds logged yet for this model.</div>
                   : filteredCommunity.map((b, i) => (
                     <CommunityBuildCard key={b.user_id || i} build={b}
+                      userCar={profile.car}
                       onView={()=>setViewedBuild(b)} />
                   ))
                 }
@@ -3864,8 +3916,8 @@ Fields to extract:
         <PublicPageSheet
           profile={viewedBuild}
           installedMap={viewedBuild.installed_map || {}}
-          bestRun60130={null}
-          runs={[]}
+          bestRun60130={viewedBuild.bestT60130 != null ? { time: viewedBuild.bestT60130 } : null}
+          runs={viewedBuild.runs || []}
           onClose={()=>setViewedBuild(null)}
         />
       )}
@@ -3882,7 +3934,12 @@ Fields to extract:
           <span className="bnav-icon">🏁</span>Times
           {runs.length>0&&<span className="bnav-badge">{runs.length}</span>}
         </button>
-        <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>{setActiveTab("board");track("tab_viewed",{tab:"leaderboard"});}}>
+        <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>{
+          setActiveTab("board");
+          setBoardView("builds");
+          if (communityBuilds.length === 0) loadCommunityBuilds();
+          track("tab_viewed",{tab:"community"});
+        }}>
           <span className="bnav-icon">👥</span>Community
         </button>
         <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
