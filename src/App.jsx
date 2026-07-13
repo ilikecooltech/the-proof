@@ -1752,6 +1752,16 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .sc-chip{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.05em;padding:2px 7px;background:rgba(232,85,10,.1);border:1px solid rgba(232,85,10,.25);border-radius:3px;color:var(--accent2)}
 .sc-preview{width:100%;padding:8px;border:1px solid rgba(232,85,10,.3);border-radius:5px;background:transparent;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .sc-preview:hover{background:rgba(232,85,10,.07)}
+/* ── PUBLIC PROFILE TOGGLE ── */
+.pub-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;margin:10px 0;text-align:left;font-family:inherit;box-sizing:border-box;transition:border-color .15s}
+.pub-toggle:hover{border-color:var(--accent2)}
+.pub-toggle-left{flex:1;min-width:0}
+.pub-toggle-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--text)}
+.pub-toggle-sub{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.05em;color:var(--muted);margin-top:3px}
+.pub-toggle-pill{width:44px;height:24px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid var(--border);flex-shrink:0;margin-left:12px;position:relative;transition:background .2s,border-color .2s}
+.pub-toggle-pill.on{background:rgba(0,232,135,.2);border-color:var(--green)}
+.pub-toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.pub-toggle-pill.on .pub-toggle-thumb{transform:translateX(20px);background:var(--green)}
 /* ── COMMUNITY TEASER (Garage shortcut) ── */
 .cmt-teaser{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid rgba(232,85,10,.25);border-radius:10px;padding:12px 14px;cursor:pointer;margin:10px 0 6px;text-align:left;transition:border-color .15s,background .15s;box-sizing:border-box;font-family:inherit}
 .cmt-teaser:hover,.cmt-teaser:active{border-color:var(--accent);background:rgba(232,85,10,.05)}
@@ -2357,7 +2367,7 @@ export default function TheProof() {
   const [wishlistMap,  setWishlistMap]  = useState({});
   const [buildMode, setBuildMode]   = useState("installed");
   const [profile, setProfile]       = useState({
-    name: "", car: "s7", year: "2016", color: "", nickname: "", tuner: "", note: ""
+    name: "", car: "s7", year: "2016", color: "", nickname: "", tuner: "", note: "", public: false
   });
   const [profileSaved, setProfileSaved] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
@@ -2498,7 +2508,7 @@ export default function TheProof() {
       // owner's performance (best 60-130 + best trap); degrades gracefully to none
       // if the runs table isn't readable to this client.
       const [{ data: profs }, { data: blds }, { data: runRows }] = await Promise.all([
-        sb.from("profiles").select("user_id,name,car,year,color,tuner,note").not("name","is",null).neq("name",""),
+        sb.from("profiles").select("user_id,name,car,year,color,tuner,note,public").not("name","is",null).neq("name","").eq("public",true),
         sb.from("builds").select("user_id,installed_map,updated_at"),
         sb.from("runs").select("user_id,run_type,time_val,time,et,trap,mph,fuel,da,date"),
       ]);
@@ -2642,7 +2652,7 @@ export default function TheProof() {
       if (session?.user) {
         setAuthUser(session.user);
         const { data } = await sb.from("profiles").select("*").eq("user_id", session.user.id).single();
-        if (data) setProfile(p => ({...p, name:data.name||"", car:data.car||p.car, year:data.year||p.year, color:data.color||"", nickname:data.nickname||"", tuner:data.tuner||"", note:data.note||""}));
+        if (data) setProfile(p => ({...p, name:data.name||"", car:data.car||p.car, year:data.year||p.year, color:data.color||"", nickname:data.nickname||"", tuner:data.tuner||"", note:data.note||"", public:data.public||false}));
       } else { setAuthUser(null); }
     });
     return () => subscription.unsubscribe();
@@ -2663,7 +2673,7 @@ export default function TheProof() {
     await sb.from("profiles").upsert({
       user_id:uid, name:next.name, car:next.car, year:next.year,
       color:next.color, nickname:next.nickname, tuner:next.tuner, note:next.note,
-      email:authUser?.email||"",
+      public:next.public||false, email:authUser?.email||"",
       updated_at:new Date().toISOString()
     }, { onConflict:"user_id" });
     setProfileSaved(true);
@@ -3497,10 +3507,28 @@ Fields to extract:
         <div className="share-sub">
           Share your setup with the community. Anyone with this link sees your full mod list and best time.
         </div>
-        <div className="share-url">proof.build/@{profile.name ? profile.name.toLowerCase().replace(/\s+/g,"_") : "yourname"}/{currentModel.label.toLowerCase().replace(/\s+/g,"-")}</div>
-        <button className="share-copy" onClick={()=>{
-          try { navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s+/g,"_")}/${currentModel.label.toLowerCase().replace(/\s+/g,"-")}`); } catch {}
-        }}>Copy Link</button>
+
+        {/* Public toggle */}
+        <button className="pub-toggle" onClick={()=>{
+          const next = {...profile, public: !profile.public};
+          saveProfile(next);
+          track("profile_public_toggled", {public: next.public});
+        }}>
+          <div className="pub-toggle-left">
+            <div className="pub-toggle-label">Show in Community builds</div>
+            <div className="pub-toggle-sub">{profile.public ? "Your build is visible to other members" : "Only you can see your build"}</div>
+          </div>
+          <div className={`pub-toggle-pill${profile.public ? " on" : ""}`}>
+            <div className="pub-toggle-thumb"/>
+          </div>
+        </button>
+
+        {profile.public && <>
+          <div className="share-url">proof.build/@{profile.name ? profile.name.toLowerCase().replace(/\s+/g,"_") : "yourname"}/{currentModel.label.toLowerCase().replace(/\s+/g,"-")}</div>
+          <button className="share-copy" onClick={()=>{
+            try { navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s+/g,"_")}/${currentModel.label.toLowerCase().replace(/\s+/g,"-")}`); } catch {}
+          }}>Copy Link</button>
+        </>}
       </div>
 
       {/* ── SHARE CARD PREVIEW ── */}
