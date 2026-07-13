@@ -198,6 +198,14 @@ const MOD_PATH = [
   { slot:"ecu_s1",        builds:6,  pick:"apr_s1" },        // Stage 1 OTS Tune
 ];
 
+// Community-validated "Recommended" pick per slot, derived HONESTLY from MOD_PATH
+// usage data: the most-run product in each slot, with the real social-proof %
+// (share of the 63 logged builds running that mod). No invented numbers.
+// LIVE-DATA SEAM: when real aggregate data exists, recompute the pick / % here.
+const RECOMMENDED_BY_SLOT = Object.fromEntries(
+  MOD_PATH.map(m => [m.slot, { variantId: m.pick, pct: Math.round((m.builds / MOD_PATH_TOTAL) * 100) }])
+);
+
 // Recommend the next 1–3 mods the user doesn't have, following MOD_PATH order (proven
 // path + popularity). Conflict-aware: skips slots that clash with an installed part
 // (e.g. won't suggest a second ECU-tune slot). Returns enriched rows with the popular
@@ -1211,14 +1219,9 @@ function calcSpeeds(model, hpGain, baseHpOverride) {
 // SRM1000 kit = 992 whp measured = ~1167 hp crank
 function calcWhp(crankHp) { return Math.round(crankHp * 0.85); }
 
-function Stars({ rating }) {
-  return (
-    <span style={{color:"#ffd000",fontSize:11,letterSpacing:1}}>
-      {"★".repeat(Math.floor(rating))}{"☆".repeat(5-Math.floor(rating))}
-      <span style={{color:"var(--muted)",marginLeft:4,fontFamily:"'Share Tech Mono',monospace",fontSize:10}}>{rating}</span>
-    </span>
-  );
-}
+// Rating stars were replaced by a thumbs-up Like control + a data-derived
+// "Recommended" badge (see the variant card). Catalog `rating` fields remain in the
+// data but are no longer surfaced in the UI.
 
 // ── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
@@ -1315,7 +1318,13 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .vc-brand{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
 .vc-price{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--green);font-weight:700}
 .vc-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;margin-bottom:4px}
-.vc-stars{margin-bottom:5px}
+.vc-social{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.vc-like{display:inline-flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);border-radius:14px;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.vc-like:hover{border-color:var(--muted);color:var(--text)}
+.vc-like.on{border-color:var(--accent);background:rgba(232,85,10,.12);color:var(--accent2)}
+.vc-like-ic{font-size:11px;filter:grayscale(1);opacity:.7;transition:all .15s}
+.vc-like.on .vc-like-ic{filter:none;opacity:1}
+.vc-rec{display:inline-flex;align-items:center;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.25);border-radius:10px;padding:3px 8px;font-weight:700}
 .vc-notes{font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;font-weight:300}
 .vc-stats{display:flex;gap:4px;margin-bottom:7px}
 .vcstat{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:4px 3px;text-align:center}
@@ -2411,6 +2420,26 @@ export default function TheProof() {
   function clearActivationDismissal() {
     setActivationDismissed(false);
     try { localStorage.removeItem("proof-activation-nudge"); } catch { /* ignore */ }
+  }
+  // Per-user part "likes" (thumbs up), keyed by variant id. Persisted to localStorage
+  // (lazy init, no effect) — no DB migration. This is the user's OWN like state only.
+  // LIVE-DATA SEAM: community-wide like counts need a server-side aggregate (a future
+  // Supabase `part_likes` table: {variant_id, user_id}); merge those totals in here
+  // once available. Until then we show the user's like + the data-derived Recommended.
+  const [likedParts, setLikedPartsState] = useState(() => {
+    try {
+      const raw = localStorage.getItem("proof-liked-parts");
+      if (raw) return JSON.parse(raw);
+    } catch { /* ignore malformed / unavailable storage */ }
+    return {};
+  });
+  function toggleLike(variantId) {
+    setLikedPartsState(prev => {
+      const next = { ...prev };
+      if (next[variantId]) delete next[variantId]; else next[variantId] = true;
+      try { localStorage.setItem("proof-liked-parts", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
   }
   const [runsLoading, setRunsLoading] = useState(true);
   const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
@@ -3785,7 +3814,20 @@ Fields to extract:
                               <span className="vc-price">${v.price.toLocaleString()}</span>
                             </div>
                             <div className="vc-name">{v.label}</div>
-                            <div className="vc-stars"><Stars rating={v.rating}/></div>
+                            <div className="vc-social">
+                              <button
+                                className={`vc-like${likedParts[v.id]?" on":""}`}
+                                aria-pressed={!!likedParts[v.id]}
+                                title={likedParts[v.id]?"Liked":"Like this option"}
+                                onClick={()=>toggleLike(v.id)}>
+                                <span className="vc-like-ic">👍</span>{likedParts[v.id]?"Liked":"Like"}
+                              </button>
+                              {RECOMMENDED_BY_SLOT[slot.id]?.variantId === v.id && (
+                                <span className="vc-rec" title={`${RECOMMENDED_BY_SLOT[slot.id].pct}% of logged builds run this`}>
+                                  ★ Recommended · {RECOMMENDED_BY_SLOT[slot.id].pct}%
+                                </span>
+                              )}
+                            </div>
                             <div className="vc-notes">{v.notes}</div>
                             <div className="vc-stats">
                               <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${hp}`:"—"}</div></div>
@@ -3938,9 +3980,9 @@ Fields to extract:
           setActiveTab("board");
           setBoardView("builds");
           if (communityBuilds.length === 0) loadCommunityBuilds();
-          track("tab_viewed",{tab:"community"});
+          track("tab_viewed",{tab:"builds"});
         }}>
-          <span className="bnav-icon">👥</span>Community
+          <span className="bnav-icon">🔧</span>Builds
         </button>
         <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
           <span className="bnav-icon">👤</span>Profile
