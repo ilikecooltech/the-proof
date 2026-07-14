@@ -1752,6 +1752,32 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .sc-chip{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.05em;padding:2px 7px;background:rgba(232,85,10,.1);border:1px solid rgba(232,85,10,.25);border-radius:3px;color:var(--accent2)}
 .sc-preview{width:100%;padding:8px;border:1px solid rgba(232,85,10,.3);border-radius:5px;background:transparent;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .sc-preview:hover{background:rgba(232,85,10,.07)}
+/* ── ADMIN PANEL ── */
+.admin-fab{position:fixed;bottom:76px;right:14px;z-index:300;background:var(--accent);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 2px 10px rgba(232,85,10,.5)}
+.admin-overlay{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:var(--bg)}
+.admin-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
+.admin-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;text-transform:uppercase;letter-spacing:.06em;color:#fff}
+.admin-title span{color:var(--accent)}
+.admin-close{background:transparent;border:none;color:var(--muted);font-size:26px;cursor:pointer;line-height:1;padding:0 4px}
+.admin-search{width:100%;padding:10px 16px;background:rgba(0,0,0,.4);border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;flex-shrink:0}
+.admin-search:focus{outline:none;background:rgba(232,85,10,.06)}
+.admin-search::placeholder{color:var(--muted)}
+.admin-body{flex:1;overflow-y:auto}
+.admin-slot{border-bottom:1px solid var(--border)}
+.admin-slot-hdr{padding:8px 16px 4px;background:rgba(0,0,0,.2);display:flex;align-items:baseline;gap:8px}
+.admin-slot-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent2)}
+.admin-slot-cat{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:.06em}
+.admin-var{display:flex;align-items:center;padding:9px 16px;cursor:pointer;border-top:1px solid rgba(255,255,255,.03);gap:10px;transition:background .1s}
+.admin-var:active{background:rgba(255,255,255,.04)}
+.admin-var.on{background:rgba(0,232,135,.07)}
+.admin-var-info{flex:1;min-width:0}
+.admin-var-brand{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:#fff;text-transform:uppercase;letter-spacing:.03em}
+.admin-var-label{font-size:10px;color:var(--muted);display:block;margin-top:1px}
+.admin-var-price{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);display:block;margin-top:2px}
+.admin-check{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;color:var(--muted);transition:all .15s}
+.admin-var.on .admin-check{border-color:var(--green);color:var(--green);background:rgba(0,232,135,.12)}
+.admin-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:7px 18px;border-radius:20px;z-index:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.admin-toast.show{opacity:1}
 /* ── PUBLIC PROFILE TOGGLE ── */
 .pub-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;margin:10px 0;text-align:left;font-family:inherit;box-sizing:border-box;transition:border-color .15s}
 .pub-toggle:hover{border-color:var(--accent2)}
@@ -2359,6 +2385,60 @@ function CommunityBuildCard({ build, onView, userCar }) {
 }
 
 // ── APP ──────────────────────────────────────────────────────────────────
+// ── ADMIN PANEL ─────────────────────────────────────────────────────────────
+function AdminPanel({ adminPicks, onSetPick, onClose }) {
+  const [searchQ, setSearchQ] = useState("");
+  const [toast, setToast] = useState(false);
+
+  const filtered = searchQ
+    ? SLOTS.filter(s =>
+        s.name.toLowerCase().includes(searchQ.toLowerCase()) ||
+        s.cat.toLowerCase().includes(searchQ.toLowerCase()))
+    : SLOTS;
+
+  async function handlePick(slotId, varId, currently) {
+    await onSetPick(slotId, currently ? null : varId);
+    setToast(true);
+    setTimeout(() => setToast(false), 1400);
+  }
+
+  return (
+    <div className="admin-overlay">
+      <div className="admin-hdr">
+        <div className="admin-title">Recommended <span>Picks</span></div>
+        <button className="admin-close" onClick={onClose}>×</button>
+      </div>
+      <input className="admin-search" placeholder="Search slots or categories…"
+        value={searchQ} onChange={e=>setSearchQ(e.target.value)} />
+      <div className="admin-body">
+        {filtered.map(slot => (
+          <div key={slot.id} className="admin-slot">
+            <div className="admin-slot-hdr">
+              <span className="admin-slot-name">{slot.name}</span>
+              <span className="admin-slot-cat">{slot.cat}</span>
+            </div>
+            {(slot.variants||[]).map(v => {
+              const on = adminPicks[slot.id] === v.id;
+              return (
+                <div key={v.id} className={`admin-var${on?" on":""}`}
+                  onClick={()=>handlePick(slot.id, v.id, on)}>
+                  <div className="admin-var-info">
+                    <div className="admin-var-brand">{v.brand}</div>
+                    <span className="admin-var-label">{v.label}</span>
+                    <span className="admin-var-price">${v.price?.toLocaleString()}</span>
+                  </div>
+                  <div className="admin-check">{on ? "★" : "○"}</div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      <div className={`admin-toast${toast?" show":""}`}>Saved ✓</div>
+    </div>
+  );
+}
+
 export default function TheProof() {
   const [activeCat, setActiveCat]   = useState("Engine");
   const [openSlot, setOpenSlot]     = useState(null);
@@ -2392,6 +2472,9 @@ export default function TheProof() {
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
   const [timesView, setTimesView]     = useState("runs"); // "runs" | "chart"
   const [boardView, setBoardView]       = useState("builds"); // "builds" | "times"
+  const [adminPicks, setAdminPicks]     = useState({});
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const isAdminMode = typeof window !== "undefined" && window.location.search.includes("admin");
   const [buildModelFilter, setBuildModelFilter] = useState("all");
   const [buildSort, setBuildSort]       = useState("mods");   // "mods" | "fast"
   const [communityBuilds, setCommunityBuilds]   = useState([]);
@@ -2500,6 +2583,21 @@ export default function TheProof() {
     finally { setRunsLoading(false); }
   }
 
+  async function loadAdminPicks() {
+    const { data } = await sb.from("admin_picks").select("slot_id,variant_id");
+    if (data?.length) setAdminPicks(Object.fromEntries(data.map(r=>[r.slot_id,r.variant_id])));
+  }
+
+  async function saveAdminPick(slotId, variantId) {
+    if (variantId) {
+      await sb.from("admin_picks").upsert({ slot_id:slotId, variant_id:variantId, updated_at:new Date().toISOString() }, { onConflict:"slot_id" });
+      setAdminPicks(p=>({...p,[slotId]:variantId}));
+    } else {
+      await sb.from("admin_picks").delete().eq("slot_id",slotId);
+      setAdminPicks(p=>{ const n={...p}; delete n[slotId]; return n; });
+    }
+  }
+
   async function loadCommunityBuilds() {
     if (communityLoading) return;
     setCommunityLoading(true);
@@ -2566,7 +2664,8 @@ export default function TheProof() {
       } catch(e) { console.warn("Supabase load error:", e); }
     }
     load();
-    loadRuns();   // separate so it can be called independently
+    loadRuns();         // separate so it can be called independently
+    loadAdminPicks();   // load curator picks for Recommended badge
   }, []);
 
   const currentModel = MODELS.find(m => m.id === profile.car) || MODELS.find(m=>m.id==="s7");
@@ -3850,10 +3949,8 @@ Fields to extract:
                                 onClick={()=>toggleLike(v.id)}>
                                 <span className="vc-like-ic">👍</span>{likedParts[v.id]?"Liked":"Like"}
                               </button>
-                              {RECOMMENDED_BY_SLOT[slot.id]?.variantId === v.id && (
-                                <span className="vc-rec" title={`${RECOMMENDED_BY_SLOT[slot.id].pct}% of logged builds run this`}>
-                                  ★ Recommended · {RECOMMENDED_BY_SLOT[slot.id].pct}%
-                                </span>
+                              {adminPicks[slot.id] === v.id && (
+                                <span className="vc-rec">★ Recommended</span>
                               )}
                             </div>
                             <div className="vc-notes">{v.notes}</div>
@@ -3990,6 +4087,13 @@ Fields to extract:
           runs={viewedBuild.runs || []}
           onClose={()=>setViewedBuild(null)}
         />
+      )}
+
+      {isAdminMode && !showAdminPanel && (
+        <button className="admin-fab" onClick={()=>setShowAdminPanel(true)}>⚙ Admin</button>
+      )}
+      {showAdminPanel && (
+        <AdminPanel adminPicks={adminPicks} onSetPick={saveAdminPick} onClose={()=>setShowAdminPanel(false)} />
       )}
 
       <nav className="bottom-nav">
