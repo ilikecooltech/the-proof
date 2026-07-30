@@ -1,0 +1,1072 @@
+{
+  "generated": "2026-07-30",
+  "counts": {
+    "Fixed": 25,
+    "Broken": 1,
+    "Wrong": 2,
+    "Unverified": 24,
+    "OK": 54
+  },
+  "rows": [
+    {
+      "product": "Brisk Racing · ER12S Silver — OEM+ / Stage 1 (0.028\")",
+      "vendor": "034motorsport.com",
+      "slot": "spark_plugs",
+      "variantId": "brisk_er12s",
+      "oldUrl": "https://www.034motorsport.com/brisk-er12s-silver-performance-spark-plug-priced-each.html",
+      "status": "Fixed",
+      "newUrl": "https://www.034motorsport.com/brisk-racing-er12s-silver-spark-plug.html",
+      "note": "034 retired the old '-priced-each' slug."
+    },
+    {
+      "product": "Brisk Racing · ER10S Silver — Stage 2 / Hybrid / Big Turbo (0.024\")",
+      "vendor": "034motorsport.com",
+      "slot": "spark_plugs",
+      "variantId": "brisk_er10s",
+      "oldUrl": "https://www.034motorsport.com/brisk-er10s-silver-performance-spark-plug-priced-each.html",
+      "status": "Fixed",
+      "newUrl": "https://www.034motorsport.com/brisk-racing-er10s-silver-spark-plug.html",
+      "note": "034 retired the old '-priced-each' slug."
+    },
+    {
+      "product": "034 Motorsport · HPFP Piston Upgrade Kit",
+      "vendor": "034motorsport.com",
+      "slot": "hpfp",
+      "variantId": "034_hpfp",
+      "oldUrl": "https://www.034motorsport.com/high-pressure-fuel-pump-piston-upgrade-kit-for-audi-c7-c7-5-s6-s7.html",
+      "status": "Fixed",
+      "newUrl": "https://www.034motorsport.com/034motorsport-high-pressure-fuel-pump-piston-upgrade-kit-audi-4-0t.html",
+      "note": "034 renamed the HPFP kit page."
+    },
+    {
+      "product": "Motul · 8100 X-Clean 5W-40 — DI Engines / Stage 2+",
+      "vendor": "amazon.com",
+      "slot": "engine_oil",
+      "variantId": "motul_xclean_5w40",
+      "oldUrl": "https://www.amazon.com/Motul-104720-X-Clean-5W-40-5-Liter/dp/B00EOMGDG4",
+      "status": "Fixed",
+      "newUrl": "https://www.amazon.com/s?k=Motul+8100+X-clean+5W-40",
+      "note": "Dead ASIN. Swapped to an Amazon search scoped to the exact oil spec. SEARCH FALLBACK."
+    },
+    {
+      "product": "Mobil 1 · FS 0W-40 — Cold Climate / Turbo Startup Protection",
+      "vendor": "amazon.com",
+      "slot": "engine_oil",
+      "variantId": "mobil1_0w40",
+      "oldUrl": "https://www.amazon.com/Mobil-1-Synthetic-Motor-0W-40/dp/B07GMJQVGB",
+      "status": "Fixed",
+      "newUrl": "https://www.amazon.com/s?k=Mobil+1+0W-40+European+Car+Formula",
+      "note": "Dead ASIN. Swapped to an Amazon search scoped to the exact oil spec. SEARCH FALLBACK."
+    },
+    {
+      "product": "Motul · 8100 X-Power 10W-60 — Track / Race Days Only",
+      "vendor": "amazon.com",
+      "slot": "engine_oil",
+      "variantId": "motul_xpower_10w60",
+      "oldUrl": "https://www.amazon.com/Motul-100272-Power-10W-60-Liter/dp/B00D9J32LM",
+      "status": "Fixed",
+      "newUrl": "https://www.amazon.com/s?k=Motul+300V+Power+10W-60",
+      "note": "Dead ASIN. Swapped to an Amazon search scoped to the exact oil spec. SEARCH FALLBACK."
+    },
+    {
+      "product": "Garrett · G40-1150 Single",
+      "vendor": "atpturbo.com",
+      "slot": "turbo_upgrade",
+      "variantId": "g40_1150",
+      "oldUrl": "https://www.atpturbo.com/mm5/merchant.mvc?Screen=PROD&Store_Code=tp&Product_Code=GRT-TBO-G40",
+      "status": "Fixed",
+      "newUrl": "https://www.atpturbo.com/mm5/merchant.mvc?Screen=CTGY&Category_Code=G40-1150",
+      "note": "ATP retired the per-SKU product code; the G40-1150 category page lists every housing option. CATEGORY FALLBACK."
+    },
+    {
+      "product": "Garrett · G45-1500 Single",
+      "vendor": "atpturbo.com",
+      "slot": "turbo_upgrade",
+      "variantId": "g45_1500",
+      "oldUrl": "https://www.atpturbo.com/mm5/merchant.mvc?Screen=PROD&Store_Code=tp&Product_Code=GRT-TBO-G45",
+      "status": "Fixed",
+      "newUrl": "https://www.atpturbo.com/mm5/merchant.mvc?Screen=CTGY&Category_Code=G45-1500",
+      "note": "ATP retired the per-SKU product code; the G45-1500 category page lists every housing option. CATEGORY FALLBACK."
+    },
+    {
+      "product": "Autotech · Dual HPFP Upgrade Kit",
+      "vendor": "autotechperformance.com",
+      "slot": "hpfp",
+      "variantId": "autotech_hpfp",
+      "oldUrl": "https://autotechperformance.com/product-category/audi/audi-c7-s6-s7-rs7/",
+      "status": "Fixed",
+      "newUrl": "https://ctsturbo.com/product/autotech-high-volume-fuel-pump-upgrade-kit-for-gen2-2-0tfsi-2-5t-3-0t-4-0t-5-0l/",
+      "note": "autotechperformance.com now redirects to an unrelated business (westislandgarage.com) — the vendor site is gone. Swapped to CTS Turbo, a stocking dealer with a live product page."
+    },
+    {
+      "product": "Capristo · Valved Exhaust System",
+      "vendor": "capristoexhaust.com",
+      "slot": "catback_full",
+      "variantId": "capristo",
+      "oldUrl": "https://capristoexhaust.com/product/s6-s7-valved-exhaust/",
+      "status": "Fixed",
+      "newUrl": "https://capristoexhaust.com/collections/audi",
+      "note": "Capristo lists no C7 S6/S7 valved exhaust. Swapped to their Audi category. CATEGORY FALLBACK — catalogue entry may need review."
+    },
+    {
+      "product": "Eventuri · Carbon Intake System",
+      "vendor": "eventuri.net",
+      "slot": "cai",
+      "variantId": "eventuri",
+      "oldUrl": "https://eventuri.net/product/audi-s6-s7-rs6-rs7-4-0t-carbon-intake/",
+      "status": "Fixed",
+      "newUrl": "https://www.eventuri.net/product/audi-c7-rs6-rs7/",
+      "note": "Eventuri moved to www + /product/; the C7 RS6/RS7 page is the 4.0T fitment."
+    },
+    {
+      "product": "GFB · DV+ Diverter Valve",
+      "vendor": "gfb.com.au",
+      "slot": "bov",
+      "variantId": "gfb_dv",
+      "oldUrl": "https://www.gfb.com.au/product/t9381-dv-for-audi-vw/",
+      "status": "Fixed",
+      "newUrl": "https://tgkmotorsport.com/products/go-fast-bits-dv-diverter-valves-dual",
+      "note": "GFB's own product page 404s; TGK stocks the same DV+ valve with a live product page."
+    },
+    {
+      "product": "Milltek · Sport HFC DP",
+      "vendor": "milltekcorp.com",
+      "slot": "downpipe",
+      "variantId": "milltek_dp",
+      "oldUrl": "https://www.milltekcorp.com/large-bore-downpipe-hi-flow-sports-cat-for-products-audi-rs6-c7-4.0-tfsi-biturbo-quattro-inc-perform/p3051",
+      "status": "Fixed",
+      "newUrl": "https://www.milltekcorp.com/search?q=RS6+C7+downpipe",
+      "note": "That downpipe SKU is retired (MSVAG06OLD). Swapped to Milltek's live search for the C7 RS6 downpipe. SEARCH FALLBACK."
+    },
+    {
+      "product": "IE · Race Catless DP",
+      "vendor": "performancebyie.com",
+      "slot": "downpipe",
+      "variantId": "ie_dp",
+      "oldUrl": "https://performancebyie.com/collections/downpipes",
+      "status": "Fixed",
+      "newUrl": "https://performancebyie.com/collections/exhaust-systems",
+      "note": "IE's catalogue contains no C7 4.0T downpipe. Swapped to their exhaust category. CATEGORY FALLBACK — catalogue entry may need review."
+    },
+    {
+      "product": "Remus · Sport Cat-Back",
+      "vendor": "remus.eu",
+      "slot": "catback_full",
+      "variantId": "remus_sport",
+      "oldUrl": "https://remus.eu/en/sport-exhaust-audi-rs6-rs7-incl-ec-type-approval-046520-0500lr",
+      "status": "Fixed",
+      "newUrl": "https://www.remus-exhausts.com/en/search/?q=RS6%20C7",
+      "note": "Old link redirected to the C8 RS6 kit (wrong chassis). Swapped to Remus' C7 RS6 search. SEARCH FALLBACK."
+    },
+    {
+      "product": "SRM · High Vacuum Upgraded Actuators",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "wastegate",
+      "variantId": "srm_wg",
+      "oldUrl": "https://sillyrabbitmotorsport.com/srm850-single-turbo-kit.html",
+      "status": "Fixed",
+      "newUrl": "https://sillyrabbitmotorsport.com/srm-4-0t-high-vacuum-wastegates-ea824.html",
+      "note": "Old SRM850 kit slug 404s; this is SRM's dedicated 4.0T high-vacuum wastegate page."
+    },
+    {
+      "product": "SRM · 2.5\" Luftwaffe Intake (C7)",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "cai",
+      "variantId": "srm_intake",
+      "oldUrl": "https://sillyrabbitmotorsport.com/luftwaffe-intake-c7-4-0t.html",
+      "status": "Fixed",
+      "newUrl": "https://sillyrabbitmotorsport.com/40tfsi-luftwaffe-cnc-intake.html",
+      "note": "SRM renamed the C7 Luftwaffe intake page."
+    },
+    {
+      "product": "SRM · 3\" Dual Intake (S8 / D4)",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "cai",
+      "variantId": "srm_s8_intake",
+      "oldUrl": "https://sillyrabbitmotorsport.com/luftwaffe-intake-d4-s8-4-0t.html",
+      "status": "Fixed",
+      "newUrl": "https://sillyrabbitmotorsport.com/srm-s8-3inch-intakes.html",
+      "note": "SRM renamed the D4 S8 3\" intake page."
+    },
+    {
+      "product": "TGK Motorsport · 60mm Vacuum Wastegate Kit",
+      "vendor": "tgkmotorsport.com",
+      "slot": "wastegate",
+      "variantId": "tgk_wg",
+      "oldUrl": "https://tgkmotorsport.com/products/tgk-60mm-wastegate-kit",
+      "status": "Fixed",
+      "newUrl": "https://tgkmotorsport.com/products/tgk-motorsport-audi-4-0t-vacuum-wastegate-actuators",
+      "note": "TGK renamed the handle; new page is the 4.0T vacuum wastegate actuator kit."
+    },
+    {
+      "product": "TGK Motorsport · 4\" Merged Inlet Intake",
+      "vendor": "tgkmotorsport.com",
+      "slot": "cai",
+      "variantId": "tgk_4in",
+      "oldUrl": "https://tgkmotorsport.com/products/tgk-4-inch-intake",
+      "status": "Fixed",
+      "newUrl": "https://tgkmotorsport.com/products/tgk-motorsport-audi-4-0t-intake-system-4-conversion-audi-c7-c7-5-s6-s7-rs6-rs7",
+      "note": "TGK renamed the handle to the C7 4\" intake conversion."
+    },
+    {
+      "product": "TGK Motorsport · 5\" Conversion Kit (1000+HP)",
+      "vendor": "tgkmotorsport.com",
+      "slot": "cai",
+      "variantId": "tgk_5in",
+      "oldUrl": "https://tgkmotorsport.com/products/tgk-5-inch-intake-kit",
+      "status": "Fixed",
+      "newUrl": "https://tgkmotorsport.com/products/tgk-motorsport-audi-4-0t-intake-system-4-to-5-conversion-c7-c7-5-s6-s7-rs6-rs7-copy",
+      "note": "TGK renamed the handle to the 5\" conversion kit."
+    },
+    {
+      "product": "TGK Motorsport · BOV Conversion Kit",
+      "vendor": "tgkmotorsport.com",
+      "slot": "bov",
+      "variantId": "tgk_bov",
+      "oldUrl": "https://tgkmotorsport.com/products/tgk-motorsport-blow-off-valve-bov-conversion-kit-for-audi-4-0t",
+      "status": "Fixed",
+      "newUrl": "https://tgkmotorsport.com/products/tgk-motorsport-audi-4-0t-blow-off-valve-conversion-kit",
+      "note": "TGK renamed the BOV conversion handle."
+    },
+    {
+      "product": "Tial · MVI Wastegate Actuators",
+      "vendor": "tialsport.com",
+      "slot": "wastegate",
+      "variantId": "tial_wg",
+      "oldUrl": "https://tialsport.com/product/mvi-series-actuator/",
+      "status": "Fixed",
+      "newUrl": "https://tialsport.com/product/mvi-2-5-wastegate-actuator/",
+      "note": "TiAL split the MVI series page into per-size products; MVI 2.5 is the 4.0T fitment."
+    },
+    {
+      "product": "Loba · 600cc HPFP",
+      "vendor": "urotuning.com",
+      "slot": "hpfp",
+      "variantId": "loba_hpfp",
+      "oldUrl": "https://www.urotuning.com/products/loba-hpfp-upgrade-4-0-tfsi",
+      "status": "Fixed",
+      "newUrl": "https://progressiveparts.com/product/loba-motorsport-hp40-high-pressure-fuel-pump-for-audi-4-0tfsi-rs6-rs7-c7-s6-s7-c7-s8-d4-2010400",
+      "note": "UroTuning dropped the LOBA line. Swapped to a stocking dealer's exact C7 4.0TFSI HP40 product page."
+    },
+    {
+      "product": "Xona Rotor · XR5657S (King)",
+      "vendor": "xonarotor.com",
+      "slot": "turbo_upgrade",
+      "variantId": "xona_5657",
+      "oldUrl": "https://xonarotor.com/products/xona-rotor-57-57s-ball-bearing-turbocharger",
+      "status": "Fixed",
+      "newUrl": "https://xonarotor.com/collections/all",
+      "note": "Previously duplicated xona_5357's page. Pointed at Xona's product index. CATEGORY FALLBACK."
+    },
+    {
+      "product": "StopTech · Trophy Sport 380",
+      "vendor": "stoptech.com",
+      "slot": "big_brake",
+      "variantId": "stoptech_bbk",
+      "oldUrl": "https://www.stoptech.com/big-brake-kits/",
+      "status": "Broken",
+      "newUrl": "",
+      "note": "stoptech.com presents an invalid TLS certificate (ERR_TLS_CERT_ALTNAME_INVALID) on both apex and www. Genuinely broken for users. NEEDS MANUAL — pick a reseller."
+    },
+    {
+      "product": "KW · Variant 3",
+      "vendor": "kwsuspensions.com",
+      "slot": "coilovers",
+      "variantId": "kw_v3",
+      "oldUrl": "https://www.kwsuspensions.com/",
+      "status": "Wrong",
+      "newUrl": "",
+      "note": "Resolves, but it is only the KW homepage (geo-redirect); no deep product link confirmed. NEEDS MANUAL."
+    },
+    {
+      "product": "Xona Rotor · XR6564S (Big Frame)",
+      "vendor": "xonarotor.com",
+      "slot": "turbo_upgrade",
+      "variantId": "xona_6564",
+      "oldUrl": "https://xonarotor.com/products/xona-rotor-65-64s-ball-bearing-turbocharger",
+      "status": "Wrong",
+      "newUrl": "",
+      "note": "Resolves to Xona's 65-64 handle but the page titles as XRC5764S. Left as-is. NEEDS MANUAL to confirm SKU."
+    },
+    {
+      "product": "AEM · Methanol Injection",
+      "vendor": "aemelectronics.com",
+      "slot": "port_inj",
+      "variantId": "meth_kit",
+      "oldUrl": "https://www.aemelectronics.com/products/water-methanol-injection-systems/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "AEM 403s scripted clients. Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "Akrapovič · Slip-On Titanium",
+      "vendor": "akrapovic.com",
+      "slot": "catback",
+      "variantId": "akra_cb",
+      "oldUrl": "https://www.akrapovic.com/en/car/product/14915/Audi/S6-Avant-Limousine-C7/2017",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "akrapovic.com timed out from this network. Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "Akrapovič · Slip-On Titanium",
+      "vendor": "akrapovic.com",
+      "slot": "catback_full",
+      "variantId": "akra_slip",
+      "oldUrl": "https://www.akrapovic.com/en/car/product/14915/Audi/S6-Avant-Limousine-C7/2017",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "akrapovic.com timed out from this network. Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "NGK · SILFER8C7ES — Stock / Stage 1 (0.028\")",
+      "vendor": "ecstuning.com",
+      "slot": "spark_plugs",
+      "variantId": "ngk_stock",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Engine/Ignition/Spark_Plugs/NGK/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "NGK · SILFER8C7ES — Stage 1/2 regapped (0.026\")",
+      "vendor": "ecstuning.com",
+      "slot": "spark_plugs",
+      "variantId": "ngk_s1_s2",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Engine/Ignition/Spark_Plugs/NGK/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "NGK · SILFER8C7ES — Stage 2 tight gap (0.024\")",
+      "vendor": "ecstuning.com",
+      "slot": "spark_plugs",
+      "variantId": "ngk_s2_tight",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Engine/Ignition/Spark_Plugs/NGK/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "NGK · Heat Range 9 — Stage 3 / Hybrid Turbo (0.022\")",
+      "vendor": "ecstuning.com",
+      "slot": "spark_plugs",
+      "variantId": "ngk_s3_hybrid",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Engine/Ignition/Spark_Plugs/NGK/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "Denso · IKH01-27 (#5750) — Single Turbo / Race (0.018–0.020\")",
+      "vendor": "ecstuning.com",
+      "slot": "spark_plugs",
+      "variantId": "denso_race",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Engine/Ignition/Spark_Plugs/Denso/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "ECS Tuning · Performance Intake",
+      "vendor": "ecstuning.com",
+      "slot": "cai",
+      "variantId": "ecs_cai",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Engine/Intake/Air_Intakes/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "ECS Tuning · Catless Race DP",
+      "vendor": "ecstuning.com",
+      "slot": "downpipe",
+      "variantId": "ecs_dp",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Exhaust/Performance/Downpipe/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "ECS Tuning · Valved Cat-Back",
+      "vendor": "ecstuning.com",
+      "slot": "catback",
+      "variantId": "ecs_cb",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Exhaust/Performance/Cat_Back/ECS/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "ECS Tuning · Competition A2A FMIC",
+      "vendor": "ecstuning.com",
+      "slot": "intercooler",
+      "variantId": "ecs_fmic",
+      "oldUrl": "https://www.ecstuning.com/b-ecs-parts/ecs-tuning-c7-c75-s6-air-to-air-intercooler-kit/012711lakt/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "ECS Tuning · Valved Cat-Back",
+      "vendor": "ecstuning.com",
+      "slot": "catback_full",
+      "variantId": "ecs_valved",
+      "oldUrl": "https://www.ecstuning.com/Audi-C7_S6-Quattro-4.0T/Exhaust/Performance/Cat_Back/ECS/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "APR · Stage 1+",
+      "vendor": "goapr.com",
+      "slot": "ecu_s1",
+      "variantId": "apr_s1",
+      "oldUrl": "https://www.goapr.com/products/software/ecu_upgrade/parts/ECU-40T-EA824-S67",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "APR product page — Cloudflare blocks scripted fetch; confirmed live in a real browser (correct SKU page)."
+    },
+    {
+      "product": "APR · Stage 2+",
+      "vendor": "goapr.com",
+      "slot": "ecu_s2",
+      "variantId": "apr_s2",
+      "oldUrl": "https://www.goapr.com/products/software/ecu_upgrade/parts/ECU-40T-EA824-S67",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "Shares the APR ECU page with apr_s1 — confirmed live in a real browser."
+    },
+    {
+      "product": "APR · DSG Tune",
+      "vendor": "goapr.com",
+      "slot": "dsg_tune",
+      "variantId": "apr_dsg",
+      "oldUrl": "https://www.goapr.com/products/software/tcu_upgrade/parts/TCU-DL501-MLB",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "APR TCU page — confirmed live in a real browser."
+    },
+    {
+      "product": "APR · ZF8 TCU Tune",
+      "vendor": "goapr.com",
+      "slot": "tcu_tune",
+      "variantId": "apr_tcu",
+      "oldUrl": "https://www.goapr.com/products/software/tcu_upgrade/parts/TCU-DL501-MLB",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "APR TCU page — confirmed live in a real browser."
+    },
+    {
+      "product": "Injector Dynamics · ID1050x Port Kit",
+      "vendor": "injectordynamics.com",
+      "slot": "port_inj_full",
+      "variantId": "id1050_port",
+      "oldUrl": "https://injectordynamics.com/injectors/id1050-xds/",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "Incomplete TLS chain blocks scripted fetch; typically fine in browsers. Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "Hawk · HPS 5.0",
+      "vendor": "jhmotorsports.com",
+      "slot": "brake_pads",
+      "variantId": "hawk_hps",
+      "oldUrl": "https://jhmotorsports.com/front-brake-pads-hawk-hps-street-for-400mm-c7-s6-s7-and-d4-a8-s8.html",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "jhmotorsports returns HTTP 450 to scripted clients (bot shield). Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "Russell / Earls · -6AN Fuel Lines",
+      "vendor": "summitracing.com",
+      "slot": "fuel_lines",
+      "variantId": "6an",
+      "oldUrl": "https://www.summitracing.com/search/product-line/russell-performance-products",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "Russell / Earls · -8AN Fuel Lines",
+      "vendor": "summitracing.com",
+      "slot": "fuel_lines",
+      "variantId": "8an",
+      "oldUrl": "https://www.summitracing.com/search/product-line/russell-performance-products",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "Russell / Earls · -10AN Fuel Lines",
+      "vendor": "summitracing.com",
+      "slot": "fuel_lines",
+      "variantId": "10an",
+      "oldUrl": "https://www.summitracing.com/search/product-line/russell-performance-products",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": ""
+    },
+    {
+      "product": "Brembo · GT 6-Pot Kit",
+      "vendor": "vividracing.com",
+      "slot": "big_brake",
+      "variantId": "brembo_bbk",
+      "oldUrl": "https://www.vividracing.com/brembo-drilled-front-big-brake-kit-8piston-for-audi-rs7s6s7-20132018-p-152460269.html",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "Cloudflare 'Attention Required'. Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "Whiteline · Adjustable Set",
+      "vendor": "whiteline.com.au",
+      "slot": "sway_bars",
+      "variantId": "whiteline_sb",
+      "oldUrl": "https://www.whiteline.com.au/products/vehicle/audi",
+      "status": "Unverified",
+      "newUrl": "",
+      "note": "Vendor 403s scripted clients. Left unchanged, UNVERIFIED."
+    },
+    {
+      "product": "034 Motorsport · Res-X Resonator Delete",
+      "vendor": "034motorsport.com",
+      "slot": "resx",
+      "variantId": "034_resx",
+      "oldUrl": "https://www.034motorsport.com/res-x-resonator-delete-and-x-pipe-c7-c7-5-audi-s6-4-0tt.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "034 Motorsport · Adjustable Solid Rear Sway Bar",
+      "vendor": "034motorsport.com",
+      "slot": "sway_bars",
+      "variantId": "034_rsb",
+      "oldUrl": "https://www.034motorsport.com/adjustable-solid-rear-sway-bar-b8-b8-5-audi-q5-sq5-c7-c7-5-a6-s6-rs6-a7-s7-rs7.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "034 Motorsport · Street Density Motor Mounts",
+      "vendor": "034motorsport.com",
+      "slot": "motor_mounts",
+      "variantId": "034_mm",
+      "oldUrl": "https://www.034motorsport.com/motor-mount-street-density-c7-c7-5-audi-s6-s7-rs7-and-d4-a8-s8-4-0t.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Liqui-Moly · Leichtlauf High Tech 5W-40 — All Stages",
+      "vendor": "amazon.com",
+      "slot": "engine_oil",
+      "variantId": "liquimoly_5w40",
+      "oldUrl": "https://www.amazon.com/LIQUI-Molygen-Generation-5W-40-Motor/dp/B076ZQ4KDK",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Motul · 8100 X-cess Gen2 5W-40 — All Stages",
+      "vendor": "amazon.com",
+      "slot": "engine_oil",
+      "variantId": "motul_xcess_gen2",
+      "oldUrl": "https://www.amazon.com/Motul-109776-X-Cess-5-Liter-Bottle/dp/B089MB5NHC",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Castrol · EDGE 5W-40 — Stock / Stage 1 (OEM dealer fill)",
+      "vendor": "amazon.com",
+      "slot": "engine_oil",
+      "variantId": "castrol_edge_5w40",
+      "oldUrl": "https://www.amazon.com/Castrol-03084-5W-30-Advanced-Synthetic/dp/B00ICSWGJ0",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "ARM Motorsports · Catless Race DP",
+      "vendor": "armmotorsports.com",
+      "slot": "downpipe",
+      "variantId": "arm_dp",
+      "oldUrl": "https://armmotorsports.com/products/audi-4-0t-downpipes-s6-s7-s8-rs7",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "AWE · AirGate Intake",
+      "vendor": "awe-tuning.com",
+      "slot": "cai",
+      "variantId": "awe_cai",
+      "oldUrl": "https://www.awe-tuning.com/products/audi-c7-s6-s7-4-0t-carbon-intake",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "AWE · Tuning DP",
+      "vendor": "awe-tuning.com",
+      "slot": "downpipe",
+      "variantId": "awe_dp",
+      "oldUrl": "https://www.awe-tuning.com/products/awe-tuning-s6-4-0t-track-touring-exhaust-suite",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "AWE · Touring Edition",
+      "vendor": "awe-tuning.com",
+      "slot": "catback",
+      "variantId": "awe_cb",
+      "oldUrl": "https://www.awe-tuning.com/products/awe-tuning-s6-4-0t-track-touring-exhaust-suite",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "AWE · Touring Edition",
+      "vendor": "awe-tuning.com",
+      "slot": "catback_full",
+      "variantId": "awe_touring",
+      "oldUrl": "https://www.awe-tuning.com/products/awe-tuning-s6-4-0t-track-touring-exhaust-suite",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "AWE · Track Edition",
+      "vendor": "awe-tuning.com",
+      "slot": "catback_full",
+      "variantId": "awe_track",
+      "oldUrl": "https://www.awe-tuning.com/products/awe-tuning-s6-4-0t-track-touring-exhaust-suite",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Bilstein · B16 Dynamic",
+      "vendor": "cloud9ab.com",
+      "slot": "coilovers",
+      "variantId": "bilstein_b16",
+      "oldUrl": "https://www.cloud9ab.com/products/audi-14-18-rs7-13-18-s7-b16-pss10-coilover-kit-bil48-221832",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Eisenmann · Sport Exhaust",
+      "vendor": "ind-distribution.com",
+      "slot": "catback_full",
+      "variantId": "eisenmann",
+      "oldUrl": "https://ind-distribution.com/collections/eisenmann",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "JXB Performance · Retrofitted Wavetrac LSD",
+      "vendor": "jxbperformance.com",
+      "slot": "diff",
+      "variantId": "jxb_wavetrac",
+      "oldUrl": "https://www.jxbperformance.com/products/p/jxb-retrofitted-wavetrac-rear-limited-slip-differential-for-audi-b8-s4/s5-and-c7-s6/s7",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Klassen · Klassen Manifolds",
+      "vendor": "klasen-motors.com",
+      "slot": "manifolds",
+      "variantId": "klassen_mani",
+      "oldUrl": "https://klasen-motors.com/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Mickey Thompson · ET Street S/S",
+      "vendor": "mickeythompsontires.com",
+      "slot": "tires_drag",
+      "variantId": "m_t_et_street",
+      "oldUrl": "https://www.mickeythompsontires.com/drag-tires/et-street-s-s",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Milltek · Non-Resonated",
+      "vendor": "milltekcorp.com",
+      "slot": "catback",
+      "variantId": "milltek_cb",
+      "oldUrl": "https://www.milltekcorp.com/non-resonated-non-valved-cat-back-for-products-audi-s6-4.0-tfsi-c7-quattro-2012-to-2018products-audi/p3274",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Redirects to the current Milltek cat-back product page — healthy redirect, no change needed."
+    },
+    {
+      "product": "Milltek · Resonated",
+      "vendor": "milltekcorp.com",
+      "slot": "catback",
+      "variantId": "milltek_res",
+      "oldUrl": "https://www.milltekcorp.com/non-resonated-non-valved-cat-back-for-products-audi-s6-4.0-tfsi-c7-quattro-2012-to-2018products-audi/p3274",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Redirects to the current Milltek cat-back product page — healthy redirect, no change needed."
+    },
+    {
+      "product": "Milltek · Non-Resonated",
+      "vendor": "milltekcorp.com",
+      "slot": "catback_full",
+      "variantId": "milltek_nonres",
+      "oldUrl": "https://www.milltekcorp.com/non-resonated-non-valved-cat-back-for-products-audi-s6-4.0-tfsi-c7-quattro-2012-to-2018products-audi/p3274",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Redirects to the current Milltek cat-back product page — healthy redirect, no change needed."
+    },
+    {
+      "product": "Mishimoto · Oil Cooler Kit",
+      "vendor": "mishimoto.com",
+      "slot": "oil_cooler",
+      "variantId": "mishimoto_oc",
+      "oldUrl": "https://www.mishimoto.com/transmission-oil-coolers/oil-cooler-kits.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "NOS / Nitrous Outlet · Wet Nitrous + Port Combo",
+      "vendor": "nitrousoutlet.com",
+      "slot": "port_inj_full",
+      "variantId": "nos_port",
+      "oldUrl": "https://nitrousoutlet.com/products/x-series-core-efi-nitrous-kit",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "OS Giken · Triple Plate Clutch LSD",
+      "vendor": "osgikenusa.com",
+      "slot": "diff",
+      "variantId": "os_giken",
+      "oldUrl": "https://osgikenusa.com/collections/clutch1",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "IE · HPFP Internal Kit",
+      "vendor": "performancebyie.com",
+      "slot": "hpfp",
+      "variantId": "ie_hpfp",
+      "oldUrl": "https://performancebyie.com/products/ie-hpfp-internal-upgrade-kit-for-audi-4-0tt-tfsi-engines",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "IE · Carbon Fiber Intake",
+      "vendor": "performancebyie.com",
+      "slot": "cai",
+      "variantId": "ie_cai",
+      "oldUrl": "https://performancebyie.com/collections/cold-air-intake-systems/products/ie-carbon-fiber-intake-system-for-audi-c7-c7-5-s6",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "IE · Front Mount A2A FMIC",
+      "vendor": "performancebyie.com",
+      "slot": "intercooler",
+      "variantId": "ie_fmic",
+      "oldUrl": "https://performancebyie.com/collections/intercooler-systems",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Hoosier · A7 Drag Radial",
+      "vendor": "shop.hoosiertire.com",
+      "slot": "tires_drag",
+      "variantId": "hoosier_dr2",
+      "oldUrl": "https://shop.hoosiertire.com/racing-tires/drag-racing/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "SRM (Softronic) · Stage 1",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "ecu_s1",
+      "variantId": "srm_s1",
+      "oldUrl": "https://sillyrabbitmotorsport.com/tuning/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "SRM (Softronic) · Stage 2",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "ecu_s2",
+      "variantId": "srm_s2",
+      "oldUrl": "https://sillyrabbitmotorsport.com/tuning/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Dyno Spectrum (DS1) · DS1 ECU + ET Spec TCU Combo",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "ecu_custom",
+      "variantId": "ds1_srm",
+      "oldUrl": "https://sillyrabbitmotorsport.com/dyno-spectrum-ds1.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "SRM · Port Injection Kit",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "port_inj",
+      "variantId": "srm_port",
+      "oldUrl": "https://sillyrabbitmotorsport.com/port-injection-4-0t-spacer-kit.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "SRM · Upgraded Exhaust Manifolds + Turbine Housing",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "manifolds",
+      "variantId": "srm_mani",
+      "oldUrl": "https://sillyrabbitmotorsport.com/turbochargers/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "SRM · A2A Intercooler (CSF Core)",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "intercooler",
+      "variantId": "srm_a2a",
+      "oldUrl": "https://sillyrabbitmotorsport.com/air-to-air-intercooler-for-4-0t.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "ET Spec · ZF8HP / DL501 TCU Tune",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "tcu_tune",
+      "variantId": "etspec_tcu",
+      "oldUrl": "https://sillyrabbitmotorsport.com/etspec-tcu-tune-audi-zf-8hp-or-continental-dl501.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Slavov / SRM · Slavov ZF8HP + DL501 TCU",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "tcu_tune",
+      "variantId": "slavov_tcu",
+      "oldUrl": "https://sillyrabbitmotorsport.com/zf8-tcu-tune-audi-a8-s8-rs6-rs7.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "SRM · 4.0T Port Injection Complete Kit",
+      "vendor": "sillyrabbitmotorsport.com",
+      "slot": "port_inj_full",
+      "variantId": "srm_port_kit",
+      "oldUrl": "https://sillyrabbitmotorsport.com/port-injection-4-0t-spacer-kit.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Unitronic · DQ500 Stage 1",
+      "vendor": "store.ngpracing.com",
+      "slot": "dsg_tune",
+      "variantId": "uni_dsg",
+      "oldUrl": "https://store.ngpracing.com/products/unitronic-audi-c7-c7-5-s6-s7-4-0t-s-tronic-performance-tcu-software",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Peloquin · Torque Biasing Diff",
+      "vendor": "store.ngpracing.com",
+      "slot": "diff",
+      "variantId": "peloquin",
+      "oldUrl": "https://store.ngpracing.com/collections/vendors?q=peloquins",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Turbosmart · TS1 Hybrid",
+      "vendor": "tgkmotorsport.com",
+      "slot": "turbo_upgrade",
+      "variantId": "ts1",
+      "oldUrl": "https://tgkmotorsport.com/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Turbosmart · TS2+ Hybrid",
+      "vendor": "tgkmotorsport.com",
+      "slot": "turbo_upgrade",
+      "variantId": "ts2plus",
+      "oldUrl": "https://tgkmotorsport.com/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Walbro · E85 Injector Kit",
+      "vendor": "tgkmotorsport.com",
+      "slot": "flex_fuel",
+      "variantId": "walbro_flex",
+      "oldUrl": "https://tgkmotorsport.com/products/tgk-motorsport-flex-fuel-kit",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Michelin · Pilot Sport 4S",
+      "vendor": "tirerack.com",
+      "slot": "tires_street",
+      "variantId": "ps4s",
+      "oldUrl": "https://www.tirerack.com/tires/michelin-pilot-sport-4s",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Michelin · Pilot Sport Cup 2",
+      "vendor": "tirerack.com",
+      "slot": "tires_street",
+      "variantId": "cup2",
+      "oldUrl": "https://www.tirerack.com/tires/michelin-pilot-sport-cup-2",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Michelin · Pilot Super Sport",
+      "vendor": "tirerack.com",
+      "slot": "tires_street",
+      "variantId": "pss",
+      "oldUrl": "https://www.tirerack.com/tires/michelin-pilot-super-sport",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Bridgestone · Potenza RE-71RS",
+      "vendor": "tirerack.com",
+      "slot": "tires_street",
+      "variantId": "re71rs",
+      "oldUrl": "https://www.tirerack.com/tires/bridgestone-potenza-re-71rs",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Nitto · NT01 R-Compound",
+      "vendor": "tirerack.com",
+      "slot": "tires_street",
+      "variantId": "nt01",
+      "oldUrl": "https://www.tirerack.com/tires/nitto-nt01",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Michelin · Pilot Sport 5",
+      "vendor": "tirerack.com",
+      "slot": "tires_street",
+      "variantId": "ps5",
+      "oldUrl": "https://www.tirerack.com/tires/michelin-pilot-sport-5",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Nitto · 555R2 Drag Radial",
+      "vendor": "tirerack.com",
+      "slot": "tires_drag",
+      "variantId": "nitto_555r2",
+      "oldUrl": "https://www.tirerack.com/tires/nitto-nt555rii",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Unitronic · Stage 1",
+      "vendor": "urotuning.com",
+      "slot": "ecu_s1",
+      "variantId": "uni_s1",
+      "oldUrl": "https://www.urotuning.com/products/unitronic-c7-audi-s6-s7-4-0t-performance-software",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Unitronic · Stage 2",
+      "vendor": "urotuning.com",
+      "slot": "ecu_s2",
+      "variantId": "uni_s2",
+      "oldUrl": "https://www.urotuning.com/products/unitronic-c7-audi-s6-s7-4-0t-performance-software",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Unitronic · ZF8 TCU Stage 1",
+      "vendor": "urotuning.com",
+      "slot": "tcu_tune",
+      "variantId": "uni_tcu",
+      "oldUrl": "https://www.urotuning.com/products/unitronic-c7-c7-5-audi-s6-s7-4-0t-tcu-upgrade",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Pagid · RS 4-2 Track",
+      "vendor": "vagbremtechnic.com",
+      "slot": "brake_pads",
+      "variantId": "pagid_rs",
+      "oldUrl": "https://www.vagbremtechnic.com/pagid-performance-brake-pads-a6-s6-rs6-c7-click-for-options/",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Wagner · Competition A2A FMIC",
+      "vendor": "wagner-tuning.com",
+      "slot": "intercooler",
+      "variantId": "wagner_fmic",
+      "oldUrl": "https://www.wagner-tuning.com/product/audi/audi-rs6-c7-typ-4g/performance-ladeluftkuehler-kit-fuer-audi-rs6-c7-4-0-biturbo-200001193.html",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    },
+    {
+      "product": "Xona Rotor · XR5357S (Compact)",
+      "vendor": "xonarotor.com",
+      "slot": "turbo_upgrade",
+      "variantId": "xona_5357",
+      "oldUrl": "https://xonarotor.com/products/xona-rotor-57-57s-ball-bearing-turbocharger",
+      "status": "OK",
+      "newUrl": "",
+      "note": "Resolves to the correct vendor page."
+    }
+  ]
+}
