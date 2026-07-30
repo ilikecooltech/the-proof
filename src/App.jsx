@@ -4498,6 +4498,10 @@ Fields to extract:
                             <button className={`vc-btn${isActive?" vsel":""}`} onClick={()=>pick(slot.id,v.id)}>
                               {isActive ? "Remove" : buildMode==="installed" ? "Mark Installed" : "Add to Wishlist"}
                             </button>
+                            {/* Outbound link to the vendor's own page — Proof.Build does not
+                                sell parts, so this is deliberately NOT labelled "Buy".
+                                Opens in a new tab; rel=noopener keeps the vendor page from
+                                touching window.opener. */}
                             {v.buyUrl && (
                               <a
                                 className="vc-buy"
@@ -4512,7 +4516,7 @@ Fields to extract:
                                   url: v.buyUrl,
                                 })}
                               >
-                                Buy →
+                                View at Vendor →
                               </a>
                             )}
                           </div>
