@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import posthog from "posthog-js";
+import { pickTunePair } from "./tuneCompare.js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
 const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
@@ -25,6 +26,69 @@ function getUserId() {
   let id = localStorage.getItem("proof-user-id");
   if (!id) { id = crypto.randomUUID(); localStorage.setItem("proof-user-id", id); }
   return id;
+}
+
+// ── DIALOG A11Y HOOK ─────────────────────────────────────────────────────────
+// Modal bottom sheets need four things browsers don't give a <div> for free:
+// focus moves in on open, Tab is trapped inside, Escape closes, and focus returns
+// to whatever opened it. Attach the returned ref to the element carrying
+// role="dialog". `onClose` is held in a ref so a parent passing an inline arrow
+// can't re-run the effect and yank focus back to the top on every render.
+const DIALOG_FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),' +
+  'textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])';
+
+function useDialog(onClose) {
+  const ref = useRef(null);
+  const closeRef = useRef(onClose);
+  // Written in an effect, not during render, so the latest handler is available
+  // to the keydown listener without re-running the mount effect below.
+  useEffect(() => { closeRef.current = onClose; });
+
+  // Captured in a lazy initializer, which runs during the first render — i.e.
+  // BEFORE React commits the DOM. The same commit puts `inert` on the app shell,
+  // and marking a focused element inert blurs it, so reading activeElement any
+  // later than this hands back <body> and focus restore silently does nothing.
+  const [restoreTo] = useState(() => document.activeElement);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const visible = () =>
+      [...node.querySelectorAll(DIALOG_FOCUSABLE)].filter(el => el.offsetParent !== null);
+
+    // Move focus in. Fall back to the dialog itself (tabIndex={-1}) when it has
+    // no focusable children yet.
+    (visible()[0] || node).focus();
+
+    function onKeyDown(e) {
+      if (e.key === "Escape") { e.preventDefault(); closeRef.current?.(); return; }
+      if (e.key !== "Tab") return;
+      const list = visible();
+      if (!list.length) { e.preventDefault(); node.focus(); return; }
+      const first = list[0], last = list[list.length - 1];
+      const active = document.activeElement;
+      if (!node.contains(active)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
+      if (e.shiftKey && (active === first || active === node)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+    }
+
+    document.addEventListener("keydown", onKeyDown, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, true);
+      // Deferred to the next task: on close React also drops `inert` from the app
+      // shell, and focus() on a still-inert element is silently ignored. A timer
+      // rather than rAF, because rAF does not fire in a backgrounded tab — which
+      // would leave focus stranded on <body>.
+      setTimeout(() => {
+        if (restoreTo instanceof HTMLElement && document.contains(restoreTo)) restoreTo.focus();
+      }, 0);
+    };
+    // restoreTo comes from a useState initializer, so it is stable for the
+    // lifetime of the dialog — this effect still runs exactly once, on mount.
+  }, [restoreTo]);
+
+  return ref;
 }
 
 
@@ -1616,6 +1680,10 @@ const CSS = `
 :root{
   --bg:#0a0a0c;--surface:#0f0f14;--card:#141420;--card2:#1a1a28;
   --border:#1e1e30;--accent:#e8550a;--accent2:#ff8c00;
+  /* Foreground for text sitting ON an accent/green/red fill. White fails AA on
+     these (3.66:1 on --accent, 2.33:1 on --accent2, 1.63:1 on --green); near-black
+     clears it everywhere (5.40 / 8.48 / 12.14 / 5.68 on --red) with no brand change. */
+  --on-accent:#0a0a0c;
   --dim:#8080ac;--text:#d0d0e8;--muted:#8888c0;
   --green:#00e887;--red:#ff3b5c;--yellow:#ffd000;--blue:#4499ff;
   --nav-h:60px;
@@ -1632,7 +1700,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .header-row1{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;gap:12px}
 .logo{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;letter-spacing:.08em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .logo-slash{color:var(--accent)}
-.logo-badge{background:var(--accent);color:#fff;font-size:9px;font-weight:700;letter-spacing:.15em;padding:2px 7px;border-radius:3px}
+.logo-badge{background:var(--accent);color:var(--on-accent);font-size:9px;font-weight:700;letter-spacing:.15em;padding:2px 7px;border-radius:3px}
 .stats-strip{display:flex;overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .stats-strip::-webkit-scrollbar{display:none}
 .hstat{display:flex;flex-direction:column;align-items:center;padding:4px 8px;border-left:1px solid var(--border);flex-shrink:0;min-width:56px}
@@ -1645,7 +1713,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .model-strip{display:flex;gap:6px;overflow-x:auto;padding:6px 14px;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .model-strip::-webkit-scrollbar{display:none}
 .mbtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 13px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.mbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.mbtn.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 
 /* ── BODY ── */
 .body{flex:1;overflow:hidden;display:flex;flex-direction:column}
@@ -1654,7 +1722,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .cat-strip{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--surface);flex-shrink:0}
 .cat-strip::-webkit-scrollbar{display:none}
 .cbtn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;position:relative}
-.cbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.cbtn.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .cbtn-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--green);border:1.5px solid var(--bg)}
 
 /* ── PARTS AREA ── */
@@ -1668,7 +1736,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .slot-card.sel{border-color:rgba(232,85,10,.5)}
 .slot-card.warn{border-color:rgba(255,208,0,.5)}
 .slot-card.conflict{border-color:rgba(255,59,92,.5)}
-.slot-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:56px}
+.slot-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:56px;width:100%;box-sizing:border-box;text-align:left;background:transparent;border:0;font-family:inherit;color:inherit}
 .slot-hdr:active{background:rgba(255,255,255,.03)}
 .slot-orb{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .2s;color:var(--dim)}
 .orb-ok{background:rgba(232,85,10,.12);border-color:var(--accent);color:var(--accent)}
@@ -1739,11 +1807,11 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .vc-diff{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
 .d-plug{color:var(--green)}.d-diy{color:var(--accent2)}.d-pro{color:var(--red)}
 .vc-btn{width:100%;padding:10px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:all .15s}
-.vc-btn:active,.vc-btn:hover{background:var(--accent);color:#fff}
-.vc-btn.vsel{background:var(--accent);border-color:var(--accent);color:#fff}
-.vc-btn.vsel:active,.vc-btn.vsel:hover{background:var(--red);border-color:var(--red)}
-.vc-buy{display:block;text-align:center;background:var(--accent);color:#fff;padding:8px 0;border-radius:6px;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-top:6px;transition:background .15s}
-.vc-buy:hover{background:#c7450a;color:#fff}
+.vc-btn:active,.vc-btn:hover{background:var(--accent);color:var(--on-accent)}
+.vc-btn.vsel{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.vc-btn.vsel:active,.vc-btn.vsel:hover{background:var(--red);border-color:var(--red);color:var(--on-accent)}
+.vc-buy{display:block;text-align:center;background:var(--accent);color:var(--on-accent);padding:8px 0;border-radius:6px;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-top:6px;transition:background .15s}
+.vc-buy:hover{background:var(--accent2);color:var(--on-accent)}
 
 /* ── TIME ESTIMATES ── */
 .t-est-row{display:flex;align-items:stretch;margin:6px 0 8px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;overflow:hidden}
@@ -1763,7 +1831,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 /* metric toggle */
 .perf-metric-toggle{display:flex;gap:4px;align-items:center}
 .pmtbtn{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.08em;padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
-.pmtbtn.pma{background:var(--accent);border-color:var(--accent);color:#fff}
+.pmtbtn.pma{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .pmtbtn:not(.pma):hover{border-color:var(--muted);color:var(--muted)}
 
 /* ── BUILD PANEL ── */
@@ -1840,8 +1908,12 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .bnav{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:color .15s;position:relative;padding:0}
 .bnav.active{color:var(--accent)}
 .bnav-icon{font-size:20px;line-height:1}
-.bnav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--accent);color:#fff;font-size:9px;font-family:'Share Tech Mono',monospace;border-radius:8px;padding:0 5px;min-width:16px;text-align:center;line-height:16px}
+.bnav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--accent);color:var(--on-accent);font-size:9px;font-family:'Share Tech Mono',monospace;border-radius:8px;padding:0 5px;min-width:16px;text-align:center;line-height:16px}
 
+/* Keyboard focus must be visible on every control, including the ones that
+   were <div>s until now. --accent2 clears 3:1 against all four surfaces. */
+:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+.slot-hdr:focus-visible,.admin-var:focus-visible{outline-offset:-2px}
 ::-webkit-scrollbar{width:3px;height:3px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -1901,7 +1973,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .rf-input:focus{border-color:var(--accent);background:rgba(232,85,10,.05)}
 .rf-input option{background:var(--card2);color:var(--text)}
 .rf-btns{display:flex;gap:8px}
-.rf-save{flex:1;padding:10px;background:var(--accent);border:none;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer}
+.rf-save{flex:1;padding:10px;background:var(--accent);border:none;color:var(--on-accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer}
 .rf-cancel{padding:10px 16px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer}
 .run-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative}
 .run-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
@@ -1935,7 +2007,7 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 /* ── TRAP CHART ── */
 .times-view-toggle{display:flex;gap:6px;margin-bottom:12px}
 .tvbtn{flex:1;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.08em;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
-.tvbtn.tva{background:var(--accent);border-color:var(--accent);color:#fff}
+.tvbtn.tva{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .tvbtn:not(.tva):hover{border-color:var(--muted);color:var(--muted)}
 .trap-chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
 .tc-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1}
@@ -2024,7 +2096,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .cf-feat-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:#fff}
 .cf-feat.on .cf-feat-name{color:var(--accent2)}
 .cf-check{width:18px;height:18px;flex-shrink:0;border-radius:50%;border:1px solid var(--border);color:var(--muted);font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1}
-.cf-check.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cf-check.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .cf-feat-desc{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.45}
 .cf-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
 .cf-count{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
@@ -2041,7 +2113,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .act-body strong{color:var(--accent2)}
 .act-steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .act-step{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.04em;color:var(--muted);background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
-.act-cta{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:filter .15s}
+.act-cta{width:100%;padding:11px;border:none;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--on-accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:filter .15s}
 .act-cta:hover{filter:brightness(1.08)}
 
 /* ── RECOMMENDED NEXT ── */
@@ -2050,7 +2122,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .reco-card{position:relative;display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 12px;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit}
 .reco-card:hover{border-color:var(--accent);background:rgba(232,85,10,.05)}
 .reco-card.top{border-color:rgba(232,85,10,.4)}
-.reco-badge{position:absolute;top:-8px;left:10px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--accent);border-radius:4px;padding:2px 7px}
+.reco-badge{position:absolute;top:-8px;left:10px;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--on-accent);background:var(--accent);border-radius:4px;padding:2px 7px}
 .reco-main{flex:1;min-width:0}
 .reco-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.1}
 .reco-pick{font-size:11px;color:var(--accent2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2068,7 +2140,8 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .run-ctrl-select option{background:var(--card2);color:var(--text)}
 .run-ctrl-divider{width:1px;height:16px;background:var(--border);align-self:center}
 /* ── RUN CARD EXPANDED DETAIL ── */
-.run-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative;cursor:pointer;transition:border-color .15s}
+.run-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative;transition:border-color .15s}
+.run-toggle{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;font-family:inherit;text-align:left;cursor:pointer}
 .run-card:hover{border-color:rgba(232,85,10,.3)}
 .run-card.selected{border-color:var(--accent);background:rgba(232,85,10,.04)}
 .run-detail{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
@@ -2096,9 +2169,9 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pf-input{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;outline:none;-webkit-appearance:none;width:100%}
 .pf-input:focus{border-color:var(--accent);background:rgba(232,85,10,.05)}
 .pf-input option{background:var(--card2);color:var(--text)}
-.pf-save{width:100%;padding:12px;background:var(--accent);border:none;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:background .15s}
-.pf-save:active{background:#c44008}
-.pf-saved{background:var(--green) !important}
+.pf-save{width:100%;padding:12px;background:var(--accent);border:none;color:var(--on-accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:background .15s}
+.pf-save:active{background:var(--accent2)}
+.pf-saved{background:var(--green) !important;color:var(--on-accent) !important}
 .share-box{background:rgba(0,232,135,.05);border:1px solid rgba(0,232,135,.2);border-radius:8px;padding:12px;margin-bottom:10px}
 .share-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:6px}
 .share-sub{font-size:11px;color:var(--muted);font-weight:300;margin-bottom:10px;line-height:1.5}
@@ -2130,7 +2203,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .cmt-perf{display:flex;gap:10px;margin-top:3px}
 .cmt-perf-i{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--green)}
 .cmt-perf-i b{font-family:'Share Tech Mono',monospace;font-size:7px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-left:2px}
-.cmt-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:0 14px 6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s}
+.cmt-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:0 14px 6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;width:calc(100% - 28px);box-sizing:border-box;text-align:left;font-family:inherit;color:inherit}
 .cmt-card:hover{border-color:rgba(232,85,10,.3)}
 .cmt-card.hot{border-color:rgba(232,85,10,.35)}
 .cmt-av{width:32px;height:32px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:var(--text);flex-shrink:0}
@@ -2158,7 +2231,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .sc-preview{width:100%;padding:8px;border:1px solid rgba(232,85,10,.3);border-radius:5px;background:transparent;color:var(--accent);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .sc-preview:hover{background:rgba(232,85,10,.07)}
 /* ── ADMIN PANEL ── */
-.admin-fab{position:fixed;bottom:76px;right:14px;z-index:300;background:var(--accent);color:#fff;border:none;border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 2px 10px rgba(232,85,10,.5)}
+.admin-fab{position:fixed;bottom:76px;right:14px;z-index:300;background:var(--accent);color:var(--on-accent);border:none;border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 2px 10px rgba(232,85,10,.5)}
 .admin-overlay{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:var(--bg)}
 .admin-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)}
 .admin-title{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;text-transform:uppercase;letter-spacing:.06em;color:#fff}
@@ -2172,7 +2245,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .admin-slot-hdr{padding:8px 16px 4px;background:rgba(0,0,0,.2);display:flex;align-items:baseline;gap:8px}
 .admin-slot-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent2)}
 .admin-slot-cat{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:.06em}
-.admin-var{display:flex;align-items:center;padding:9px 16px;cursor:pointer;border-top:1px solid rgba(255,255,255,.03);gap:10px;transition:background .1s}
+.admin-var{display:flex;align-items:center;padding:9px 16px;cursor:pointer;border:0;border-top:1px solid rgba(255,255,255,.03);gap:10px;transition:background .1s;width:100%;box-sizing:border-box;text-align:left;background:transparent;color:inherit;font-family:inherit}
 .admin-var:active{background:rgba(255,255,255,.04)}
 .admin-var.on{background:rgba(0,232,135,.07)}
 .admin-var-info{flex:1;min-width:0}
@@ -2297,6 +2370,7 @@ function PerfBar({ slotId, metric }) {
 // an estimated trap via trapForTime(). Lightweight inline SVG — no chart deps.
 function TrapChart({ leaderboard, bestRun60130 }) {
   const [lookup, setLookup] = useState("");
+  const uid = useId();
 
   // Plot geometry (SVG user units)
   const W = 340, H = 240;
@@ -2372,9 +2446,9 @@ function TrapChart({ leaderboard, bestRun60130 }) {
       )}
 
       <div className="tc-lookup">
-        <label className="tc-lookup-lbl">Estimate trap from any 60–130 time</label>
+        <label className="tc-lookup-lbl" htmlFor={`${uid}-lookup`}>Estimate trap from any 60–130 time</label>
         <div className="tc-lookup-row">
-          <input className="tc-lookup-input" type="number" step="0.1" inputMode="decimal" placeholder="e.g. 4.6"
+          <input id={`${uid}-lookup`} className="tc-lookup-input" type="number" step="0.1" inputMode="decimal" placeholder="e.g. 4.6"
             value={lookup} onChange={e => setLookup(e.target.value)} />
           <span className="tc-lookup-arrow">→</span>
           <div className="tc-lookup-out">{lookupTrap != null ? `${lookupTrap} mph` : "— mph"}</div>
@@ -2405,19 +2479,18 @@ function TrapChart({ leaderboard, bestRun60130 }) {
 
 // ── OTS vs CUSTOM TUNE COMPARISON (Feature A) ──────────────────────────────
 // Two layers: (1) data-driven delta from the user's own OTS-tagged vs Custom-tagged
-// runs (60–130 time + reference-curve trap via trapForTime); (2) research reference
-// ranges from TUNE_GAINS when there isn't enough tagged data yet.
+// runs — same run type only, see pickTunePair in ./tuneCompare.js; (2) research
+// reference ranges from TUNE_GAINS when there isn't enough tagged data yet.
 function TuneComparison({ runs }) {
   const [view, setView] = useState("data");
   const G = TUNE_GAINS;
 
   const withTime = (runs || []).filter(r => r.time != null && !isNaN(parseFloat(r.time)));
-  const bestBy = tag => withTime
-    .filter(r => r.tuneType === tag)
-    .reduce((best, r) => (best == null || parseFloat(r.time) < parseFloat(best.time)) ? r : best, null);
-  const otsBest = bestBy("OTS");
-  const customBest = bestBy("Custom");
-  const hasBoth = !!(otsBest && customBest);
+  const pair = pickTunePair(runs);
+  const cmpType = pair?.type ?? null;
+  const otsBest = pair?.ots ?? null;
+  const customBest = pair?.custom ?? null;
+  const hasBoth = !!pair;
   const taggedCount = withTime.filter(r => r.tuneType === "OTS" || r.tuneType === "Custom").length;
 
   const rng = (a, unit) => !a ? "" : (a[0] === a[1] ? `+${a[0]} ${unit}` : `+${a[0]}–${a[1]} ${unit}`);
@@ -2426,9 +2499,13 @@ function TuneComparison({ runs }) {
   if (hasBoth) {
     const oT = parseFloat(otsBest.time), cT = parseFloat(customBest.time);
     const dTime = +(oT - cT).toFixed(2);              // positive → custom faster
-    const oTrap = trapForTime(oT), cTrap = trapForTime(cT);
-    const dTrap = +(cTrap - oTrap).toFixed(1);
-    cmp = { oT, cT, dTime, oTrap, cTrap, dTrap, oFuel: otsBest.fuel, cFuel: customBest.fuel };
+    // TRAP_TABLE maps 60–130 times to trap speed; feeding it a 0–60 or Roll Race
+    // time returns a meaningless number, so the trap delta is 60–130 only.
+    const trapValid = cmpType === "60-130";
+    const oTrap = trapValid ? trapForTime(oT) : null;
+    const cTrap = trapValid ? trapForTime(cT) : null;
+    const dTrap = trapValid ? +(cTrap - oTrap).toFixed(1) : null;
+    cmp = { oT, cT, dTime, oTrap, cTrap, dTrap, type: cmpType, oFuel: otsBest.fuel, cFuel: customBest.fuel };
   }
 
   return (
@@ -2448,34 +2525,39 @@ function TuneComparison({ runs }) {
               <div className="tcmp-col ots">
                 <div className="tcmp-col-hd">OTS baseline</div>
                 <div className="tcmp-big">{cmp.oT}<span className="tcmp-u">s</span></div>
-                <div className="tcmp-sub">60–130 · est {cmp.oTrap} mph trap{cmp.oFuel ? ` · ${cmp.oFuel}` : ""}</div>
+                <div className="tcmp-sub">{cmp.type}{cmp.oTrap != null ? ` · est ${cmp.oTrap} mph trap` : ""}{cmp.oFuel ? ` · ${cmp.oFuel}` : ""}</div>
               </div>
               <div className="tcmp-col custom">
                 <div className="tcmp-col-hd">Custom</div>
                 <div className="tcmp-big">{cmp.cT}<span className="tcmp-u">s</span></div>
-                <div className="tcmp-sub">60–130 · est {cmp.cTrap} mph trap{cmp.cFuel ? ` · ${cmp.cFuel}` : ""}</div>
+                <div className="tcmp-sub">{cmp.type}{cmp.cTrap != null ? ` · est ${cmp.cTrap} mph trap` : ""}{cmp.cFuel ? ` · ${cmp.cFuel}` : ""}</div>
               </div>
             </div>
             <div className="tcmp-delta">
               <div className="tcmp-delta-item">
-                <span className="tcmp-delta-lbl">60–130</span>
+                <span className="tcmp-delta-lbl">{cmp.type}</span>
                 <span className={`tcmp-delta-val${cmp.dTime > 0 ? " good" : cmp.dTime < 0 ? " bad" : ""}`}>
                   {cmp.dTime > 0 ? `−${cmp.dTime}s` : cmp.dTime < 0 ? `+${Math.abs(cmp.dTime)}s` : "±0s"}
                 </span>
               </div>
-              <div className="tcmp-delta-item">
-                <span className="tcmp-delta-lbl">Est. trap</span>
-                <span className={`tcmp-delta-val${cmp.dTrap > 0 ? " good" : cmp.dTrap < 0 ? " bad" : ""}`}>
-                  {cmp.dTrap > 0 ? `+${cmp.dTrap}` : cmp.dTrap} mph
-                </span>
-              </div>
+              {cmp.dTrap != null && (
+                <div className="tcmp-delta-item">
+                  <span className="tcmp-delta-lbl">Est. trap</span>
+                  <span className={`tcmp-delta-val${cmp.dTrap > 0 ? " good" : cmp.dTrap < 0 ? " bad" : ""}`}>
+                    {cmp.dTrap > 0 ? `+${cmp.dTrap}` : cmp.dTrap} mph
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="tc-you-note">From your best OTS vs best Custom 60–130. Trap estimated via the reference curve.</div>
+            <div className="tc-you-note">
+              From your best OTS vs best Custom {cmp.type} run — same run type only.
+              {cmp.dTrap != null ? " Trap estimated via the reference curve." : ""}
+            </div>
           </>
         ) : (
           <div className="tcmp-empty">
             <div className="tcmp-empty-icon">📊</div>
-            <div>Tag your runs <strong>OTS</strong> or <strong>Custom</strong> when logging — once you have one of each, the real 60–130 and trap delta shows here.</div>
+            <div>Tag your runs <strong>OTS</strong> or <strong>Custom</strong> when logging — once you have one of each <em>on the same run type</em>, the real time and trap delta shows here.</div>
             <div className="tcmp-empty-note">
               {taggedCount === 0 ? "No tagged runs yet." : `${taggedCount} tagged run${taggedCount === 1 ? "" : "s"} so far.`} Sharpens as more land. Meanwhile, see <strong>Reference</strong> ↑
             </div>
@@ -2538,6 +2620,7 @@ function TuneComparison({ runs }) {
 // Provider list reuses the app's existing custom-tuner variants + an "Other tuner"
 // catch-all. Selection is lifted to App state and persisted (see customFeatures).
 function CustomFeatures({ value, onChange }) {
+  const uid = useId();
   const providers = [
     SCORPION.name,
     ...((getSlotById("ecu_custom")?.variants) || []).map(v => v.brand),
@@ -2556,8 +2639,8 @@ function CustomFeatures({ value, onChange }) {
       <div className="tc-sub">Select the add-on features your custom tune includes — for any tuner.</div>
 
       <div className="cf-field">
-        <label className="rf-label">Tuner / Provider</label>
-        <select className="rf-input" value={value.provider}
+        <label className="rf-label" htmlFor={`${uid}-provider`}>Tuner / Provider</label>
+        <select id={`${uid}-provider`} className="rf-input" value={value.provider}
           onChange={e => setProvider(e.target.value)}>
           {providers.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
@@ -2662,6 +2745,8 @@ function getInitials(name) {
 // (Board → Builds → tap a card).
 function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose }) {
   const [pubTab, setPubTab] = useState("build");
+  const dialogRef = useDialog(onClose);
+  const uid = useId();
   const model = MODELS.find(m => m.id === (profile.car || "s7")) || MODELS.find(m=>m.id==="s7");
   const handle = profile.name
     ? `@${profile.name.toLowerCase().replace(/\s+/g, "_")}`
@@ -2683,11 +2768,14 @@ function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose })
 
   return (
     <div className="pub-overlay" onClick={onClose}>
-      <div className="pub-sheet" onClick={e => e.stopPropagation()}>
-        <button className="pub-close" onClick={onClose}>×</button>
+      <div className="pub-sheet" role="dialog" aria-modal="true" aria-labelledby={`${uid}-title`}
+        tabIndex={-1} ref={dialogRef} onClick={e => e.stopPropagation()}>
+        <button className="pub-close" onClick={onClose} aria-label="Close build preview">
+          <span aria-hidden="true">×</span>
+        </button>
         <div className="pub-hero">
           <div className="pub-handle">{handle}</div>
-          <div className="pub-hname">{profile.name || "Your Name"}</div>
+          <div className="pub-hname" id={`${uid}-title`}>{profile.name || "Your Name"}</div>
           <div className="pub-hcar">
             {profile.year} {model.label}
             {profile.tuner ? ` · ${profile.tuner}` : ""}
@@ -2709,8 +2797,8 @@ function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose })
           </div>
         </div>
         <div className="pub-ptabs">
-          <button className={`pub-ptab${pubTab==="build"?" on":""}`} onClick={()=>setPubTab("build")}>Build</button>
-          <button className={`pub-ptab${pubTab==="runs"?" on":""}`} onClick={()=>setPubTab("runs")}>Runs ({runs.length})</button>
+          <button className={`pub-ptab${pubTab==="build"?" on":""}`} aria-pressed={pubTab==="build"} onClick={()=>setPubTab("build")}>Build</button>
+          <button className={`pub-ptab${pubTab==="runs"?" on":""}`} aria-pressed={pubTab==="runs"} onClick={()=>setPubTab("runs")}>Runs ({runs.length})</button>
         </div>
         <div className="pub-body">
           {pubTab === "build" && (installedSlots.length === 0
@@ -2765,8 +2853,9 @@ function CommunityBuildCard({ build, onView, userCar }) {
   const likeYours = userCar && build.car === userCar;
   const hasPerf = build.bestT60130 != null || build.bestTrap != null;
   return (
-    <div className={`cmt-card${isHot ? " hot" : ""}`} onClick={onView}>
-      <div className="cmt-av">{initials}</div>
+    <button type="button" className={`cmt-card${isHot ? " hot" : ""}`} onClick={onView}
+      aria-label={`View ${build.name || "Anonymous"}'s build — ${build.year || ""} ${model.label}, ${build.modCount} mods`}>
+      <div className="cmt-av" aria-hidden="true">{initials}</div>
       <div className="cmt-info">
         <div className="cmt-name">
           {build.name || "Anonymous"}
@@ -2785,7 +2874,7 @@ function CommunityBuildCard({ build, onView, userCar }) {
         <div className="cmt-n">{build.modCount}</div>
         <div className="cmt-nlbl">mods</div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -2794,6 +2883,8 @@ function CommunityBuildCard({ build, onView, userCar }) {
 function AdminPanel({ adminPicks, onSetPick, onClose }) {
   const [searchQ, setSearchQ] = useState("");
   const [toast, setToast] = useState(false);
+  const dialogRef = useDialog(onClose);
+  const uid = useId();
 
   const filtered = searchQ
     ? SLOTS.filter(s =>
@@ -2808,12 +2899,16 @@ function AdminPanel({ adminPicks, onSetPick, onClose }) {
   }
 
   return (
-    <div className="admin-overlay">
+    <div className="admin-overlay" role="dialog" aria-modal="true"
+      aria-labelledby={`${uid}-title`} tabIndex={-1} ref={dialogRef}>
       <div className="admin-hdr">
-        <div className="admin-title">Recommended <span>Picks</span></div>
-        <button className="admin-close" onClick={onClose}>×</button>
+        <div className="admin-title" id={`${uid}-title`}>Recommended <span>Picks</span></div>
+        <button className="admin-close" onClick={onClose} aria-label="Close admin panel">
+          <span aria-hidden="true">×</span>
+        </button>
       </div>
-      <input className="admin-search" placeholder="Search slots or categories…"
+      <input className="admin-search" id={`${uid}-search`} aria-label="Search slots or categories"
+        placeholder="Search slots or categories…"
         value={searchQ} onChange={e=>setSearchQ(e.target.value)} />
       <div className="admin-body">
         {filtered.map(slot => (
@@ -2825,15 +2920,17 @@ function AdminPanel({ adminPicks, onSetPick, onClose }) {
             {(slot.variants||[]).map(v => {
               const on = adminPicks[slot.id] === v.id;
               return (
-                <div key={v.id} className={`admin-var${on?" on":""}`}
+                <button type="button" key={v.id} className={`admin-var${on?" on":""}`}
+                  aria-pressed={on}
+                  aria-label={`${on ? "Remove" : "Set"} ${v.brand} ${v.label} as the recommended pick for ${slot.name}`}
                   onClick={()=>handlePick(slot.id, v.id, on)}>
                   <div className="admin-var-info">
                     <div className="admin-var-brand">{v.brand}</div>
                     <span className="admin-var-label">{v.label}</span>
                     <span className="admin-var-price">${v.price?.toLocaleString()}</span>
                   </div>
-                  <div className="admin-check">{on ? "★" : "○"}</div>
-                </div>
+                  <div className="admin-check" aria-hidden="true">{on ? "★" : "○"}</div>
+                </button>
               );
             })}
           </div>
@@ -2845,6 +2942,9 @@ function AdminPanel({ adminPicks, onSetPick, onClose }) {
 }
 
 export default function TheProof() {
+  // Stable id prefix for label/control association across the run-log and
+  // profile forms (both live in this component).
+  const formUid = useId();
   const [activeCat, setActiveCat]   = useState("Engine");
   const [openSlot, setOpenSlot]     = useState(null);
   const [activeTab, setActiveTab]   = useState("garage");
@@ -2886,6 +2986,9 @@ export default function TheProof() {
   const [communityLoading, setCommunityLoading] = useState(false);
   const [viewedBuild, setViewedBuild]   = useState(null);  // {profile, installedMap} for community sheet
   const [showPublicPage, setShowPublicPage]     = useState(false); // own public page preview
+  // True while any modal sheet is up — drives `inert` on the three app-shell
+  // siblings so background controls can't be tabbed into or reached by AT.
+  const dialogOpen = showPublicPage || !!viewedBuild || showAdminPanel;
   // Custom-tune add-on features (provider + selected feature ids). Persisted to
   // localStorage — no DB migration, doesn't touch existing run/profile data.
   // Lazy initializer (runs once) so we don't add a set-state-in-effect.
@@ -3589,7 +3692,7 @@ Fields to extract:
   const runFilterBarJSX = runs.length > 0 ? (
     <div className="run-ctrl-bar">
       <span className="run-ctrl-label">Sort</span>
-      <select className="run-ctrl-select" value={runSortKey} onChange={e=>setRunSortKey(e.target.value)}>
+      <select className="run-ctrl-select" aria-label="Sort runs by" value={runSortKey} onChange={e=>setRunSortKey(e.target.value)}>
         <option value="date">Date</option>
         <option value="time">Time</option>
         <option value="da">DA</option>
@@ -3611,9 +3714,14 @@ Fields to extract:
     const isOpen   = selectedRunId===run.id;
     const hasSplits = run.splits && Object.keys(run.splits).length>0;
     return (
-      <div key={run.id} className={`run-card${isOpen?" selected":""}`}
-        onClick={()=>setSelectedRunId(isOpen?null:run.id)}>
-        <button className="run-del" onClick={e=>{e.stopPropagation();deleteRun(run.id);}}>×</button>
+      <div key={run.id} className={`run-card${isOpen?" selected":""}`}>
+        <button className="run-del" aria-label={`Delete the ${run.type} run logged ${run.date}`}
+          onClick={e=>{e.stopPropagation();deleteRun(run.id);}}>
+          <span aria-hidden="true">×</span>
+        </button>
+        <button type="button" className="run-toggle"
+          aria-expanded={isOpen} aria-controls={`run-detail-${run.id}`}
+          onClick={()=>setSelectedRunId(isOpen?null:run.id)}>
         <div className="run-top">
           <span className="run-date">{run.date}</span>
           <span className="run-type">{run.type}</span>
@@ -3657,8 +3765,11 @@ Fields to extract:
           {run.da      && <span className="run-chip">DA: {run.da}</span>}
           {hasSplits   && <span className="run-chip" style={{color:"var(--accent)"}}>splits ▾</span>}
         </div>
+        </button>
+        {/* Detail sits OUTSIDE the toggle button — it holds its own links, and
+            nesting interactive content inside a button is invalid. */}
         {isOpen && (
-          <div className="run-detail" onClick={e=>e.stopPropagation()}>
+          <div className="run-detail" id={`run-detail-${run.id}`}>
             <div className="run-detail-grid">
               {run.surface && <div className="rdg-item"><span className="rdg-label">Surface</span><span className="rdg-val">{run.surface}</span></div>}
               {run.fuel    && <div className="rdg-item"><span className="rdg-label">Fuel</span><span className="rdg-val">{run.fuel}</span></div>}
@@ -3908,7 +4019,7 @@ Fields to extract:
           {runFormOpen ? "✕ Cancel" : `+ Log a Run${runs.length>0?` · ${runs.length} run${runs.length===1?"":"s"}`:""}`}
         </button>
         <button className="add-run-btn" style={{marginBottom:0,padding:"0 14px",flex:"none",fontSize:16}}
-          title="Refresh runs" onClick={()=>loadRuns()}>
+          title="Refresh runs" aria-label="Refresh runs" onClick={()=>loadRuns()}>
           {runsLoading ? "⟳" : "↺"}
         </button>
       </div>
@@ -3937,7 +4048,7 @@ Fields to extract:
                 <div className="draggy-preview-actions">
                   <span className="draggy-ok">✓ Times imported — review below</span>
                   <label htmlFor="draggy-file" className="draggy-reupload">Change</label>
-                  <button className="draggy-clear" onClick={()=>{setDraggyImage(null);setDraggyError("");}}>✕</button>
+                  <button className="draggy-clear" aria-label="Remove imported screenshot" onClick={()=>{setDraggyImage(null);setDraggyError("");}}><span aria-hidden="true">✕</span></button>
                 </div>
               </div>
             )}
@@ -3946,13 +4057,13 @@ Fields to extract:
 
           <div className="rf-grid">
             <div className="rf-field">
-              <label className="rf-label">Date</label>
-              <input className="rf-input" type="date" value={runForm.date}
+              <label className="rf-label" htmlFor={`${formUid}-date`}>Date</label>
+              <input id={`${formUid}-date`} className="rf-input" type="date" value={runForm.date}
                 onChange={e=>setRunForm(p=>({...p,date:e.target.value}))}/>
             </div>
             <div className="rf-field">
-              <label className="rf-label">Run Type</label>
-              <select className="rf-input" value={runForm.type}
+              <label className="rf-label" htmlFor={`${formUid}-type`}>Run Type</label>
+              <select id={`${formUid}-type`} className="rf-input" value={runForm.type}
                 onChange={e=>setRunForm(p=>({...p,type:e.target.value}))}>
                 <option>60-130</option>
                 <option>0-60</option>
@@ -3963,28 +4074,28 @@ Fields to extract:
             </div>
             {(runForm.type==="60-130"||runForm.type==="Roll Race"||runForm.type==="0-60") && (
               <div className="rf-field">
-                <label className="rf-label">{runForm.type} Time (s)</label>
-                <input className="rf-input" type="number" step="0.01" placeholder="4.96"
+                <label className="rf-label" htmlFor={`${formUid}-time`}>{runForm.type} Time (s)</label>
+                <input id={`${formUid}-time`} className="rf-input" type="number" step="0.01" placeholder="4.96"
                   value={runForm.time} onChange={e=>setRunForm(p=>({...p,time:e.target.value}))}/>
               </div>
             )}
             {(runForm.type==="60-130"||runForm.type==="Roll Race") && (
               <div className="rf-field">
-                <label className="rf-label">Exit Speed (mph)</label>
-                <input className="rf-input" type="number" step="0.1" placeholder="145"
+                <label className="rf-label" htmlFor={`${formUid}-mph`}>Exit Speed (mph)</label>
+                <input id={`${formUid}-mph`} className="rf-input" type="number" step="0.1" placeholder="145"
                   value={runForm.mph} onChange={e=>setRunForm(p=>({...p,mph:e.target.value}))}/>
               </div>
             )}
             {runForm.type==="1/8 Mile" && (
               <>
                 <div className="rf-field">
-                  <label className="rf-label">1/8 ET (s)</label>
-                  <input className="rf-input" type="number" step="0.001" placeholder="6.28"
+                  <label className="rf-label" htmlFor={`${formUid}-et8`}>1/8 ET (s)</label>
+                  <input id={`${formUid}-et8`} className="rf-input" type="number" step="0.001" placeholder="6.28"
                     value={runForm.et8th} onChange={e=>setRunForm(p=>({...p,et8th:e.target.value}))}/>
                 </div>
                 <div className="rf-field">
-                  <label className="rf-label">1/8 MPH</label>
-                  <input className="rf-input" type="number" step="0.1" placeholder="114"
+                  <label className="rf-label" htmlFor={`${formUid}-mph8`}>1/8 MPH</label>
+                  <input id={`${formUid}-mph8`} className="rf-input" type="number" step="0.1" placeholder="114"
                     value={runForm.mph} onChange={e=>setRunForm(p=>({...p,mph:e.target.value}))}/>
                 </div>
               </>
@@ -3992,20 +4103,20 @@ Fields to extract:
             {runForm.type==="1/4 Mile" && (
               <>
                 <div className="rf-field">
-                  <label className="rf-label">1/4 ET (s)</label>
-                  <input className="rf-input" type="number" step="0.001" placeholder="9.67"
+                  <label className="rf-label" htmlFor={`${formUid}-et`}>1/4 ET (s)</label>
+                  <input id={`${formUid}-et`} className="rf-input" type="number" step="0.001" placeholder="9.67"
                     value={runForm.et} onChange={e=>setRunForm(p=>({...p,et:e.target.value}))}/>
                 </div>
                 <div className="rf-field">
-                  <label className="rf-label">Trap Speed (mph)</label>
-                  <input className="rf-input" type="number" step="0.1" placeholder="143"
+                  <label className="rf-label" htmlFor={`${formUid}-trap`}>Trap Speed (mph)</label>
+                  <input id={`${formUid}-trap`} className="rf-input" type="number" step="0.1" placeholder="143"
                     value={runForm.trap} onChange={e=>setRunForm(p=>({...p,trap:e.target.value}))}/>
                 </div>
               </>
             )}
             <div className="rf-field">
-              <label className="rf-label">Surface</label>
-              <select className="rf-input" value={runForm.surface}
+              <label className="rf-label" htmlFor={`${formUid}-surface`}>Surface</label>
+              <select id={`${formUid}-surface`} className="rf-input" value={runForm.surface}
                 onChange={e=>setRunForm(p=>({...p,surface:e.target.value}))}>
                 <option>Street</option>
                 <option>Prepped Strip</option>
@@ -4014,13 +4125,13 @@ Fields to extract:
               </select>
             </div>
             <div className="rf-field">
-              <label className="rf-label">Fuel</label>
-              <input className="rf-input" type="text" placeholder="E30, E85, 93 oct…"
+              <label className="rf-label" htmlFor={`${formUid}-fuel`}>Fuel</label>
+              <input id={`${formUid}-fuel`} className="rf-input" type="text" placeholder="E30, E85, 93 oct…"
                 value={runForm.fuel} onChange={e=>setRunForm(p=>({...p,fuel:e.target.value}))}/>
             </div>
             <div className="rf-field">
-              <label className="rf-label">Tune Type</label>
-              <select className="rf-input" value={runForm.tuneType}
+              <label className="rf-label" htmlFor={`${formUid}-tunetype`}>Tune Type</label>
+              <select id={`${formUid}-tunetype`} className="rf-input" value={runForm.tuneType}
                 onChange={e=>setRunForm(p=>({...p,tuneType:e.target.value}))}>
                 <option value="">— not set —</option>
                 <option value="OTS">OTS (off-the-shelf)</option>
@@ -4028,23 +4139,23 @@ Fields to extract:
               </select>
             </div>
             <div className="rf-field">
-              <label className="rf-label">DA / Elevation</label>
-              <input className="rf-input" type="text" placeholder="-65 ft"
+              <label className="rf-label" htmlFor={`${formUid}-da`}>DA / Elevation</label>
+              <input id={`${formUid}-da`} className="rf-input" type="text" placeholder="-65 ft"
                 value={runForm.da} onChange={e=>setRunForm(p=>({...p,da:e.target.value}))}/>
             </div>
             <div className="rf-field">
-              <label className="rf-label">Tires</label>
-              <input className="rf-input" type="text" placeholder="PS4S, ET Street…"
+              <label className="rf-label" htmlFor={`${formUid}-tires`}>Tires</label>
+              <input id={`${formUid}-tires`} className="rf-input" type="text" placeholder="PS4S, ET Street…"
                 value={runForm.tires} onChange={e=>setRunForm(p=>({...p,tires:e.target.value}))}/>
             </div>
             <div className="rf-field full">
-              <label className="rf-label">Video / Slip URL</label>
-              <input className="rf-input" type="text" placeholder="https://youtube.com/…"
+              <label className="rf-label" htmlFor={`${formUid}-video`}>Video / Slip URL</label>
+              <input id={`${formUid}-video`} className="rf-input" type="text" placeholder="https://youtube.com/…"
                 value={runForm.videoUrl} onChange={e=>setRunForm(p=>({...p,videoUrl:e.target.value}))}/>
             </div>
             <div className="rf-field full">
-              <label className="rf-label">Notes</label>
-              <input className="rf-input" type="text" placeholder="Launch conditions, boost, notes…"
+              <label className="rf-label" htmlFor={`${formUid}-notes`}>Notes</label>
+              <input id={`${formUid}-notes`} className="rf-input" type="text" placeholder="Launch conditions, boost, notes…"
                 value={runForm.note} onChange={e=>setRunForm(p=>({...p,note:e.target.value}))}/>
             </div>
           </div>
@@ -4156,42 +4267,42 @@ Fields to extract:
         <div className="pf-title">Car Profile</div>
         <div className="pf-grid">
           <div className="pf-field">
-            <label className="pf-label">Your Name</label>
-            <input className="pf-input" type="text" placeholder="First Last"
+            <label className="pf-label" htmlFor={`${formUid}-pname`}>Your Name</label>
+            <input id={`${formUid}-pname`} className="pf-input" type="text" placeholder="First Last"
               value={profile.name} onChange={e=>setProfile(p=>({...p,name:e.target.value}))}/>
           </div>
           <div className="pf-field">
-            <label className="pf-label">Car Nickname</label>
-            <input className="pf-input" type="text" placeholder="The Beast"
+            <label className="pf-label" htmlFor={`${formUid}-pnick`}>Car Nickname</label>
+            <input id={`${formUid}-pnick`} className="pf-input" type="text" placeholder="The Beast"
               value={profile.nickname} onChange={e=>setProfile(p=>({...p,nickname:e.target.value}))}/>
           </div>
           <div className="pf-field">
-            <label className="pf-label">Model</label>
-            <select className="pf-input" value={profile.car||"s7"}
+            <label className="pf-label" htmlFor={`${formUid}-pmodel`}>Model</label>
+            <select id={`${formUid}-pmodel`} className="pf-input" value={profile.car||"s7"}
               onChange={e=>setProfile(p=>({...p,car:e.target.value}))}>
               {MODELS.map(m=><option key={m.id} value={m.id}>{m.label}</option>)}
             </select>
           </div>
           <div className="pf-field">
-            <label className="pf-label">Year</label>
-            <select className="pf-input" value={profile.year||"2016"}
+            <label className="pf-label" htmlFor={`${formUid}-pyear`}>Year</label>
+            <select id={`${formUid}-pyear`} className="pf-input" value={profile.year||"2016"}
               onChange={e=>setProfile(p=>({...p,year:e.target.value}))}>
               {["2013","2014","2015","2016","2017","2018"].map(y=><option key={y}>{y}</option>)}
             </select>
           </div>
           <div className="pf-field">
-            <label className="pf-label">Color</label>
-            <input className="pf-input" type="text" placeholder="Phantom Black"
+            <label className="pf-label" htmlFor={`${formUid}-pcolor`}>Color</label>
+            <input id={`${formUid}-pcolor`} className="pf-input" type="text" placeholder="Phantom Black"
               value={profile.color} onChange={e=>setProfile(p=>({...p,color:e.target.value}))}/>
           </div>
           <div className="pf-field">
-            <label className="pf-label">Tuner</label>
-            <input className="pf-input" type="text" placeholder="APR, Load Logic…"
+            <label className="pf-label" htmlFor={`${formUid}-ptuner`}>Tuner</label>
+            <input id={`${formUid}-ptuner`} className="pf-input" type="text" placeholder="APR, Load Logic…"
               value={profile.tuner} onChange={e=>setProfile(p=>({...p,tuner:e.target.value}))}/>
           </div>
           <div className="pf-field full">
-            <label className="pf-label">Build Note</label>
-            <input className="pf-input" type="text" placeholder="Daily driver | street/strip | track build…"
+            <label className="pf-label" htmlFor={`${formUid}-pnote`}>Build Note</label>
+            <input id={`${formUid}-pnote`} className="pf-input" type="text" placeholder="Daily driver | street/strip | track build…"
               value={profile.note} onChange={e=>setProfile(p=>({...p,note:e.target.value}))}/>
           </div>
         </div>
@@ -4215,9 +4326,9 @@ Fields to extract:
               <div style={{color:"var(--accent)",fontSize:13}}>✓ Magic link sent — check your email!</div>
             ) : (
               <div className="pf-field full">
-                <label className="pf-label">Email</label>
+                <label className="pf-label" htmlFor={`${formUid}-pemail`}>Email</label>
                 <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                  <input className="pf-input" type="email" placeholder="you@example.com" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMagicLink()} style={{flex:1}} />
+                  <input id={`${formUid}-pemail`} className="pf-input" type="email" placeholder="you@example.com" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMagicLink()} style={{flex:1}} />
                   <button className="pf-save" onClick={sendMagicLink} disabled={authLoading||!authEmail} style={{whiteSpace:"nowrap",width:"auto",minWidth:110,opacity:(authLoading||!authEmail)?0.5:1}}>
                     {authLoading ? "Sending…" : "Send Magic Link"}
                   </button>
@@ -4393,8 +4504,9 @@ Fields to extract:
 
             return (
               <div key={slot.id} className={cardCls}>
-                <div className="slot-hdr" onClick={()=>toggleSlot(slot.id)}>
-                  <div className={`slot-orb ${orbCls}`} style={hasSel && buildMode==="wishlist" && !hasConf && !hasWarn ? {borderColor:"var(--blue)",color:"var(--blue)",background:"rgba(68,153,255,.1)"} : {}}>{orbIcon}</div>
+                <button type="button" className="slot-hdr" onClick={()=>toggleSlot(slot.id)}
+                  aria-expanded={isOpen} aria-controls={`slot-picker-${slot.id}`}>
+                  <div className={`slot-orb ${orbCls}`} aria-hidden="true" style={hasSel && buildMode==="wishlist" && !hasConf && !hasWarn ? {borderColor:"var(--blue)",color:"var(--blue)",background:"rgba(68,153,255,.1)"} : {}}>{orbIcon}</div>
                   <div className="slot-info">
                     <div className="slot-name">{slot.name}</div>
                     {selVar
@@ -4403,11 +4515,11 @@ Fields to extract:
                     }
                   </div>
                   {slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
-                  <span className={`slot-chev${isOpen?" open":""}`}>▾</span>
-                </div>
+                  <span className={`slot-chev${isOpen?" open":""}`} aria-hidden="true">▾</span>
+                </button>
 
                 {isOpen && (
-                  <div className="var-picker">
+                  <div className="var-picker" id={`slot-picker-${slot.id}`}>
                     {hasConf && <div className="v-alert conflict">⚡ Conflicts with: {conflicts.map(c=>getSlotById(c)?.name||c).join(", ")}</div>}
                     {hasWarn && <div className="v-alert warn">⚠ Also needs: {missing.map(m=>getSlotById(m)?.name||m).join(", ")}</div>}
                     {hasSel && !hasWarn && !hasConf && missingRecs.length>0 && (
@@ -4457,9 +4569,10 @@ Fields to extract:
                               <button
                                 className={`vc-like${likedParts[v.id]?" on":""}`}
                                 aria-pressed={!!likedParts[v.id]}
+                                aria-label={`Like ${v.brand} ${v.label}${likesLive && likeCounts[v.id] > 0 ? ` — ${likeCounts[v.id].toLocaleString()} likes` : ""}`}
                                 title={likedParts[v.id]?"Liked":"Like this option"}
                                 onClick={()=>toggleLike(v.id)}>
-                                <span className="vc-like-ic">👍</span>{likedParts[v.id]?"Liked":"Like"}
+                                <span className="vc-like-ic" aria-hidden="true">👍</span>{likedParts[v.id]?"Liked":"Like"}
                                 {likesLive && likeCounts[v.id] > 0 && (
                                   <span className="vc-like-n">{likeCounts[v.id].toLocaleString()}</span>
                                 )}
@@ -4562,7 +4675,7 @@ Fields to extract:
 
   return (
     <div className="app">
-      <div className="header">
+      <div className="header" inert={dialogOpen}>
         <div className="header-row1">
           <div className="logo">PROOF<span className="logo-slash">.BUILD</span> <span className="logo-badge">{currentModel.label}</span></div>
           <div className="stats-strip">
@@ -4598,7 +4711,7 @@ Fields to extract:
         </div>
       </div>
 
-      <div className="body">
+      <div className="body" inert={dialogOpen}>
         {activeTab==="garage" && garageContent}
         {activeTab==="parts"  && partsWithToggle}
         {activeTab==="times"  && timesContent}
@@ -4629,34 +4742,52 @@ Fields to extract:
       )}
 
       {isAdminMode && !showAdminPanel && (
-        <button className="admin-fab" onClick={()=>setShowAdminPanel(true)}>⚙ Admin</button>
+        <button className="admin-fab" onClick={()=>setShowAdminPanel(true)}><span aria-hidden="true">⚙</span> Admin</button>
       )}
       {showAdminPanel && (
-        <AdminPanel adminPicks={adminPicks} onSetPick={saveAdminPick} onClose={()=>setShowAdminPanel(false)} />
+        <AdminPanel adminPicks={adminPicks} onSetPick={saveAdminPick} onClose={()=>{
+          setShowAdminPanel(false);
+          // The FAB unmounts while the panel is open, so useDialog has no node to
+          // restore to. Re-focus it once it comes back rather than dropping the
+          // keyboard user on <body>.
+          setTimeout(()=>document.querySelector(".admin-fab")?.focus(), 0);
+        }} />
       )}
 
-      <nav className="bottom-nav">
-        <button className={`bnav${activeTab==="garage"?" active":""}`} onClick={()=>{setActiveTab("garage");track("tab_viewed",{tab:"garage"});}}>
-          <span className="bnav-icon">🚗</span>Garage
+      <nav className="bottom-nav" aria-label="Primary" inert={dialogOpen}>
+        <button className={`bnav${activeTab==="garage"?" active":""}`}
+          aria-current={activeTab==="garage" ? "page" : undefined}
+          onClick={()=>{setActiveTab("garage");track("tab_viewed",{tab:"garage"});}}>
+          <span className="bnav-icon" aria-hidden="true">🚗</span>Garage
         </button>
-        <button className={`bnav${activeTab==="parts"?" active":""}`} onClick={()=>{setActiveTab("parts");track("tab_viewed",{tab:"parts"});}}>
-          <span className="bnav-icon">⚙</span>Parts
-          {(numInst+numWish)>0&&<span className="bnav-badge">{numInst+numWish}</span>}
+        <button className={`bnav${activeTab==="parts"?" active":""}`}
+          aria-current={activeTab==="parts" ? "page" : undefined}
+          aria-label={`Parts${(numInst+numWish)>0?`, ${(numInst+numWish)} items`:""}`}
+          onClick={()=>{setActiveTab("parts");track("tab_viewed",{tab:"parts"});}}>
+          <span className="bnav-icon" aria-hidden="true">⚙</span>Parts
+          {(numInst+numWish)>0&&<span className="bnav-badge" aria-hidden="true">{numInst+numWish}</span>}
         </button>
-        <button className={`bnav${activeTab==="times"?" active":""}`} onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
-          <span className="bnav-icon">🏁</span>Times
-          {runs.length>0&&<span className="bnav-badge">{runs.length}</span>}
+        <button className={`bnav${activeTab==="times"?" active":""}`}
+          aria-current={activeTab==="times" ? "page" : undefined}
+          aria-label={`Times${runs.length>0?`, ${runs.length} items`:""}`}
+          onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
+          <span className="bnav-icon" aria-hidden="true">🏁</span>Times
+          {runs.length>0&&<span className="bnav-badge" aria-hidden="true">{runs.length}</span>}
         </button>
-        <button className={`bnav${activeTab==="board"?" active":""}`} onClick={()=>{
+        <button className={`bnav${activeTab==="board"?" active":""}`}
+          aria-current={activeTab==="board" ? "page" : undefined}
+          onClick={()=>{
           setActiveTab("board");
           setBoardView("builds");
           if (communityBuilds.length === 0) loadCommunityBuilds();
           track("tab_viewed",{tab:"builds"});
         }}>
-          <span className="bnav-icon">🔧</span>Builds
+          <span className="bnav-icon" aria-hidden="true">🔧</span>Builds
         </button>
-        <button className={`bnav${activeTab==="profile"?" active":""}`} onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
-          <span className="bnav-icon">👤</span>Profile
+        <button className={`bnav${activeTab==="profile"?" active":""}`}
+          aria-current={activeTab==="profile" ? "page" : undefined}
+          onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
+          <span className="bnav-icon" aria-hidden="true">👤</span>Profile
         </button>
       </nav>
     </div>
