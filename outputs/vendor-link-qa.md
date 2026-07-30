@@ -1,5 +1,11 @@
 # Proof Build — Vendor Link QA Results
 
+> **Follow-up (2026-07-30, round 2):** all 3 outstanding link decisions and both
+> catalogue-accuracy questions are now resolved — see
+> [Round 2 resolutions](#round-2-resolutions) at the end of this document.
+> One earlier finding was **wrong** and is corrected there: Capristo *does* make a
+> C7 S6/S7 valved exhaust.
+
 Audit date: 2026-07-30 · Catalogue: `src/App.jsx` (SLOTS `buyUrl` fields)
 
 ## Scope
@@ -164,3 +170,42 @@ These returned Cloudflare/bot-shield responses to scripted fetches. That is a bo
 - Russell / Earls · -10AN Fuel Lines — `summitracing.com`
 - Brembo · GT 6-Pot Kit — `vividracing.com`
 - Whiteline · Adjustable Set — `whiteline.com.au`
+
+---
+
+## Round 2 resolutions
+
+Five items were left open by the first pass. All five are now closed. Every URL
+below was fetched and confirmed to return HTTP 200 with a title matching the
+intended product.
+
+| # | Item | Resolution | Verified URL | Status |
+|---|---|---|---|---|
+| 1 | StopTech Trophy Sport 380 | stoptech.com serves an invalid TLS certificate on both apex and www, so it is unusable. Repointed to **Achtuning**, a live StopTech dealer, scoped to StopTech. | `https://www.achtuning.com/?s=stoptech` | **Fixed** (dealer search fallback) + **fitment flag** |
+| 2 | KW Variant 3 | KW's own site only reaches a geo-redirected homepage and returns an empty body to clients. Repointed to **New German Performance**'s C7/4G V3 kit page. | `https://store.ngpracing.com/products/kw-coilover-kit-v3-audi-a6-c7-4g` | **Fixed** |
+| 3 | Xona XR6564S | Not a mislink. Xona's page states: *"XRC5764S … what was previously named XR6564S."* The URL was always correct; the **label** was stale. Relabelled to `XRC5764S — formerly XR6564S` and the note now records the rename. | `https://xonarotor.com/products/xona-rotor-65-64s-ball-bearing-turbocharger` (unchanged) | **Resolved — label corrected** |
+| 4 | IE "Race Catless DP" | Confirmed: Integrated Engineering makes **no** C7 4.0T downpipe (their downpipe line covers B9 A4/S4/S5/SQ5, MK7/MK8, RS3, and B8 S4/S5 + C7 A6 3.0T only). The product was replaced with a real one — **CTS Turbo's C7/C7.5 S6/S7/RS7 4.0T cast downpipe set**. | `https://ctsturbo.com/product/cts-turbo-audi-c7-c7-5-s6-s7-rs7-4-0t-cast-downpipe-set/` | **Fixed — product replaced** |
+| 5 | Capristo valved exhaust | **Earlier finding corrected.** Capristo *does* list a C7 S6/S7 system. The first pass missed it because a substring match on "S6" was swamped by unrelated hits (e.g. "X5/6M", "S63"). The catalogue entry was accurate; it now points at the exact product instead of the category page. | `https://capristoexhaust.com/products/audi-s6-7-4g-valved-exhaust-with-mid-pipes-ces3` | **Fixed — upgraded to exact product** |
+
+### What changed in the catalogue
+
+- **`ie_dp`** — brand `IE` → `CTS Turbo`; label `Race Catless DP` → `4.0T Cast Downpipe Set`;
+  price `749` → `1400` (CTS lists 1,399.99 USD); notes and pros/cons rewritten to the real product.
+  The **variant id was deliberately left as `ie_dp`** so builds that already have it saved
+  keep resolving — changing the id would orphan that selection in existing user data.
+  The recommendation engine's `VARIANT_FIT.ie_dp` reason line was updated to match.
+- **`xona_6564`** — label and notes updated to the current Xona SKU. URL unchanged.
+- **`capristo`** — label `Valved Exhaust System` → `Valved Exhaust + MidPipes (CES3)`; notes updated.
+- **`stoptech_bbk`**, **`kw_v3`** — URL + notes updated; notes now carry the caveat inline
+  so it reaches the user in the app, not just this document.
+
+### Still flagged (not blocking)
+
+- **StopTech C7 fitment** — no StopTech Trophy Sport application for the C7 S6/S7 could be
+  confirmed anywhere. Known Audi Trophy applications are B7 RS4, B8 S4/S5 and C6 A6. The
+  catalogue entry's *existence* for this chassis is unverified; the in-app note now says so.
+  Recommend either confirming with a dealer or swapping the entry for a BBK known to fit C7.
+- **KW price** — the catalogue lists 2,249 USD; NGP lists the C7/4G V3 kit at 3,494 USD.
+  Left unchanged because the S6/S7-specific part number may differ. Worth a review.
+- **Duplicate variant id** — `milltek_res` appears twice in the catalogue (in `catback` and
+  `catback_full`). Harmless today, but two variants sharing an id is a latent bug.
