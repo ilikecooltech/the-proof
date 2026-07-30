@@ -234,6 +234,393 @@ function recommendNext(installedMap, count = 3) {
     });
 }
 
+// ── PARTS RECOMMENDATION ENGINE ─────────────────────────────────────────────
+// recommendNext (above) answers "which SLOT next?". This answers the other half:
+// "which SPECIFIC PRODUCT in this slot is right for MY car, and why?"
+//
+// Three real signals only — nothing here is invented:
+//   (a) COMMUNITY POPULARITY — MOD_PATH usage across the 63 logged builds. The only
+//       real percentage we have is SLOT-level share, so that is the only % ever
+//       shown, and it is always worded as such.
+//   (b) STAGE / COMPATIBILITY — VARIANT_FIT below encodes what each product's own
+//       catalog entry already says it is for: spark-plug heat range vs tune stage,
+//       hybrid turbo vs big single, fuel-line size vs HP, tune stage vs fueling,
+//       ethanol consistency. Hard gates exclude combinations the catalog calls
+//       unsafe or non-fitting (e.g. a 60mm wastegate on OEM S6/S7 turbos).
+//   (c) END-STATE AWARENESS — where the build is HEADED, taken from the wishlist
+//       and an optional user-set power goal. Parts a big single would orphan are
+//       flagged ("skip if going big single") instead of quietly recommended.
+//
+// LIVE-DATA SEAM: popularity is the only piece that needs live data. Point
+// popularityFor() at live per-VARIANT install counts (aggregate builds.installed_map,
+// or the part_likes table) and every recommendation sharpens automatically — the fit
+// rules and gates are product facts and stay exactly as they are.
+
+const REC_STAGE_ORDER = ["stock", "s1", "s2", "s3_hybrid", "big_single"];
+const REC_STAGE_LABEL = {
+  stock:"Stock", s1:"Stage 1", s2:"Stage 2",
+  s3_hybrid:"Stage 3 · hybrid turbo", big_single:"Big single turbo",
+};
+const rankOfStage = s => Math.max(0, REC_STAGE_ORDER.indexOf(s));
+
+// Turbo classes, taken from each turbo's own catalog entry (stock-frame hybrid vs
+// single-turbo conversion). Drives stage inference AND orphan detection.
+const REC_HYBRID_TURBOS     = new Set(["ts1", "ts2plus", "pp_rs_plus"]);
+const REC_BIG_SINGLE_TURBOS = new Set(["xona_5357", "xona_5657", "xona_6564", "g40_1150", "g45_1500"]);
+
+// Slots you buy ONCE and live with: judge fit against where the build is HEADED,
+// so we don't sell someone a hybrid turbo they're about to throw away. Every other
+// slot is judged against what the car runs TODAY — a plug two heat ranges too cold
+// fouls right now no matter what the plan says. Extend either way as needed.
+const REC_BUY_ONCE_SLOTS = new Set([
+  "turbo_upgrade", "manifolds", "intercooler", "port_inj", "port_inj_full",
+  "fuel_lines", "hpfp", "wastegate", "cai", "downpipe", "diff", "tcu_tune",
+]);
+
+// The 4.0T models the community data actually comes from. Recommendations for the
+// 2.0T / 3.0T cars still work, but the popularity signal is flagged as directional.
+const REC_4OT_MODELS = new Set(["s6", "s7", "a8", "s8", "rs6", "rs7"]);
+
+// Optional user-set power goal (crank HP) → the stage that goal implies.
+const REC_GOAL_BANDS = [
+  { maxHp:550,      stage:"s1" },
+  { maxHp:700,      stage:"s2" },
+  { maxHp:900,      stage:"s3_hybrid" },
+  { maxHp:Infinity, stage:"big_single" },
+];
+function stageForGoalHp(hp) {
+  const n = Number(hp);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return (REC_GOAL_BANDS.find(b => n <= b.maxHp) || {}).stage || null;
+}
+
+// ── VARIANT FIT CONFIG ──────────────────────────────────────────────────────
+// Per-product fitment, transcribed from that product's own catalog notes/cons.
+// Extend by adding a variant id — anything absent is simply neutral on fit and is
+// ranked on popularity + this model's power delta. Keys:
+//   stages          build stages the product is correct for
+//   models          allow-list of model ids (fitment)
+//   notModels       deny-list of model ids (fitment)
+//   needsVariant    variant ids that must already be in the build (+ needsWhy)
+//   needsSlot       slot ids that must be filled first, on safety grounds (+ needsWhy)
+//   orphanedBy      end-states that make this product throwaway money
+//   leaderboard     number of NUMBERED leaderboard placements the catalog cites
+//   caveat          catalog-stated condition that makes it a poor default pick
+//   why             the one-line product fact behind the recommendation
+const VARIANT_FIT = {
+  // ── SPARK PLUGS — heat range must track tune stage. Too cold for the build
+  // fouls; too hot risks pre-ignition. Straight out of the catalog notes.
+  ngk_stock:     { stages:["stock","s1"], why:"OEM heat range 8 at 0.028\" — the correct plug for stock and Stage 1." },
+  brisk_er12s:   { stages:["stock","s1"], why:"One step colder than OEM — 034's OEM+ pick for a Stage 1 daily driver." },
+  ngk_s1_s2:     { stages:["s1","s2"],    why:"Same OEM plug regapped to 0.026\" — the community standard for Stage 1–2." },
+  ngk_s2_tight:  { stages:["s2"],         why:"0.024\" gap holds spark at Stage 2 cylinder pressure on E30–E50." },
+  brisk_er10s:   { stages:["s2","s3_hybrid"], why:"1–2 steps colder with a non-projected tip — the Stage 2–3 standard through 700+ HP." },
+  ngk_s3_hybrid: { stages:["s3_hybrid"], orphanedBy:["big_single"],
+                   why:"Heat range 9 at 0.022\" — stops pre-ignition at 600–750 whp on E50–E75 hybrid turbos." },
+  denso_race:    { stages:["big_single"], why:"Coldest production plug — for 750–1000+ whp singles on E65+. Poor cold start; not a street plug." },
+
+  // ── TURBOS — hybrid (stock frame) vs single-turbo conversion.
+  ts1:        { stages:["s2","s3_hybrid"], orphanedBy:["big_single"], leaderboard:1,
+                why:"Hybrid on the stock frame — OEM housings retained, the easiest step up from Stage 2." },
+  ts2plus:    { stages:["s3_hybrid"], orphanedBy:["big_single"], leaderboard:1,
+                why:"More aggressive hybrid than the TS1 — better top end, still stock location." },
+  pp_rs_plus: { stages:["s2","s3_hybrid"], orphanedBy:["big_single"],
+                caveat:"No published dyno data yet.",
+                why:"Drop-in billet pair rated to 750 hp — the value hybrid route, no housing mods." },
+  xona_5357:  { stages:["big_single"], leaderboard:1, why:"Compact single — fastest spool of the singles, the street/strip balance." },
+  xona_5657:  { stages:["big_single"], leaderboard:2, why:"The leaderboard #1 turbo (4.10s 60–130). Needs E60+ and a custom map." },
+  xona_6564:  { stages:["big_single"], leaderboard:1, caveat:"A built engine is recommended for full power.",
+                why:"Highest ceiling on the list — leaderboard #2 at 4.49s." },
+  g40_1150:   { stages:["big_single"], leaderboard:2, why:"Broad-powerband Garrett single, proven on two leaderboard cars." },
+  g45_1500:   { stages:["big_single"], leaderboard:1, why:"Larger Garrett single — more top end than the G40, more lag with it." },
+
+  // ── TUNE — stage has to match the hardware and the fuel it's calibrated for.
+  apr_s1:  { stages:["stock","s1"], orphanedBy:["big_single"], why:"Benchmark Stage 1 OTS file with the deepest 4.0T logging base." },
+  cobb_s1: { stages:["stock","s1"], orphanedBy:["big_single"], why:"Handheld flash/revert — the choice if you need to go back to stock for dealer visits." },
+  srm_s1:  { stages:["stock","s1"], orphanedBy:["big_single"], why:"Mail-in Softronic service — smoothest delivery, lowest Stage 1 price." },
+  uni_s1:  { stages:["stock","s1"], orphanedBy:["big_single"], why:"Strong torque curve with E30-capable maps out of the box." },
+  apr_s2:  { stages:["s2"], orphanedBy:["big_single"], why:"The benchmark Stage 2 file — most published dyno data on the platform." },
+  srm_s2:  { stages:["s2"], orphanedBy:["big_single"], why:"Most affordable Stage 2, and it shows up on higher-stage leaderboard builds." },
+  uni_s2:  { stages:["s2"], orphanedBy:["big_single"], why:"Strong mid-range with an E30 map included." },
+  ds1_srm: { stages:["s3_hybrid","big_single"], why:"ECU + TCU tuned together — the platform behind the SRM850 / SRM1000 kits." },
+  loadlogic:{ stages:["big_single"], leaderboard:2, why:"Tuner on leaderboard #1 and #3 — big-single maps pushed safely at the limit." },
+  c4_tuning:{ stages:["big_single"], leaderboard:4, why:"On four leaderboard builds — big single turbo maps on E-fuel are the specialty." },
+  etspec:  { stages:["s3_hybrid","big_single"], why:"Remote-friendly and frequently the co-tuner on leaderboard cars." },
+  selftuned:{ stages:["s3_hybrid","big_single"], leaderboard:1, caveat:"Highest-risk path — a mistuned map on this engine is expensive.",
+             why:"Proven possible — leaderboard #5 runs a self-tune." },
+
+  // ── FUELING — ethanol capability and flow have to line up with the power target.
+  autotech_hpfp:{ why:"The benchmark DLC-coated HPFP kit — what most serious 4.0T tuners specify. Both pumps included." },
+  "034_hpfp":   { why:"50% flow increase, DLC coated, drop-in to the factory housings." },
+  ie_hpfp:      { why:"Constant-diameter piston, dyno-tested per pump, 2 complete kits included." },
+  loba_hpfp:    { why:"Highest flow rate of the four — the European flex-fuel favourite." },
+  cobb_flex:    { needsVariant:["cobb_s1"], needsWhy:"the COBB flex kit reads through the Accessport, so it needs a COBB tune",
+                  stages:["s1","s2"], why:"Sensor + Accessport integration with real-time blend detection." },
+  walbro_flex:  { stages:["s2","s3_hybrid","big_single"], why:"Full injector upgrade — the headroom for E75+ and pure E85. Custom tune mandatory." },
+  srm_port:     { stages:["s3_hybrid","big_single"], why:"On 7 of the top 10 60–130 builds — port injection is what uncorks the OEM DI limit." },
+  gen_port:     { stages:["s3_hybrid","big_single"], why:"Shop-built port injection — works with any manifold, more integration time." },
+  meth_kit:     { stages:["s2","s3_hybrid"], orphanedBy:["big_single"],
+                  why:"Charge cooling at a fraction of port-injection cost — the Stage 2/hybrid stopgap." },
+  stock_lines:  { stages:["stock","s1","s2"], why:"Factory lines are fine to roughly 650 crank HP — no reason to spend here yet." },
+  "6an":        { stages:["s2"], orphanedBy:["big_single"], why:"~9.5mm ID — removes the OEM rubber restriction for 650–750 HP builds." },
+  "8an":        { stages:["s3_hybrid"], why:"~11mm ID for 750–900 HP — the popular pairing with an HPFP upgrade and port injection." },
+  "10an":       { stages:["big_single"], why:"~14mm ID, standard on the SRM850/1000 kits — required past 900 HP." },
+
+  // ── AIRFLOW / SUPPORTING HARDWARE
+  tgk_4in:  { why:"4.0T-specific single 4\" merged inlet feeding both turbos — loudest induction on the platform." },
+  tgk_5in:  { needsVariant:["tgk_4in"], needsWhy:"the 5\" kit is a conversion of the TGK 4\" intake, not a standalone",
+              stages:["s3_hybrid","big_single"], why:"2,000+ CFM — the airflow to feed a 1000+ HP build." },
+  srm_intake:{ notModels:["a8","s8"], stages:["s3_hybrid","big_single"],
+              why:"Full 2.5\" runner to the turbo inlet — frees 3–4 PSI at the top end. Core of the SRM850/1000 kits." },
+  srm_s8_intake:{ models:["a8","s8"], stages:["s3_hybrid","big_single"],
+              why:"The D4-specific dual 3\" version — the C7 Luftwaffe does not fit this chassis. Needs an A2A intercooler." },
+  ie_cai:   { stages:["stock","s1","s2"], why:"Full carbon housing — the best IAT reduction of the bolt-on intakes." },
+  ecs_cai:  { stages:["stock","s1"], why:"Best-value direct-fit kit for a Stage 1 build on a budget." },
+  awe_cai:  { stages:["s1","s2"], why:"No-MAF design — the Stage 2 favourite, no MAF scaling to worry about." },
+  arm_dp:   { why:"Verified 37whp / 42wtq, same-side routing, and explicitly compatible with every turbo upgrade." },
+  ie_dp:    { stages:["s2"], why:"Best-value catless downpipe — what most APR Stage 2 builds run." },
+  milltek_dp:{ stages:["s1","s2"], why:"The high-flow cat option if you live somewhere catless is not workable." },
+  srm_a2a:  { stages:["s3_hybrid","big_single"], why:"Full air-to-air conversion on a CSF core — the leaderboard standard, and it integrates port injection." },
+  ie_fmic:  { stages:["s2","s3_hybrid"], why:"Best-value front-mount A2A for a build that is not going full SRM ecosystem." },
+  ecs_fmic: { stages:["stock","s1","s2"], orphanedBy:["big_single"],
+              why:"Budget direct-fit A2A — the catalog notes it falls off past 600 whp." },
+  // Wastegate actuators are gated on an upgraded turbo: the catalog is explicit that
+  // a 60mm gate cannot dial down on OEM S6/S7 turbos and risks overspin.
+  tgk_wg:   { stages:["s3_hybrid","big_single"], needsSlot:["turbo_upgrade"],
+              needsWhy:"a 60mm gate cannot dial down on OEM S6/S7 turbos — overspin risk until the turbos are upgraded",
+              why:"60mm diaphragm holding 30+ PSI while keeping the factory vacuum gate — no MAC valve." },
+  tial_wg:  { stages:["s3_hybrid","big_single"], needsSlot:["turbo_upgrade"],
+              needsWhy:"upgraded actuators are a turbo-build part — stock turbos do not need them",
+              why:"Included in the SRM1000 kit — the proven actuator on top builds." },
+  srm_wg:   { stages:["s3_hybrid","big_single"], needsSlot:["turbo_upgrade"],
+              needsWhy:"upgraded actuators are a turbo-build part — stock turbos do not need them",
+              why:"SRM's own high-vacuum actuators — native to a DS1 + SRM manifold build." },
+  gfb_dv:   { stages:["stock","s1"], orphanedBy:["big_single","s3_hybrid"],
+              why:"Cheap fix for the failure-prone OEM plastic valve — not a high-boost part." },
+  tgk_bov:  { stages:["s2","s3_hybrid","big_single"], why:"Converts the OEM electronic diverters to mechanical — kills a real boost-leak path at high power." },
+};
+
+// Model-fitment gate: does this variant physically fit / suit this car?
+function fitBlocksModel(fit, modelId) {
+  if (!fit) return null;
+  if (fit.models    && !fit.models.includes(modelId))   return "different chassis — not a fitment for this car";
+  if (fit.notModels &&  fit.notModels.includes(modelId)) return "not a fitment for this chassis";
+  return null;
+}
+
+// Prerequisite gate: some products are explicitly conversions of another product,
+// or are unsafe until a supporting slot is filled.
+function fitBlocksPrereq(fit, ownedVariantIds, filledSlots) {
+  if (fit?.needsVariant?.length && !fit.needsVariant.some(id => ownedVariantIds.has(id))) {
+    return fit.needsWhy || "a prerequisite part is missing";
+  }
+  if (fit?.needsSlot?.length && !fit.needsSlot.every(id => filledSlots.has(id))) {
+    return fit.needsWhy || "a supporting mod is missing";
+  }
+  return null;
+}
+
+// Where the build is right now, read off the parts actually in the map.
+function inferStage(map) {
+  const m = map || {};
+  const turbo = m.turbo_upgrade;
+  if (turbo && REC_BIG_SINGLE_TURBOS.has(turbo)) return "big_single";
+  if (turbo && REC_HYBRID_TURBOS.has(turbo))     return "s3_hybrid";
+  if (turbo || m.ecu_custom)                     return "s3_hybrid";
+  if (m.ecu_s2 || (m.downpipe && m.cai))         return "s2";
+  if (m.ecu_s1 || m.downpipe || m.cai || m.flex_fuel) return "s1";
+  return "stock";
+}
+
+// LIVE-DATA SEAM: the one signal that wants live data. Today MOD_PATH gives the
+// most-run product per slot plus the real share of builds running that slot.
+// Swap the body for live aggregates and everything downstream sharpens.
+function popularityFor(slotId, variantId) {
+  const row = MOD_PATH.find(m => m.slot === slotId);
+  if (!row) return { isPick:false, pct:null, builds:null };
+  return {
+    isPick: row.pick === variantId,
+    pct: Math.round((row.builds / MOD_PATH_TOTAL) * 100),
+    builds: row.builds,
+  };
+}
+
+const REC_WEIGHTS = {
+  communityPick: 40,   // scaled by the slot's real usage share
+  stageExact:    50,
+  stageAdjacent: 12,
+  stageMismatch:-30,
+  goalReady:     14,   // also correct for where the build is headed
+  orphanPenalty:-35,
+  leaderboard:    6,   // per numbered leaderboard placement the catalog cites (capped)
+  leaderboardCap:12,
+  caveatPenalty:-12,   // catalog-stated condition that makes it a poor DEFAULT pick
+  modelPower:    10,   // tiebreak on this model's own HP delta
+};
+
+function pruneMap(map) {
+  const out = {};
+  Object.entries(map || {}).forEach(([k, v]) => { if (v) out[k] = v; });
+  return out;
+}
+
+/**
+ * Recommend the best specific product in `slotId` for this user.
+ *
+ * @param slotId   catalog slot id (e.g. "spark_plugs")
+ * @param build    { installed, wishlist } — slotId → variantId maps
+ * @param vehicle  { modelId, goalHp } — goalHp optional (hook for a user-set goal)
+ * @returns { recommended, alternatives, excluded, notes, stage, endStage, ... } | null
+ */
+function recommendProduct(slotId, build = {}, vehicle = {}) {
+  const slot = getSlotById(slotId);
+  if (!slot || !slot.variants?.length) return null;
+
+  const installed = pruneMap(build.installed);
+  const wishlist  = pruneMap(build.wishlist);
+  const modelId   = vehicle.modelId || "s7";
+  const goalHp    = vehicle.goalHp ?? null;
+
+  // Current stage from what's actually installed; end state from the furthest of
+  // (installed, planned wishlist, explicit power goal).
+  const stage     = inferStage(installed);
+  const planStage = inferStage({ ...installed, ...wishlist });
+  const goalStage = stageForGoalHp(goalHp);
+  const endStage  = [stage, planStage, goalStage]
+    .filter(Boolean)
+    .reduce((a, b) => (rankOfStage(b) > rankOfStage(a) ? b : a), "stock");
+
+  const ownedVariantIds = new Set([...Object.values(installed), ...Object.values(wishlist)]);
+  const filledSlots     = new Set([...Object.keys(installed), ...Object.keys(wishlist)]);
+  // Buy-once hardware is judged against the end state; everything else against today.
+  const targetStage = REC_BUY_ONCE_SLOTS.has(slotId) ? endStage : stage;
+  const targetRank  = rankOfStage(targetStage);
+  const endRank     = rankOfStage(endStage);
+
+  // Normalizer for the model-specific power tiebreak within this slot.
+  const maxHp = Math.max(...slot.variants.map(v => v.hp?.[modelId] || 0), 0);
+
+  const excluded = [];
+  const scored = [];
+
+  slot.variants.forEach(v => {
+    const fit = VARIANT_FIT[v.id];
+
+    // Hard gates first — a product that does not fit is never "recommended".
+    const modelBlock  = fitBlocksModel(fit, modelId);
+    const prereqBlock = fitBlocksPrereq(fit, ownedVariantIds, filledSlots);
+    if (modelBlock || prereqBlock) {
+      excluded.push({ variantId:v.id, variant:v, reason: modelBlock || prereqBlock });
+      return;
+    }
+
+    let score = 0;
+    const reasons = [];
+
+    // (b) stage / compatibility
+    if (fit?.stages?.length) {
+      const ranks = fit.stages.map(rankOfStage);
+      if (fit.stages.includes(targetStage)) {
+        score += REC_WEIGHTS.stageExact;
+      } else {
+        const nearest = ranks.reduce((a, r) => (Math.abs(r - targetRank) < Math.abs(a - targetRank) ? r : a), ranks[0]);
+        score += Math.abs(nearest - targetRank) === 1 ? REC_WEIGHTS.stageAdjacent : REC_WEIGHTS.stageMismatch;
+      }
+      // (c) bonus for a part that ALSO covers where the build is headed.
+      if (endRank !== targetRank && fit.stages.includes(endStage)) score += REC_WEIGHTS.goalReady;
+    }
+
+    // (c) end-state orphan penalty
+    const orphaned = !!fit?.orphanedBy?.includes(endStage);
+    if (orphaned) score += REC_WEIGHTS.orphanPenalty;
+
+    // (a) community popularity
+    const pop = popularityFor(slotId, v.id);
+    if (pop.isPick && pop.pct != null) score += REC_WEIGHTS.communityPick * (pop.pct / 100);
+
+    // (a) leaderboard evidence — numbered placements the catalog entry cites.
+    if (fit?.leaderboard) {
+      score += Math.min(fit.leaderboard * REC_WEIGHTS.leaderboard, REC_WEIGHTS.leaderboardCap);
+    }
+    // A product the catalog itself qualifies is not a good DEFAULT pick.
+    if (fit?.caveat) score += REC_WEIGHTS.caveatPenalty;
+
+    // model-specific power delta, as a tiebreak only
+    const hp = v.hp?.[modelId] || 0;
+    if (maxHp > 0) score += REC_WEIGHTS.modelPower * (hp / maxHp);
+
+    if (fit?.why) reasons.push(fit.why);
+    if (fit?.caveat) reasons.push(fit.caveat);
+    if (pop.isPick && pop.pct != null) {
+      reasons.push(`The community's most-run pick here — ${pop.pct}% of the ${MOD_PATH_TOTAL} logged builds run this mod.`);
+    }
+    if (orphaned) {
+      reasons.push(endStage === "big_single"
+        ? "Skip if going big single — a single turbo makes this part throwaway money."
+        : `Skip if you are heading to ${REC_STAGE_LABEL[endStage]} — it gets replaced.`);
+    }
+
+    scored.push({ variantId:v.id, variant:v, score:+score.toFixed(2), orphaned, pop, hp, reasons });
+  });
+
+  scored.sort((a, b) => b.score - a.score || (b.hp - a.hp) || a.variant.price - b.variant.price);
+
+  const toOut = c => ({
+    variantId: c.variantId,
+    variant:   c.variant,
+    score:     c.score,
+    orphaned:  c.orphaned,
+    isCommunityPick: c.pop.isPick,
+    pct:       c.pop.isPick ? c.pop.pct : null,
+    why:       c.reasons.length
+      ? c.reasons.join(" ")
+      : `Best remaining option in this slot for a ${REC_STAGE_LABEL[stage].toLowerCase()} ${modelId.toUpperCase()} build.`,
+  });
+
+  const notes = [];
+  const orphanNames = scored
+    .filter(c => c.orphaned)
+    .map(c => `${c.variant.brand} ${c.variant.label}`);
+  if (orphanNames.length && endStage === "big_single") {
+    notes.push(`Skip if going big single: ${orphanNames.join(", ")} — a single turbo replaces them.`);
+  }
+  if (!REC_4OT_MODELS.has(modelId)) {
+    notes.push("Popularity data comes from 4.0T builds — treat it as directional on this engine.");
+  }
+  excluded.forEach(x => notes.push(`${x.variant.brand} ${x.variant.label} not shown as a pick — ${x.reason}.`));
+
+  return {
+    slot: slotId,
+    slotName: slot.name,
+    modelId,
+    goalHp,
+    stage,
+    stageLabel: REC_STAGE_LABEL[stage],
+    endStage,
+    endStageLabel: REC_STAGE_LABEL[endStage],
+    targetStage,                                  // the stage this slot was judged against
+    targetStageLabel: REC_STAGE_LABEL[targetStage],
+    // null when every product in the slot is gated out for this build — the caller
+    // renders nothing, and `notes` explains why.
+    recommended: scored.length ? toOut(scored[0]) : null,
+    alternatives: scored.slice(1, 3).map(toOut),
+    excluded: excluded.map(x => ({ variantId:x.variantId, variant:x.variant, reason:x.reason })),
+    notes,
+  };
+}
+
+// Reads the optional user-set power goal (crank HP). LIVE-DATA SEAM / HOOK: nothing
+// writes this yet — a Profile field or an onboarding question can set
+// "proof-power-goal" and every recommendation immediately becomes goal-aware.
+// Until then the engine infers the end state from the wishlist.
+function readPowerGoal() {
+  try {
+    const raw = localStorage.getItem("proof-power-goal");
+    const n = raw ? Number(raw) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch { return null; }
+}
+
 // 4.0T HP normalization: S6/S7/A8/S8 share the same block; stock HP differences are
 // OEM turbo sizing and factory tune — not engine differences. When aftermarket turbos
 // or tunes are added, the block normalizes to a common output baseline.
@@ -1324,7 +1711,23 @@ body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;-web
 .vc-like.on{border-color:var(--accent);background:rgba(232,85,10,.12);color:var(--accent2)}
 .vc-like-ic{font-size:11px;filter:grayscale(1);opacity:.7;transition:all .15s}
 .vc-like.on .vc-like-ic{filter:none;opacity:1}
+.vc-like-n{margin-left:2px;padding-left:6px;border-left:1px solid currentColor;opacity:.85;font-size:9px;letter-spacing:.04em}
 .vc-rec{display:inline-flex;align-items:center;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.25);border-radius:10px;padding:3px 8px;font-weight:700}
+.vc-fyb{display:inline-flex;align-items:center;font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);background:rgba(68,153,255,.1);border:1px solid rgba(68,153,255,.28);border-radius:10px;padding:3px 8px;font-weight:700}
+
+/* ── RECOMMENDED FOR YOUR BUILD ── */
+.rfy{border:1px solid rgba(68,153,255,.3);background:linear-gradient(180deg,rgba(68,153,255,.09),rgba(68,153,255,.03));border-radius:8px;padding:10px;margin-bottom:8px}
+.rfy-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.rfy-badge{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);font-weight:700}
+.rfy-ctx{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:.05em;text-transform:uppercase;color:var(--dim)}
+.rfy-pick{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;display:flex;align-items:baseline;gap:8px}
+.rfy-price{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--green);font-weight:700}
+.rfy-why{font-size:11px;color:var(--text);line-height:1.5;font-weight:300;margin-top:3px}
+.rfy-alts{margin-top:8px;padding-top:7px;border-top:1px solid rgba(68,153,255,.18);display:flex;flex-direction:column;gap:5px}
+.rfy-alt{font-size:10px;line-height:1.45}
+.rfy-alt-name{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+.rfy-alt-why{color:var(--dim);font-weight:300}
+.rfy-note{margin-top:7px;font-size:10px;line-height:1.45;color:var(--yellow);opacity:.9}
 .vc-notes{font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;font-weight:300}
 .vc-stats{display:flex;gap:4px;margin-bottom:7px}
 .vcstat{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:4px 3px;text-align:center}
@@ -2516,11 +2919,14 @@ export default function TheProof() {
     setActivationDismissed(false);
     try { localStorage.removeItem("proof-activation-nudge"); } catch { /* ignore */ }
   }
-  // Per-user part "likes" (thumbs up), keyed by variant id. Persisted to localStorage
-  // (lazy init, no effect) — no DB migration. This is the user's OWN like state only.
-  // LIVE-DATA SEAM: community-wide like counts need a server-side aggregate (a future
-  // Supabase `part_likes` table: {variant_id, user_id}); merge those totals in here
-  // once available. Until then we show the user's like + the data-derived Recommended.
+  // Part "likes" (thumbs up), keyed by variant id.
+  //   likedParts — THIS user's like state. Seeded from localStorage so the UI is
+  //                correct on first paint, then reconciled against the DB.
+  //   likeCounts — the COMMUNITY aggregate per variant, tallied from `part_likes`
+  //                (variant_id, user_id, unique(variant_id,user_id); public read,
+  //                anon insert/delete). Updated optimistically on toggle.
+  // Degrades gracefully: if part_likes is unreachable we keep showing the user's own
+  // like state from localStorage, hide the aggregate, and never throw.
   const [likedParts, setLikedPartsState] = useState(() => {
     try {
       const raw = localStorage.getItem("proof-liked-parts");
@@ -2528,14 +2934,82 @@ export default function TheProof() {
     } catch { /* ignore malformed / unavailable storage */ }
     return {};
   });
+  const [likeCounts, setLikeCounts] = useState({});
+  const [likesLive, setLikesLive]   = useState(false);
+
+  function persistMyLikes(next) {
+    try { localStorage.setItem("proof-liked-parts", JSON.stringify(next)); } catch { /* ignore */ }
+  }
+
+  // Pull every like row and tally client-side — one round trip gives both the
+  // aggregate per variant AND this user's own likes. The catalog is a few hundred
+  // variants; if this table ever gets large, switch to a per-visible-variant
+  // count query (.select("variant_id", { count:"exact", head:true })).
+  async function loadLikes() {
+    try {
+      const { data, error } = await sb.from("part_likes").select("variant_id,user_id");
+      if (error) throw error;
+      const uid = getUserId();
+      const counts = {}, mine = {};
+      (data || []).forEach(r => {
+        counts[r.variant_id] = (counts[r.variant_id] || 0) + 1;
+        if (r.user_id === uid) mine[r.variant_id] = true;
+      });
+      // Carry up any likes made before this table was wired in (localStorage-only),
+      // so nobody loses their existing likes on the transition.
+      let local = {};
+      try { local = JSON.parse(localStorage.getItem("proof-liked-parts") || "{}") || {}; } catch { /* ignore */ }
+      const orphans = Object.keys(local).filter(id => local[id] && !mine[id]);
+      if (orphans.length) {
+        const { error: mErr } = await sb.from("part_likes")
+          .upsert(orphans.map(id => ({ variant_id:id, user_id:uid })),
+                  { onConflict:"variant_id,user_id", ignoreDuplicates:true });
+        if (!mErr) orphans.forEach(id => { mine[id] = true; counts[id] = (counts[id] || 0) + 1; });
+      }
+      setLikeCounts(counts);
+      setLikedPartsState(mine);
+      persistMyLikes(mine);
+      setLikesLive(true);
+    } catch (e) {
+      // Table unreachable / RLS change / offline — show the user's own likes only.
+      console.warn("part_likes load failed — showing local like state only:", e);
+      setLikesLive(false);
+    }
+  }
+
   function toggleLike(variantId) {
+    const uid      = getUserId();
+    const wasLiked = !!likedParts[variantId];
+    const delta    = wasLiked ? -1 : 1;
+
+    // Optimistic: own state + aggregate move immediately.
     setLikedPartsState(prev => {
       const next = { ...prev };
-      if (next[variantId]) delete next[variantId]; else next[variantId] = true;
-      try { localStorage.setItem("proof-liked-parts", JSON.stringify(next)); } catch { /* ignore */ }
+      if (wasLiked) delete next[variantId]; else next[variantId] = true;
+      persistMyLikes(next);
       return next;
     });
+    setLikeCounts(prev => ({ ...prev, [variantId]: Math.max(0, (prev[variantId] || 0) + delta) }));
+    track("part_like_toggled", { variant: variantId, liked: !wasLiked });
+
+    (async () => {
+      try {
+        const { error } = wasLiked
+          ? await sb.from("part_likes").delete().eq("variant_id", variantId).eq("user_id", uid)
+          : await sb.from("part_likes").insert({ variant_id: variantId, user_id: uid });
+        if (error) throw error;
+        setLikesLive(true);
+      } catch (e) {
+        // Roll the aggregate back — the user's own like stays (localStorage).
+        console.warn("part_likes write failed — like kept locally only:", e);
+        setLikeCounts(prev => ({ ...prev, [variantId]: Math.max(0, (prev[variantId] || 0) - delta) }));
+        setLikesLive(false);
+      }
+    })();
   }
+  // Optional user-set power goal (crank HP) feeding the recommendation engine.
+  // See readPowerGoal() — hook only for now; the engine infers from the wishlist.
+  const [powerGoal] = useState(readPowerGoal);
   const [runsLoading, setRunsLoading] = useState(true);
   const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
 
@@ -2668,6 +3142,7 @@ export default function TheProof() {
     load();
     loadRuns();         // separate so it can be called independently
     loadAdminPicks();   // load curator picks for Recommended badge
+    loadLikes();        // community like counts + this user's own likes
   }, []);
 
   const currentModel = MODELS.find(m => m.id === profile.car) || MODELS.find(m=>m.id==="s7");
@@ -3898,6 +4373,13 @@ Fields to extract:
             const hasConf   = hasSel && conflicts.length > 0;
             const isOpen    = openSlot === slot.id;
             const missingRecs = hasSel ? slot.recommends.filter(r=>!Object.keys(selectedMap).includes(r)) : [];
+            // Personalized product pick for this slot — only computed when the
+            // picker is open (see recommendProduct: vehicle + stage + end state).
+            const rec = isOpen
+              ? recommendProduct(slot.id,
+                  { installed: installedMap, wishlist: wishlistMap },
+                  { modelId: activeModelId, goalHp: powerGoal })
+              : null;
 
             let cardCls = "slot-card";
             if (hasConf) cardCls += " conflict";
@@ -3931,6 +4413,34 @@ Fields to extract:
                     {hasSel && !hasWarn && !hasConf && missingRecs.length>0 && (
                       <div className="v-alert rec">✦ Pairs well with: {missingRecs.map(r=>getSlotById(r)?.name||r).join(", ")}</div>
                     )}
+                    {rec?.recommended && (
+                      <div className="rfy">
+                        <div className="rfy-hdr">
+                          <span className="rfy-badge">Recommended for your build</span>
+                          <span className="rfy-ctx">
+                            {currentModel.label} · {rec.stageLabel}
+                            {rec.endStage !== rec.stage && <> → {rec.endStageLabel}</>}
+                            {rec.goalHp ? ` · goal ${rec.goalHp} hp` : ""}
+                          </span>
+                        </div>
+                        <div className="rfy-pick">
+                          {rec.recommended.variant.brand} · {rec.recommended.variant.label}
+                          <span className="rfy-price">${rec.recommended.variant.price.toLocaleString()}</span>
+                        </div>
+                        <div className="rfy-why">{rec.recommended.why}</div>
+                        {rec.alternatives.length > 0 && (
+                          <div className="rfy-alts">
+                            {rec.alternatives.map(a => (
+                              <div key={a.variantId} className="rfy-alt">
+                                <span className="rfy-alt-name">{a.variant.brand} · {a.variant.label}</span>
+                                <span className="rfy-alt-why">{a.why}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {rec.notes.map((n, i) => <div key={i} className="rfy-note">⚠ {n}</div>)}
+                      </div>
+                    )}
                     <div className="var-grid">
                       {slot.variants.map(v => {
                         const isActive = selVarId===v.id;
@@ -3950,9 +4460,15 @@ Fields to extract:
                                 title={likedParts[v.id]?"Liked":"Like this option"}
                                 onClick={()=>toggleLike(v.id)}>
                                 <span className="vc-like-ic">👍</span>{likedParts[v.id]?"Liked":"Like"}
+                                {likesLive && likeCounts[v.id] > 0 && (
+                                  <span className="vc-like-n">{likeCounts[v.id].toLocaleString()}</span>
+                                )}
                               </button>
                               {adminPicks[slot.id] === v.id && (
                                 <span className="vc-rec">★ Recommended</span>
+                              )}
+                              {rec?.recommended?.variantId === v.id && (
+                                <span className="vc-fyb">◆ For your build</span>
                               )}
                             </div>
                             <div className="vc-notes">{v.notes}</div>
