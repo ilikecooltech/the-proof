@@ -1913,25 +1913,23 @@ button.hdr-slug{cursor:pointer}
 .cbtn-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--green);border:1.5px solid var(--bg)}
 
 /* ── PARTS AREA ── */
-.parts-area{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch}
-.area-title{font-family:var(--font-ui);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.04em;color:#fff;margin-bottom:2px}
-.area-sub{font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:300}
+.parts-area{flex:1;overflow-y:auto;padding:13px 18px 0;-webkit-overflow-scrolling:touch}
 .slots-list{display:flex;flex-direction:column;gap:8px}
 
 /* ── SLOT CARD ── */
-.slot-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .18s}
+.slot-card{background:var(--surface);border:1px solid var(--line);border-radius:7px;overflow:hidden;transition:border-color .18s}
 .slot-card.sel{border-color:var(--verify-bd)}
 .slot-card.warn{border-color:rgba(255,208,0,.5)}
 .slot-card.conflict{border-color:rgba(255,59,92,.5)}
-.slot-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:56px;width:100%;box-sizing:border-box;text-align:left;background:transparent;border:0;font-family:inherit;color:inherit}
+.slot-hdr{display:flex;align-items:center;gap:11px;padding:11px 13px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:60px;width:100%;box-sizing:border-box;text-align:left;background:transparent;border:0;font-family:inherit;color:inherit}
 .slot-hdr:active{background:rgba(255,255,255,.03)}
 .slot-info{flex:1;min-width:0}
-.slot-name{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.2}
-.slot-sel-text{font-size:11px;color:var(--verify);margin-top:1px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.slot-desc-text{font-size:11px;color:var(--muted);margin-top:1px;font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot-name{font-family:var(--font-ui);font-weight:600;font-size:15px;letter-spacing:normal;color:var(--text-hi);line-height:normal}
+.slot-sel-text{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3);margin-top:2px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot-desc-text{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3);margin-top:2px;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ── SLOT ROW (#5b) ──
    Bracket marker in mono, not a filled orb; every row ends in a price. */
-.slot-mark{font-family:var(--font-mono);font-size:11.5px;font-weight:600;flex:none;color:var(--text-3)}
+.slot-mark{font-family:var(--font-mono);font-size:11.5px;font-weight:400;flex:none;color:var(--text-3)}
 .slot-mark-inst{color:var(--verify)}
 .slot-mark-wish{color:var(--relevant)}
 .slot-mark-warn{color:var(--measure)}
@@ -1989,11 +1987,11 @@ button.hdr-slug{cursor:pointer}
    floor rather than the mockup's 8.5px (06-accessibility.md). */
 .vc-rec-chip{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
   text-transform:uppercase;color:var(--relevant);border:1px solid var(--relevant-bd);
-  border-radius:var(--r-chip);padding:2px 5px;flex:none}
+  border-radius:var(--r-chip);padding:2px 5px;flex:none;font-size:8.5px}
 .vc-rec-curated{color:var(--text-2);border-color:var(--line-dashed)}
 .vc-actions{display:flex;align-items:center;gap:7px;margin-top:11px}
 .vc-rating{font-family:var(--font-mono);font-size:11px;color:var(--text-3);white-space:nowrap}
-.vc-like{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);border-radius:14px;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.vc-like{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:11.5px;font-weight:600;letter-spacing:.04em;padding:0 13px;border:1px solid var(--line-dashed);border-radius:22px;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
 .vc-like:hover{border-color:var(--muted);color:var(--text)}
 .vc-like.on{border-color:var(--action);background:rgba(255,106,22,.12);color:var(--action)}
 .vc-like-ic{font-size:11px;filter:grayscale(1);opacity:.7;transition:all .15s}
@@ -2023,11 +2021,11 @@ button.hdr-slug{cursor:pointer}
 .vc-pros{color:var(--green)}.vc-cons{color:var(--red)}
 .vc-diff{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
 .d-plug{color:var(--verify)}.d-diy{color:var(--measure)}.d-pro{color:var(--danger)}
-.vc-btn{flex:1;min-height:44px;padding:0 10px;border:1px solid var(--line-dashed);background:transparent;color:var(--text-2);font-family:var(--font-ui);font-weight:700;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r-row);cursor:pointer;transition:all .15s}
+.vc-btn{flex:1;min-height:44px;height:44px;padding:0 10px;border:1px solid var(--line-dashed);background:transparent;color:var(--text-2);font-family:var(--font-ui);font-weight:700;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r-row);cursor:pointer;transition:all .15s}
 .vc-btn:active,.vc-btn:hover{border-color:var(--text-2);color:var(--text-hi)}
 .vc-btn.vsel{background:var(--action);border-color:var(--action);color:var(--on-action)}
 .vc-btn.vsel:active,.vc-btn.vsel:hover{filter:brightness(1.08)}
-.vc-buy{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--text-3);text-decoration:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:9px}
+.vc-buy{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--text-3);text-decoration:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:11px}
 .vc-buy:hover{color:var(--text-2)}
 
 /* ── TIME ESTIMATES ── */
@@ -2176,6 +2174,7 @@ button.hdr-slug{cursor:pointer}
    the right — the one heading treatment used across every #4/#5 screen. */
 .section-title-plain{display:block}
 .act-h2-mark{color:var(--action)}
+.parts-area .section-title{margin-bottom:9px}
 .section-title{font-family:var(--font-mono);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-3);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .section-count{font-family:var(--font-mono);font-weight:600;font-size:10px;letter-spacing:.16em;color:var(--text-body)}
 .section-title button{font-family:var(--font-ui);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:4px;cursor:pointer}
@@ -2911,11 +2910,11 @@ ul.bmap-plan{gap:5px}
 .run-ctrl-select,.section-title button,.tc-table-toggle,.draggy-reupload,
 .sc-preview,.pub-fcta,.share-copy,.admin-fab,.pub-ptab,.rf-cancel{
   min-height:44px}
-.vc-btn,.vc-buy,.rf-save,.pf-save,.add-run-btn,.draggy-btn,.act-cta{
+.vc-buy,.rf-save,.pf-save,.add-run-btn,.draggy-btn,.act-cta{
   min-height:46px}
 .run-del,.brm,.draggy-clear,.act-dismiss,.pub-close,.admin-close{
   min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-.mod-row,.bitem,.pub-mod-row,.admin-var,.slot-hdr,.cmt-card,.cmt-teaser,.pub-toggle{
+.mod-row,.bitem,.pub-mod-row,.admin-var,.cmt-card,.pub-toggle{
   min-height:44px}
 /* Chips sit on one line at 44px, so centre them rather than letting the old
    vertical padding push the label off-axis. */
@@ -6134,14 +6133,15 @@ Fields to extract:
         ))}
       </div>
       <div className="parts-area">
-        <div className="area-title">{activeCat}</div>
-        <div className="area-sub">
-          {currentModel.engine} · {currentModel.hp} hp stock ·{" "}
-          <span style={{color: buildMode==="installed"?"var(--green)":"var(--blue)"}}>
-            {buildMode==="installed" ? "Logging installed mods" : "Adding to wishlist"}
+        {/* #5b heads the screen with one mono line: category on the left, the
+            option count on the right. No 22px title, no subtitle, and no
+            progression bar — that was #3a, which this supersedes. */}
+        <h2 className="section-title">
+          <span>{activeCat}</span>
+          <span className="section-count">
+            {catSlots.length} slot{catSlots.length === 1 ? "" : "s"}
           </span>
-        </div>
-        <ProgressionBar hp={totalHp} wishlistHp={projectedHp} ceiling={buildCeiling} />
+        </h2>
         <div className="slots-list">
           {catSlots.map(slot => {
             const selVarId   = selectedMap[slot.id];
