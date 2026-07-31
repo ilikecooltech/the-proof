@@ -2567,6 +2567,38 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .proof-link{margin-top:6px;text-decoration:none;min-height:44px}
 .run-card.run-claim{border-style:dashed;opacity:.8}
 
+/* ── FIELD BANDS (#4c) ──
+   Four counts, your band highlighted, your true position a --measure line. */
+.fb{display:flex;flex-direction:column;gap:7px;margin-bottom:6px}
+.fb-row{display:flex;align-items:center;gap:9px}
+.fb-lbl{width:82px;flex:none;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.fb-lbl-mine{color:var(--measure);font-weight:600}
+.fb-track{flex:1;height:14px;border-radius:2px;background:var(--surface-raised);overflow:hidden;position:relative}
+.fb-fill{height:100%;background:var(--track)}
+.fb-fill-mine{background:var(--fill-neutral)}
+.fb-you{position:absolute;top:0;bottom:0;width:2px;background:var(--measure)}
+.fb-n{width:24px;flex:none;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.fb-n-mine{color:var(--text-body)}
+.fb-cap{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-3);margin-top:1px}
+
+/* ── HAS YOUR NEXT PART (#4d) ──
+   Leads the card, above the numbers. Blue: a fact about relevance. */
+.cmt-next{display:flex;align-items:center;gap:7px;margin:7px 0 2px;padding:7px 9px;
+  border:1px solid var(--relevant-bd);background:var(--relevant-bg);border-radius:5px}
+.cmt-next-tag{font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;
+  color:var(--relevant);flex:none}
+.cmt-next-txt{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:13px;
+  color:var(--text-hi);overflow:hidden;text-overflow:ellipsis}
+.cmt-next-arr{color:var(--relevant);font-size:13px;flex:none}
+.cmt-card.cmt-rel{border-color:var(--line-strong);background:var(--surface-raised)}
+
+/* ── LEADERBOARD DIVIDER + HIDDEN-CLAIM FOOTER (#4e) ── */
+.lb-divider{display:flex;align-items:center;gap:8px;padding:2px 14px;margin:8px 0}
+.lb-divider-line{flex:1;border-top:1px dashed var(--line-dashed)}
+.lb-divider-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--text-3)}
+.lb-hidden{margin:8px 14px 0;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
+  color:var(--text-3)}
+
 /* ── LEADERBOARD GATE ───────────────────────────────────────────────────────*/
 .lb-req{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;
   font-weight:600;letter-spacing:.1em;color:var(--verify);background:var(--verify-bg);
@@ -3197,6 +3229,79 @@ function HealthChips({ installedMap }) {
   );
 }
 
+// ── FIELD BANDS (04-screens.md #4c) ─────────────────────────────────────────
+// "You vs the field" as four count bands, not a chart. Your position is a
+// --measure line inside your band, at its TRUE position within that band —
+// the trap chart moves to the run detail view.
+//
+// The mockup's 8.5 / 9.5 / 11.0 edges belong to its sample field. Hard-coding
+// them against a field that actually runs 4-6s would put every car in one band,
+// so the edges are derived from the real distribution and rounded to a readable
+// step. Four bands, always populated, still the design's shape.
+function fieldBands(times, mine) {
+  const all = times.filter(t => t != null && !isNaN(t)).sort((a, b) => a - b);
+  if (all.length < 2) return null;
+  const lo = all[0], hi = all[all.length - 1];
+  const span = hi - lo;
+  if (span <= 0) return null;
+  const step = Math.max(0.1, Math.round((span / 4) * 10) / 10);
+  const edges = [lo, lo + step, lo + step * 2, lo + step * 3, Infinity];
+
+  const bands = [];
+  for (let i = 0; i < 4; i++) {
+    const bLo = edges[i], bHi = edges[i + 1];
+    const count = all.filter(t => t >= bLo && t < bHi).length;
+    const label = i === 3 ? `${bLo.toFixed(2)}+`
+      : i === 0 ? `UNDER ${bHi.toFixed(2)}`
+      : `${bLo.toFixed(2)}–${bHi.toFixed(2)}`;
+    const isMine = mine != null && mine >= bLo && mine < bHi;
+    // True position within the band, not the middle of it.
+    const pos = isMine && isFinite(bHi) && bHi > bLo
+      ? Math.min(100, Math.max(0, ((mine - bLo) / (bHi - bLo)) * 100))
+      : null;
+    bands.push({ label, count, isMine, pos, bLo });
+  }
+  const max = Math.max(...bands.map(b => b.count), 1);
+  return { bands, max, total: all.length };
+}
+
+function FieldBands({ times, mine }) {
+  const data = fieldBands(times, mine);
+  if (!data) return null;
+  return (
+    <>
+      <h2 className="section-title">
+        <span>The field</span>
+        <span className="section-count">{data.total} cars</span>
+      </h2>
+      <div className="fb">
+        {data.bands.map(b => (
+          <div key={b.label} className="fb-row">
+            <span className={`fb-lbl${b.isMine ? " fb-lbl-mine" : ""}`}>{b.label}</span>
+            <div className="fb-track">
+              <div className={`fb-fill${b.isMine ? " fb-fill-mine" : ""}`}
+                style={{ width: `${(b.count / data.max) * 100}%` }} />
+              {b.isMine && b.pos != null && (
+                <div className="fb-you" style={{ left: `${b.pos}%` }} />
+              )}
+            </div>
+            <span className={`fb-n${b.isMine ? " fb-n-mine" : ""}`}>{b.count}</span>
+          </div>
+        ))}
+        {mine != null && (
+          <div className="fb-cap">
+            YELLOW LINE = YOUR {mine}
+            <span className="sr-only">
+              . Your best 60 to 130 is {mine} seconds, shown inside its band.
+            </span>
+            {" "}· TRAP CHART IN DETAIL VIEW
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 // ── PART SHEET (04-screens.md #5b) ──────────────────────────────────────────
 // Recommended-first: the pick for this build leads, and the rest of the
 // catalogue sits behind "+N options". That inversion is the whole point — the
@@ -3745,8 +3850,28 @@ function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose })
   );
 }
 
+// ── LEADERBOARD CLASSES (04-screens.md #4e) ─────────────────────────────────
+// A car lands in a class because of the turbo it actually runs, not a label
+// somebody typed. "Full weight" is the whole field — the default view.
+const LB_CLASSES = [
+  { id: "all",    label: "Full weight" },
+  { id: "oem",    label: "OEM turbo"   },
+  { id: "single", label: "Big single"  },
+];
+
+// Single-turbo upgrades name a frame (G30, G42, XR/Xona, G45, EFR…) or a bare
+// inducer size ("71mm"). A hybrid is still an OEM-location turbo, which is what
+// the "OEM turbo" class is actually asking, so stock-frame rebuilds stay there.
+function lbClassOf(run) {
+  const t = String(run.turbo || "").toLowerCase().trim();
+  if (!t) return "oem";
+  if (/stock|oem|hybrid|^ts\d|k04|is38/.test(t)) return "oem";
+  if (/^g\d|garrett|xona|^xrc?\d|efr|precision|borg|^\d{2,3}\s?mm|single/.test(t)) return "single";
+  return "oem";
+}
+
 // ── COMMUNITY BUILD CARD ────────────────────────────────────────────────────
-function CommunityBuildCard({ build, onView, userCar }) {
+function CommunityBuildCard({ build, onView, userCar, nextRec }) {
   const model = MODELS.find(m => m.id === build.car) || MODELS.find(m=>m.id==="s7");
   const initials = getInitials(build.name);
   const slotNames = Object.entries(build.installed_map || {})
@@ -3757,9 +3882,19 @@ function CommunityBuildCard({ build, onView, userCar }) {
   const isHot = build.modCount >= 5;
   const likeYours = userCar && build.car === userCar;
   const hasPerf = build.bestT60130 != null || build.bestTrap != null;
+
+  // #4d: "that row is the reason to tap; it must out-read the hp/time figures."
+  // True only when this build is actually running the part we are recommending
+  // to this user — the same nextRec every other screen renders from.
+  const theirVarId = nextRec ? (build.installed_map || {})[nextRec.slot] : null;
+  const theirPart  = theirVarId ? getVariantById(nextRec.slot, theirVarId) : null;
+  const relevance  = theirPart
+    ? `${theirPart.brand} ${theirPart.label}${build.bestT60130 != null ? ` → ran ${build.bestT60130} after` : ""}`
+    : null;
+
   return (
-    <button type="button" className={`cmt-card${isHot ? " hot" : ""}`} onClick={onView}
-      aria-label={`View ${build.name || "Anonymous"}'s build — ${build.year || ""} ${model.label}, ${build.modCount} mods`}>
+    <button type="button" className={`cmt-card${isHot ? " hot" : ""}${relevance ? " cmt-rel" : ""}`} onClick={onView}
+      aria-label={`View ${build.name || "Anonymous"}'s build — ${build.year || ""} ${model.label}, ${build.modCount} mods${relevance ? `. Has your next part: ${relevance}` : ""}`}>
       <div className="cmt-av" aria-hidden="true">{initials}</div>
       <div className="cmt-info">
         <div className="cmt-name">
@@ -3767,6 +3902,15 @@ function CommunityBuildCard({ build, onView, userCar }) {
           {likeYours && <span className="cmt-like">like yours</span>}
         </div>
         <div className="cmt-car">{build.year || ""} {model.label}{build.tuner ? ` · ${build.tuner}` : ""}</div>
+        {/* Leads the card, above the numbers — blue, because relevance is a
+            fact about your build, not an action. */}
+        {relevance && (
+          <div className="cmt-next">
+            <span className="cmt-next-tag">HAS YOUR NEXT PART</span>
+            <span className="cmt-next-txt">{relevance}</span>
+            <span className="cmt-next-arr" aria-hidden="true">▸</span>
+          </div>
+        )}
         {modSummary && <div className="cmt-mods">{modSummary}</div>}
         {hasPerf && (
           <div className="cmt-perf">
@@ -3886,7 +4030,8 @@ export default function TheProof() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const isAdminMode = typeof window !== "undefined" && window.location.search.includes("admin");
   const [buildModelFilter, setBuildModelFilter] = useState("all");
-  const [buildSort, setBuildSort]       = useState("mods");   // "mods" | "fast"
+  const [buildSort, setBuildSort]       = useState("like");   // "like" | "fast" | "mods"
+  const [lbClass, setLbClass]           = useState("all");    // see LB_CLASSES
   const [communityBuilds, setCommunityBuilds]   = useState([]);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [viewedBuild, setViewedBuild]   = useState(null);  // {profile, installedMap} for community sheet
@@ -4939,9 +5084,16 @@ Fields to extract:
         </div>
       </div>
 
-      <div style={{display:"flex",gap:8,marginBottom:10}}>
+      {/* You vs the field, as bands (#4c). */}
+      <FieldBands
+        times={liveLeaderboard.map(r => r.t60130)}
+        mine={bestRun60130 ? parseFloat(bestRun60130.time) : null}
+      />
+
+      <div style={{display:"flex",gap:8,marginBottom:10,marginTop:12}}>
         <button className="add-run-btn" style={{flex:1,marginBottom:0}} onClick={()=>setRunFormOpen(v=>!v)}>
-          {runFormOpen ? "✕ Cancel" : `+ Log a Run${runs.length>0?` · ${runs.length} run${runs.length===1?"":"s"}`:""}`}
+          {/* The datalog is the point — say so in the CTA (#4c). */}
+          {runFormOpen ? "✕ Cancel" : "Log a run — attach datalog"}
         </button>
         <button className="add-run-btn" style={{marginBottom:0,padding:"0 14px",flex:"none",fontSize:16}}
           title="Refresh runs" aria-label="Refresh runs" onClick={()=>loadRuns()}>
@@ -5286,6 +5438,14 @@ Fields to extract:
     ? communityBuilds
     : communityBuilds.filter(b => b.car === buildModelFilter)
   ).slice().sort((a, b) => {
+    if (buildSort === "like") {
+      // #4d: builds running your next part first, then same-model builds.
+      // Relevance is the reason to browse, so it outranks the numbers.
+      const rel = x => (nextRec && (x.installed_map || {})[nextRec.slot] ? 2 : 0)
+        + (profile.car && x.car === profile.car ? 1 : 0);
+      const ar = rel(a), br = rel(b);
+      if (ar !== br) return br - ar;
+    }
     if (buildSort === "fast") {
       // fastest 60-130 first; builds without a time sink to the bottom
       const av = a.bestT60130 ?? Infinity, bv = b.bestT60130 ?? Infinity;
@@ -5293,6 +5453,15 @@ Fields to extract:
     }
     return b.modCount - a.modCount;
   });
+
+  // #4e: class filter, then a top slice with the rest folded behind "N MORE"
+  // so your own row can be pinned directly beneath it.
+  const lbFiltered = lbClass === "all"
+    ? liveLeaderboard
+    : liveLeaderboard.filter(r => lbClassOf(r) === lbClass);
+  const LB_TOP = 3;
+  const lbShown  = lbFiltered.slice(0, LB_TOP);
+  const lbHidden = Math.max(0, lbFiltered.length - lbShown.length);
 
   const boardContent = (
     <div className="lb-area">
@@ -5315,7 +5484,17 @@ Fields to extract:
           <h2 className="lb-title">60–130 Leaderboard</h2>
           <div className="lb-req"><span aria-hidden="true">✓</span> DATALOG REQUIRED</div>
           <div className="lb-sub">Real runs · Audi 4.0T community · All catless downpipes</div>
-          {liveLeaderboard.map(run => (
+
+          {/* Class filters (#4e). Derived from each run's own turbo string, so
+              a car lands in a class because of what it runs, not a label. */}
+          <div className="mf-bar">
+            {LB_CLASSES.map(c => (
+              <button key={c.id} className={`mfbtn${lbClass===c.id?" on":""}`} aria-pressed={lbClass===c.id}
+                onClick={()=>setLbClass(c.id)}>{c.label}</button>
+            ))}
+          </div>
+
+          {lbShown.map(run => (
             <div key={run.rank} className={`lb-card ${rankClass(run.rank)}`}>
               <div className="lb-top">
                 <div className={`lb-rank ${rankNumClass(run.rank)}`}>#{run.rank}</div>
@@ -5341,28 +5520,43 @@ Fields to extract:
             </div>
           ))}
 
+          {/* #4e pins your row below a "N MORE" divider so the gap to the next
+              tier is readable without scrolling the whole field. */}
+          {lbHidden > 0 && (
+            <div className="lb-divider">
+              <span className="lb-divider-line" />
+              <span className="lb-divider-lbl">{lbHidden} MORE</span>
+              <span className="lb-divider-line" />
+            </div>
+          )}
+
           {/* Your own placement, gated on evidence. The consequence is stated
               plainly rather than silently dropping the run. */}
           {myBoardRuns.proven ? (
             <div className="lb-you">
-              <div className="lb-you-hd">YOUR BEST — PLACED</div>
+              <div className="lb-you-hd">YOU — PLACED</div>
               <div className="lb-you-time">{myBoardRuns.proven.time}s</div>
               <div className="lb-you-gap">
                 {(() => {
-                  const slowest = liveLeaderboard[liveLeaderboard.length - 1];
-                  const gap = +(parseFloat(myBoardRuns.proven.time) - slowest.t60130).toFixed(2);
-                  return gap > 0
-                    ? `${gap}s to #${slowest.rank}`
-                    : `inside the top ${liveLeaderboard.length}`;
+                  // The real gap to the next tier up, not to the bottom of the
+                  // board — that is the number a builder acts on.
+                  const mine = parseFloat(myBoardRuns.proven.time);
+                  const ahead = [...lbFiltered].filter(r => r.t60130 < mine)
+                    .sort((a, b) => b.t60130 - a.t60130)[0];
+                  if (!ahead) return `fastest on the board`;
+                  const gap = +(mine - ahead.t60130).toFixed(2);
+                  return `${gap}s TO #${ahead.rank}`;
                 })()}
               </div>
             </div>
-          ) : myBoardRuns.claimCount > 0 ? (
-            <div className="lb-you lb-you-blocked">
-              <div className="lb-you-hd"><span aria-hidden="true">▲</span> {myBoardRuns.claimCount} CLAIMED TIME{myBoardRuns.claimCount!==1?"S":""} HIDDEN</div>
-              <div className="lb-you-gap">NO DATALOG, NO RANK</div>
-            </div>
           ) : null}
+
+          {/* The consequence, stated plainly (#4e). */}
+          {myBoardRuns.claimCount > 0 && (
+            <div className="lb-hidden">
+              <span aria-hidden="true">▲</span> {myBoardRuns.claimCount} CLAIMED TIME{myBoardRuns.claimCount!==1?"S":""} HIDDEN — NO DATALOG, NO RANK
+            </div>
+          )}
         </>
       )}
 
@@ -5381,8 +5575,11 @@ Fields to extract:
                 <div className="cmt-hdr">
                   <span>{filteredCommunity.length} build{filteredCommunity.length===1?"":"s"}</span>
                   <div className="cmt-sort">
-                    <button className={`csbtn${buildSort==="mods"?" on":""}`} aria-pressed={buildSort==="mods"} onClick={()=>setBuildSort("mods")}>Most mods</button>
+                    {/* #4d pins "Like yours" first — it is the default reason
+                        to browse at all. */}
+                    <button className={`csbtn${buildSort==="like"?" on":""}`} aria-pressed={buildSort==="like"} onClick={()=>setBuildSort("like")}>Like yours</button>
                     <button className={`csbtn${buildSort==="fast"?" on":""}`} aria-pressed={buildSort==="fast"} onClick={()=>setBuildSort("fast")}>Fastest</button>
+                    <button className={`csbtn${buildSort==="mods"?" on":""}`} aria-pressed={buildSort==="mods"} onClick={()=>setBuildSort("mods")}>Most mods</button>
                   </div>
                 </div>
                 {filteredCommunity.length === 0
@@ -5390,6 +5587,7 @@ Fields to extract:
                   : filteredCommunity.map((b, i) => (
                     <CommunityBuildCard key={b.user_id || i} build={b}
                       userCar={profile.car}
+                      nextRec={nextRec}
                       onView={()=>setViewedBuild(b)} />
                   ))
                 }
