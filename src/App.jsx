@@ -2637,6 +2637,90 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .proof-link{margin-top:6px;text-decoration:none;min-height:44px}
 .run-card.run-claim{border-style:dashed;opacity:.8}
 
+/* ── VEHICLE SETUP (#5a) ──
+   Chip on-state is SEL from the mockup's own logic class:
+     { bg: rgba(255,106,22,.12), bd: #FF6A16, fg: #FF6A16 }
+   Off-state is OFF: { transparent, #34344A, #9494B0 }. */
+.setup-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.setup-area::-webkit-scrollbar{display:none}
+.setup-hero{padding:11px 18px;border-bottom:1px solid var(--line)}
+.setup-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:400;line-height:normal;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.setup-hero-row{display:flex;align-items:baseline;gap:10px;margin-top:2px}
+.setup-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:48px;line-height:.9;
+  letter-spacing:normal;color:var(--measure);font-variant-numeric:tabular-nums}
+.setup-hero-delta{font-family:var(--font-mono);font-size:11.5px;font-weight:400;color:var(--verify);
+  white-space:nowrap}
+.setup-bar{margin-top:9px}
+.setup-track{position:relative;height:8px;border-radius:2px;background:var(--track);overflow:hidden}
+.setup-fill{height:100%;background:var(--fill-neutral);transition:width .25s ease}
+.setup-tick{position:absolute;top:0;bottom:0;width:2px;background:var(--verify);transition:left .25s ease}
+.setup-bar-lbls{position:relative;height:13px;margin-top:3px;font-family:var(--font-mono);
+  font-size:10px;letter-spacing:.04em}
+.setup-ceil{position:absolute;left:0;font-weight:600;color:var(--verify);white-space:nowrap}
+.setup-top{position:absolute;right:0;top:1px;font-size:9px;color:var(--text-3);white-space:nowrap}
+
+.setup-body{display:flex;flex-direction:column;gap:11px;padding:11px 18px 0}
+.setup-h2{margin:0 0 7px;font-family:var(--font-mono);font-weight:600;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.setup-row{display:flex;gap:5px}
+.setup-area .setup-row:has(.setup-pill){gap:7px}
+
+/* Year pills — 44px, fully round. */
+.setup-pill{min-height:44px;padding:0 15px;border-radius:22px;border:1px solid var(--line-dashed);
+  background:transparent;color:var(--text-3);font-family:var(--font-mono);font-size:12.5px;
+  letter-spacing:.06em;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:1px;transition:all .15s}
+.setup-pill.on{background:var(--action-bg);border-color:var(--action);color:var(--action)}
+.setup-pill-lbl{font-weight:600}
+/* FLAGGED: 8.5px, below the 10px text floor in 01-tokens.md. Matched to #5a. */
+.setup-pill-note{font-size:8.5px;letter-spacing:.08em;text-transform:uppercase}
+
+/* Model cards — 3-up grid, 52px. */
+.setup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.setup-card{min-height:52px;border-radius:7px;border:1px solid var(--line-dashed);background:transparent;
+  color:var(--text-3);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:2px;padding:0 11px;cursor:pointer;transition:all .15s;overflow:hidden}
+.setup-card.on{background:var(--action-bg);border-color:var(--action);color:var(--action)}
+.setup-card-lbl{font-family:var(--font-ui);font-weight:700;font-size:17px;line-height:1}
+/* FLAGGED: 8.5px, below the 10px text floor. Matched to #5a. */
+.setup-card-note{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:100%}
+
+/* Tune / fuel segments — the mockup gives tune flex 1.35 against fuel's 1. */
+.setup-pair{display:flex;gap:14px}
+.setup-tune{flex:1.35;min-width:0}
+.setup-fuel{flex:1;min-width:0}
+.setup-seg{flex:1;min-height:44px;border-radius:var(--r-row);border:1px solid var(--line-dashed);
+  background:transparent;color:var(--text-3);font-family:var(--font-mono);font-size:10.5px;
+  font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:0 4px;cursor:pointer;
+  transition:all .15s}
+.setup-fuel .setup-seg{padding:0 2px}
+.setup-seg.on{background:var(--action-bg);border-color:var(--action);color:var(--action)}
+/* Stock dims the fuel row: fuel contributes nothing without a tune. */
+.setup-inert{opacity:.4}
+.setup-inert .setup-seg{cursor:not-allowed}
+
+/* End-state rows. */
+.setup-ends{display:flex;flex-direction:column;gap:5px}
+.setup-end{width:100%;min-height:46px;display:flex;align-items:center;gap:10px;text-align:left;
+  padding:7px 12px;border:1px solid var(--line);border-radius:var(--r-row);background:transparent;
+  cursor:pointer;transition:all .15s}
+.setup-end.on{border-color:var(--action);background:var(--surface-raised)}
+.setup-end-mark{flex:none;font-family:var(--font-mono);font-size:11px;color:var(--text-3)}
+.setup-end.on .setup-end-mark{color:var(--action)}
+.setup-end-txt{flex:1;min-width:0}
+.setup-end-lbl{display:block;font-family:var(--font-ui);font-weight:600;font-size:14.5px;color:var(--text-2)}
+.setup-end.on .setup-end-lbl{color:var(--text-hi)}
+.setup-end-note{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);
+  margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.setup-cta{width:100%;min-height:46px;margin-bottom:14px;border:none;border-radius:var(--r-row);
+  background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;
+  font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+.setup-cta.saved{background:transparent;color:var(--verify);border:1px solid rgba(0,232,135,.4)}
+
 /* ── SCREEN ERROR STATE ── */
 .screen-error{margin:18px;padding:16px;border:1px solid var(--line-strong);border-radius:var(--r-card);
   background:var(--surface-raised)}
@@ -3565,6 +3649,187 @@ function PartSheet({
           {showAll && extras}
         </div>
       </section>
+    </div>
+  );
+}
+
+// ── VEHICLE SETUP (04-screens.md #5a) ───────────────────────────────────────
+// Year → model → tune → fuel → end state. Every tap recomputes the hp readout,
+// the bar fill and the ceiling tick, and announces the new estimate through a
+// visually-hidden aria-live region. Selecting Stock dims the fuel row, because
+// fuel does nothing without a tune — the power model says so, and the UI has to
+// agree with the arithmetic.
+//
+// The power model is 05-data-and-math.md's, not invented here:
+//   hp = base + stage.hp + (stage === 'stock' ? 0 : fuel.hp)
+const SETUP_YEARS  = [2015, 2016, 2017];
+const SETUP_STAGES = [
+  { id: "stock",  label: "Stock",  hp: 0,   slot: null },
+  { id: "s1",     label: "STG 1",  hp: 100, slot: "ecu_s1" },
+  { id: "s2",     label: "STG 2",  hp: 118, slot: "ecu_s2" },
+  { id: "custom", label: "Custom", hp: 170, slot: "ecu_custom" },
+];
+const SETUP_FUELS = [
+  { id: "p91", label: "91/93", hp: 0 },
+  { id: "e30", label: "E30",   hp: 36 },
+  { id: "e85", label: "E85",   hp: 70 },
+];
+const SETUP_ENDS = [
+  { id: "daily",  label: "Reliable daily", note: "Stay under 750 hp · stock turbos",    ceiling: CEILINGS.daily.hp },
+  { id: "hybrid", label: "Hybrid turbos",  note: "To ~850 hp · keeps fuel system",      ceiling: CEILINGS.hybrid.hp },
+  { id: "single", label: "Big single",     note: "1,000+ hp · orphans OEM-turbo parts", ceiling: CEILINGS.single.hp },
+];
+
+function readSetupFuel() {
+  try { return localStorage.getItem("proof-fuel") || "p91"; } catch { return "p91"; }
+}
+
+function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave }) {
+  const [year,  setYear]  = useState(() => Number(profile.year) || 2016);
+  const [model, setModel] = useState(modelId);
+  const [stage, setStage] = useState(() => {
+    const s = inferStage(installedMap);
+    return s === "s3_hybrid" || s === "big_single" ? "custom" : (s || "stock");
+  });
+  const [fuel,  setFuel]  = useState(readSetupFuel);
+  const [end,   setEnd]   = useState(() => {
+    const g = powerGoal || 0;
+    if (g > CEILINGS.hybrid.hp) return "single";
+    if (g > CEILINGS.daily.hp)  return "hybrid";
+    return "daily";
+  });
+  const [saved, setSaved] = useState(false);
+
+  const st   = SETUP_STAGES.find(s => s.id === stage) || SETUP_STAGES[0];
+  const fu   = SETUP_FUELS.find(f => f.id === fuel)   || SETUP_FUELS[0];
+  const en   = SETUP_ENDS.find(e => e.id === end)     || SETUP_ENDS[0];
+  // Fuel is inert without a tune — the same rule the parts list enforces.
+  const fuelInert = stage === "stock";
+
+  // 05-data-and-math.md: "Replace with the repo's real estimator if one exists
+  // — but keep the property that fuel is inert without a tune." So the preview
+  // runs the SAME calcTotals the Garage runs, over the build this screen would
+  // commit. The doc's flat stage table would read 604 here against the Garage's
+  // 595 for one car, and two hp figures for the same build is exactly what this
+  // app cannot afford.
+  const prospective = (() => {
+    const next = { ...(installedMap || {}) };
+    SETUP_STAGES.forEach(x => { if (x.slot) delete next[x.slot]; });
+    if (st.slot) {
+      const v = getSlotById(st.slot)?.variants?.[0];
+      if (v) next[st.slot] = v.id;
+    }
+    return next;
+  })();
+  const modelHp = (MODELS.find(m => m.id === model) || MODELS[0]).hp;
+  const hasTune = Object.keys(prospective).some(k => TUNING_SLOTS.has(k));
+  const base    = (NON_RS_4OT.has(model) && hasTune) ? NORMALIZED_4OT_BASE : modelHp;
+  // Fuel blend is the one thing the build estimate does not model, so it comes
+  // from the doc's table rather than being invented per part.
+  const hp      = base + calcTotals(prospective, model).hp + (fuelInert ? 0 : fu.hp);
+  const delta   = hp - modelHp;
+
+  const on = v => (v ? " on" : "");
+  // Any change re-arms the CTA: what is on screen is no longer what was saved.
+  const touch = fn => v => { setSaved(false); fn(v); };
+
+  return (
+    <div className="setup-area">
+      <div className="setup-hero">
+        <div className="setup-hero-lbl">Estimated crank hp</div>
+        <div className="setup-hero-row">
+          <span className="setup-hero-hp">{hp.toLocaleString()}</span>
+          <span className="setup-hero-delta">+{delta} hp vs stock</span>
+        </div>
+        <div className="setup-bar">
+          <div className="setup-track">
+            <div className="setup-fill" style={{ width: `${(hp / HP_SCALE_TOP) * 100}%` }} />
+            <div className="setup-tick" style={{ left: `${(en.ceiling / HP_SCALE_TOP) * 100}%` }} />
+          </div>
+          <div className="setup-bar-lbls">
+            <span className="setup-ceil">{en.ceiling} CEILING</span>
+            <span className="setup-top">{HP_SCALE_TOP}+ TOP END</span>
+          </div>
+        </div>
+        {/* Announced on every tap, per #5a. */}
+        <p className="sr-only" aria-live="polite">
+          Estimated {hp} horsepower, {en.label.toLowerCase()} end state.
+        </p>
+      </div>
+
+      <div className="setup-body">
+        <div>
+          <h2 className="setup-h2">Year</h2>
+          <div className="setup-row">
+            {SETUP_YEARS.map(y => (
+              <button key={y} type="button" className={`setup-pill${on(year === y)}`}
+                aria-pressed={year === y} onClick={() => touch(setYear)(y)}>
+                <span className="setup-pill-lbl">{y}</span>
+                {y === 2016 && <span className="setup-pill-note">86% of members</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="setup-h2">Model</h2>
+          <div className="setup-grid">
+            {MODELS.map(m => (
+              <button key={m.id} type="button" className={`setup-card${on(model === m.id)}`}
+                aria-pressed={model === m.id} onClick={() => touch(setModel)(m.id)}>
+                <span className="setup-card-lbl">{m.label}</span>
+                <span className="setup-card-note">{m.engine}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="setup-pair">
+          <div className="setup-tune">
+            <h2 className="setup-h2">Tune</h2>
+            <div className="setup-row">
+              {SETUP_STAGES.map(s => (
+                <button key={s.id} type="button" className={`setup-seg${on(stage === s.id)}`}
+                  aria-pressed={stage === s.id} onClick={() => touch(setStage)(s.id)}>{s.label}</button>
+              ))}
+            </div>
+          </div>
+          <div className="setup-fuel">
+            <h2 className="setup-h2">Fuel</h2>
+            {/* Dimmed AND disabled on Stock: it contributes nothing to the
+                estimate, so it must not look or behave as though it does. */}
+            <div className={`setup-row${fuelInert ? " setup-inert" : ""}`}>
+              {SETUP_FUELS.map(f => (
+                <button key={f.id} type="button" className={`setup-seg${on(fuel === f.id)}`}
+                  aria-pressed={fuel === f.id} disabled={fuelInert}
+                  title={fuelInert ? "Fuel does nothing without a tune" : undefined}
+                  onClick={() => touch(setFuel)(f.id)}>{f.label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 className="setup-h2">Where it ends up</h2>
+          <div className="setup-ends">
+            {SETUP_ENDS.map(e => (
+              <button key={e.id} type="button" className={`setup-end${on(end === e.id)}`}
+                aria-pressed={end === e.id} onClick={() => touch(setEnd)(e.id)}>
+                <span className="setup-end-mark" aria-hidden="true">{end === e.id ? "[✓]" : "[ ]"}</span>
+                <span className="setup-end-txt">
+                  <span className="setup-end-lbl">{e.label}</span>
+                  <span className="setup-end-note">{e.note}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button type="button" className={`setup-cta${saved ? " saved" : ""}`}
+          onClick={() => { onSave({ year: String(year), model, stage: st, fuel, goal: en.ceiling }); setSaved(true); }}>
+          {saved ? "✓ Saved" : "Build my parts list"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -5370,21 +5635,6 @@ Fields to extract:
   // ── PROFILE SETTINGS ──────────────────────────────────────────────
   const profileContent = (
     <div className="profile-area">
-      {/* ── YOUR CAR ──
-          The mockup's header carries no model selector; #5a is where the car is
-          chosen. Until #5a is built as its own screen, the picker lives here,
-          which is also where the header's build-state chip routes to. */}
-      <h2 className="section-title">Your car</h2>
-      <div className="model-strip" role="group" aria-label="Select your model">
-        {MODELS.map(m=>(
-          <button key={m.id} className={`mbtn${modelId===m.id?" active":""}`}
-            aria-pressed={modelId===m.id}
-            onClick={()=>{ setProfile(p=>({...p,car:m.id})); saveProfile({...profile, car:m.id}); }}>
-            {m.label}
-          </button>
-        ))}
-      </div>
-
       {/* ── SHARE SECTION ── */}
       <div className="share-box">
         <div className="share-title">Your build link</div>
@@ -5576,6 +5826,39 @@ Fields to extract:
 
   // #4e: class filter, then a top slice with the rest folded behind "N MORE"
   // so your own row can be pinned directly beneath it.
+  // ── VEHICLE SETUP (#5a) ────────────────────────────────────────────
+  // Replaces the old header model strip. Writes go through the existing paths:
+  // profile via saveProfile, the tune slot via saveBuild, the goal via
+  // setPowerGoal. Fuel is the only new value and follows powerGoal's pattern —
+  // a local key, not a schema change.
+  const setupScreen = (
+    <VehicleSetup
+      profile={profile}
+      modelId={modelId}
+      installedMap={installedMap}
+      powerGoal={powerGoal}
+      onSave={({ year, model, stage, fuel, goal }) => {
+        saveProfile({ ...profile, car: model, year });
+        setPowerGoal(goal);
+        try { localStorage.setItem("proof-fuel", fuel); } catch { /* private mode */ }
+        // The tune is a real part: selecting a stage fits that ECU slot and
+        // clears the others, so inferStage and the build map stay honest.
+        setInstalledMap(prev => {
+          const next = { ...prev };
+          SETUP_STAGES.forEach(s => { if (s.slot) delete next[s.slot]; });
+          if (stage.slot) {
+            const v = getSlotById(stage.slot)?.variants?.[0];
+            if (v) next[stage.slot] = v.id;
+          }
+          saveBuild(next, wishlistMap);
+          return next;
+        });
+        clearActivationDismissal();
+        track("vehicle_setup_saved", { model, year, stage: stage.id, fuel, goal });
+      }}
+    />
+  );
+
   // ── HEADER CONTEXT SLUG ────────────────────────────────────────────
   // The mockup gives every screen the same header and varies only this: a
   // bordered chip where it states build state, plain mono text elsewhere.
@@ -5583,7 +5866,7 @@ Fields to extract:
   // #4d "103 BUILDS", #4e "✓ DATALOG REQUIRED", #4f "End-state plan",
   // #5b "2016 S6 · STAGE 2".
   const stageLabel = REC_STAGE_LABEL[inferStage(installedMap)] || "Stock";
-  const openSetup = () => { setActiveTab("profile"); track("tab_viewed", { tab: "profile" }); };
+  const openSetup = () => { setActiveTab("setup"); track("tab_viewed", { tab: "setup" }); };
   const hdrSlug = (() => {
     if (activeTab === "garage" && garageView === "planner")
       return { text: "End-state plan", upper: true };
@@ -5596,7 +5879,8 @@ Fields to extract:
       return { text: "✓ DATALOG REQUIRED", tone: "verify" };
     if (activeTab === "board")
       return { text: `${communityBuilds.length} BUILDS`, lg: true };
-    return { text: "Your car", upper: true };
+    if (activeTab === "setup") return { text: "Set up your car", upper: true };
+    return { text: "Your profile", upper: true };
   })();
 
   // ── TAB BAR ITEMS ──────────────────────────────────────────────────
@@ -5908,6 +6192,7 @@ Fields to extract:
           {activeTab==="parts"  && partsWithToggle}
           {activeTab==="times"  && timesContent}
           {activeTab==="board"  && boardContent}
+          {activeTab==="setup"  && setupScreen}
           {activeTab==="profile"&& profileContent}
         </ScreenBoundary>
       </main>
