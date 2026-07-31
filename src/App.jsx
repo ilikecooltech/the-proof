@@ -2574,9 +2574,14 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 /* ── BUILD MAP (03-components.md) ───────────────────────────────────────────
    Marker, border and background carry the state together; the row also states
    it in words for screen readers, so the glyph is never the only signal. */
-.bmap{display:flex;flex-direction:column;gap:6px}
+.bmap{display:flex;flex-direction:column;gap:6px;list-style:none;margin:0;padding:0}
 .bmap-dense{gap:5px}
 .bmap-row{display:flex;align-items:stretch;gap:6px}
+/* Every row ends in a price (#4a/#4f). Orphaned money reads red — that is the
+   one place --danger is allowed to appear. */
+.bmap-price{font-family:var(--font-mono);font-size:11px;color:var(--text-3);flex:none;white-space:nowrap}
+.bmap-price-orph{color:var(--danger)}
+.bmap-marker-wide{width:56px;flex:none;font-size:10px}
 .bmap-body{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:6px 12px;
   min-height:44px;border-radius:var(--r-row);text-align:left;font-family:inherit;cursor:pointer;
   background:transparent;border:1px dashed var(--line-dashed);color:inherit}
@@ -3064,6 +3069,17 @@ function ProofBadge({ run, onOpen }) {
 //
 // Sub-lines carry the snake_case part id plus a short reason and must stay under
 // ~34 characters: the row is ~274px of usable width and this must not wrap.
+// Which caution chip does fitting `slot` actually clear? Derived by running
+// healthFor against the build with that slot fitted and diffing, so the
+// "clears fuel sys ▲" tie can never drift from the chip it points at.
+function clearsChip(installedMap, slot, variantId) {
+  if (!slot) return null;
+  const before = healthFor(installedMap);
+  const after  = healthFor({ ...(installedMap || {}), [slot]: variantId || "x" });
+  const fixed  = before.find((c, i) => !c.ok && after[i]?.ok);
+  return fixed ? `${fixed.label.toLowerCase()} ▲` : null;
+}
+
 function BuildMap({ installedMap, nextRec, onOpenSlot, onRemove, dense = false }) {
   const installed = installedMap || {};
   const rows = MOD_PATH.map(m => {
@@ -3075,12 +3091,26 @@ function BuildMap({ installedMap, nextRec, onOpenSlot, onRemove, dense = false }
     const variant   = isInst ? getVariantById(m.slot, varId) : null;
     const pct       = Math.round((m.builds / MOD_PATH_TOTAL) * 100);
 
-    let state = "open", marker = "[ ]", sub;
-    if (isInst)      { state = "inst"; marker = "[✓]"; sub = `${varId} · installed`; }
-    else if (isNext) { state = "next"; marker = "[→]"; sub = `${nextRec.variant?.id || m.pick} · next up`; }
-    else             { sub = `${m.pick} · ${pct}% of builds`; }
+    let state = "open", marker = "[ ]", sub, price, name = slot.name;
+    if (isInst) {
+      state = "inst"; marker = "[✓]";
+      sub = `${varId} · installed`;
+      price = variant?.price ?? null;
+    } else if (isNext) {
+      // #4a/#3a put the PRODUCT name and its price on this row — the same two
+      // strings the recommendation shows. Agreeing at the slot level is not
+      // enough; the user has to see the same part at the same price.
+      state = "next"; marker = "[→]";
+      name  = nextRec.variant?.label || slot.name;
+      const tie = clearsChip(installed, nextRec.slot, nextRec.variant?.id);
+      sub   = tie ? `next up · clears ${tie}` : "next up";
+      price = nextRec.variant?.price ?? null;
+    } else {
+      sub = `${m.pick} · ${pct}% of builds`;
+      price = getVariantById(m.slot, m.pick)?.price ?? null;
+    }
 
-    return { id: m.slot, name: slot.name, state, marker, sub, isInst, variant };
+    return { id: m.slot, name, state, marker, sub, isInst, variant, price };
   }).filter(Boolean);
 
   // Installed first, then the next step, then the rest of the path in order.
@@ -3088,15 +3118,18 @@ function BuildMap({ installedMap, nextRec, onOpenSlot, onRemove, dense = false }
   rows.sort((a, b) => order[a.state] - order[b.state]);
 
   return (
-    <div className={`bmap${dense ? " bmap-dense" : ""}`}>
+    <ul className={`bmap${dense ? " bmap-dense" : ""}`}>
       {rows.map(r => (
-        <div key={r.id} className={`bmap-row bmap-${r.state}`}>
+        <li key={r.id} className={`bmap-row bmap-${r.state}`}>
           <button type="button" className="bmap-body" onClick={() => onOpenSlot(r.id)}>
             <span className={`bmap-marker bmap-marker-${r.state}`} aria-hidden="true">{r.marker}</span>
             <span className="bmap-text">
               <span className="bmap-name">{r.name}</span>
               <span className="bmap-sub">{r.sub}</span>
             </span>
+            {r.price != null && (
+              <span className="bmap-price">${r.price.toLocaleString()}</span>
+            )}
             {/* The marker is a glyph, so the state is also stated in words —
                 never leave [✓] / [→] as the only signal. */}
             <span className="sr-only">
@@ -3109,9 +3142,9 @@ function BuildMap({ installedMap, nextRec, onOpenSlot, onRemove, dense = false }
               <span aria-hidden="true">×</span>
             </button>
           )}
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 
@@ -3421,6 +3454,7 @@ function plannerRows(goalHp, installedMap, wishlistMap) {
     return {
       slotId, varId, name: slot.name, brand: v.brand, label: v.label,
       price: v.price, orphaned,
+      reason: orphaned ? "replaced at the goal" : "survives end-state",
       installed: !!(installedMap || {})[slotId],
     };
   }).filter(Boolean);
@@ -3440,7 +3474,7 @@ const GOAL_CHOICES = [550, 700, 900, 1040];
 
 function PlannerScreen({
   goalHp, onSetGoal, model, currentHp, installedMap, wishlistMap, leaderboard,
-  onOpenSlot, onSkipOrphans, onBack,
+  nextRec, onOpenSlot, onSkipOrphans, onBack,
 }) {
   const [pickingGoal, setPickingGoal] = useState(false);
   const { endStage, rows, orphanedTotal, orphanedCount } =
@@ -3452,6 +3486,9 @@ function PlannerScreen({
   // A leaderboard car that actually ran a spec at or past the goal — evidence
   // the target is reachable, not a projection.
   const donor = [...leaderboard].sort((a, b) => a.t60130 - b.t60130)[0] || null;
+
+  // Only worth a [→] NEXT row if the recommendation is not already planned.
+  const showNext = !!nextRec && !rows.some(r => r.slotId === nextRec.slot);
 
   return (
     <div className="garage-area">
@@ -3489,7 +3526,7 @@ function PlannerScreen({
       )}
 
       <h2 className="section-title" style={{ marginTop: 14 }}>
-        Against this goal
+        <span>Path from the goal back</span>
         {orphanedCount > 0 && (
           <span className="plan-orph-total">
             ${orphanedTotal.toLocaleString()} orphaned
@@ -3497,21 +3534,25 @@ function PlannerScreen({
         )}
       </h2>
 
-      {rows.length === 0 ? (
+      {rows.length === 0 && !showNext ? (
         <div style={{ color: "var(--text-3)", fontSize: 12, padding: "8px 0 12px" }}>
           Nothing in the build yet. Add parts and this map will show which of them
           survive to {goalHp.toLocaleString()} hp.
         </div>
       ) : (
-        <div className="bmap">
+        <ul className="bmap">
           {rows.map(r => (
-            <div key={r.slotId} className={`bmap-row ${r.orphaned ? "bmap-orph" : "bmap-inst"}`}>
+            <li key={r.slotId} className={`bmap-row ${r.orphaned ? "bmap-orph" : "bmap-inst"}`}>
               <button type="button" className="bmap-body" onClick={() => onOpenSlot(r.slotId)}>
-                <span className={`bmap-marker ${r.orphaned ? "bmap-marker-orph" : "bmap-marker-inst"}`}
+                <span className={`bmap-marker bmap-marker-wide ${r.orphaned ? "bmap-marker-orph" : "bmap-marker-inst"}`}
                   aria-hidden="true">{r.orphaned ? "[✗] ORPH" : "[✓] KEEPS"}</span>
                 <span className="bmap-text">
                   <span className="bmap-name">{r.name}</span>
-                  <span className="bmap-sub">{r.varId} · ${r.price.toLocaleString()}</span>
+                  <span className="bmap-sub">{r.varId} · {r.reason}</span>
+                </span>
+                {/* Orphaned money reads red; kept money is just money. */}
+                <span className={`bmap-price${r.orphaned ? " bmap-price-orph" : ""}`}>
+                  ${r.price.toLocaleString()}
                 </span>
                 <span className="sr-only">
                   {r.orphaned
@@ -3519,9 +3560,29 @@ function PlannerScreen({
                     : "kept at the goal"}
                 </span>
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+
+          {/* The third instance of the single next-up contract (#4f): same
+              nextRec object as the Garage map, same product name and price. */}
+          {showNext && (
+            <li className="bmap-row bmap-next">
+              <button type="button" className="bmap-body" onClick={() => onOpenSlot(nextRec.slot)}>
+                <span className="bmap-marker bmap-marker-wide bmap-marker-next" aria-hidden="true">[→] NEXT</span>
+                <span className="bmap-text">
+                  <span className="bmap-name">{nextRec.variant?.label || nextRec.name}</span>
+                  <span className="bmap-sub">
+                    {nextRec.variant?.id || nextRec.slot} · buy once, at the goal
+                  </span>
+                </span>
+                {nextRec.variant?.price != null && (
+                  <span className="bmap-price">${nextRec.variant.price.toLocaleString()}</span>
+                )}
+                <span className="sr-only">next up toward the goal</span>
+              </button>
+            </li>
+          )}
+        </ul>
       )}
 
       {orphanedCount > 0 && (
@@ -4765,6 +4826,7 @@ Fields to extract:
       installedMap={installedMap}
       wishlistMap={wishlistMap}
       leaderboard={liveLeaderboard}
+      nextRec={nextRec}
       onOpenSlot={goToSlot}
       onBack={()=>setGarageView("garage")}
       onSkipOrphans={()=>{
