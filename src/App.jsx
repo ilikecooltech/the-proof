@@ -1860,7 +1860,6 @@ const CSS = `
   --red:       var(--danger);
   --yellow:    var(--measure);
   --blue:      var(--relevant);
-  --nav-h:60px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overscroll-behavior:none}
@@ -1875,6 +1874,13 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .logo{font-family:var(--font-ui);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .logo-slash{color:var(--fill-neutral)}
 .logo-badge{background:var(--fill-neutral);color:var(--bg);font-size:10px;font-weight:700;letter-spacing:.15em;padding:2px 7px;border-radius:3px}
+/* Profile's route in, now that the fifth tab is the board. */
+.hdr-profile{flex:none;width:44px;height:44px;border-radius:22px;border:1px solid var(--line-dashed);
+  background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:11px;
+  font-weight:600;letter-spacing:.04em;cursor:pointer;display:inline-flex;align-items:center;
+  justify-content:center;transition:all .15s}
+.hdr-profile:hover{border-color:var(--text-2);color:var(--text-hi)}
+.hdr-profile.on{border-color:var(--action);color:var(--action);background:var(--action-bg)}
 .stats-strip{display:flex;overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .stats-strip::-webkit-scrollbar{display:none}
 .hstat{display:flex;flex-direction:column;align-items:center;padding:4px 8px;border-left:1px solid var(--border);flex-shrink:0;min-width:56px}
@@ -2108,11 +2114,18 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .lb-da{font-family:var(--font-mono);font-size:10px;color:var(--dim);margin-top:6px}
 
 /* ── BOTTOM NAV ── */
-.bottom-nav{height:var(--nav-h);background:var(--surface);border-top:1px solid var(--border);display:flex;flex-shrink:0;z-index:50}
-.bnav{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;border:none;cursor:pointer;font-family:var(--font-ui);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);transition:color .15s;position:relative;padding:0}
-.bnav.active{color:var(--action)}
-.bnav-icon{font-size:20px;line-height:1}
-.bnav-badge{position:absolute;top:6px;right:calc(50% - 18px);background:var(--fill-neutral);color:var(--bg);font-size:10px;font-family:var(--font-mono);border-radius:8px;padding:0 5px;min-width:16px;text-align:center;line-height:16px}
+/* ── TAB BAR (03-components.md; identical across #4a–#4f and #5a/#5b) ──
+   One row, one label per item, no icons. The active item is the only orange
+   thing here, and it carries the inset top bar as well as the colour so the
+   state does not rest on hue alone. Declared once — the old rule set was
+   split across two blocks that disagreed on background and height. */
+.bottom-nav{display:flex;flex:none;min-height:52px;padding-bottom:22px;
+  background:var(--nav);border-top:1px solid var(--line);z-index:50}
+.bnav{flex:1;min-height:52px;display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;cursor:pointer;padding:0;
+  font-family:var(--font-mono);font-weight:400;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-3);transition:color .15s}
+.bnav.active{color:var(--action);font-weight:600;box-shadow:inset 0 2px 0 var(--action)}
 
 /* Keyboard focus must be visible on every control, including the ones that
    were <div>s until now. --measure clears 3:1 against all four surfaces, and
@@ -2386,8 +2399,6 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .dot-wish{background:var(--blue)}
 /* ── BOARD TOGGLE (Times ↔ Builds) ── */
 .board-toggle{display:flex;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;flex-shrink:0}
-.btog{flex:1;padding:8px;background:transparent;border:none;color:var(--muted);font-family:var(--font-ui);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .15s}
-.btog.on{background:rgba(255,106,22,.12);color:var(--action)}
 /* ── MODEL FILTER BAR ── */
 .mf-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;padding:0 14px}
 .mfbtn{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;padding:4px 8px;border:1px solid var(--border);border-radius:12px;color:var(--muted);background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
@@ -2708,7 +2719,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    44px minimum, no exceptions — including like buttons, dismiss ✕ glyphs and
    text-only tertiary buttons. Stated once here so the floor cannot silently
    regress when an individual component's padding is retuned. */
-.mbtn,.cbtn,.pmtbtn,.tvbtn,.btog,.mtbtn,.mfbtn,.csbtn,.vc-like,
+.mbtn,.cbtn,.pmtbtn,.tvbtn,.mtbtn,.mfbtn,.csbtn,.vc-like,
 .run-ctrl-select,.section-title button,.tc-table-toggle,.draggy-reupload,
 .sc-preview,.pub-fcta,.share-copy,.admin-fab,.pub-ptab,.rf-cancel{
   min-height:44px}
@@ -2720,12 +2731,10 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   min-height:44px}
 /* Chips sit on one line at 44px, so centre them rather than letting the old
    vertical padding push the label off-axis. */
-.mbtn,.cbtn,.pmtbtn,.tvbtn,.btog,.mtbtn,.mfbtn,.csbtn,.vc-like{
+.mbtn,.cbtn,.pmtbtn,.tvbtn,.mtbtn,.mfbtn,.csbtn,.vc-like{
   display:inline-flex;align-items:center;justify-content:center}
-.tvbtn,.btog,.mtbtn{flex:1}
-/* The tab bar is 52px of control plus a 22px safe area. */
-.bottom-nav{height:auto;min-height:52px;padding-bottom:22px;background:var(--nav)}
-.bnav{min-height:52px}
+.tvbtn,.mtbtn{flex:1}
+/* The tab bar's 52px + 22px safe area now lives with the rest of its rules. */
 
 /* ── REDUCED MOTION (06-accessibility.md) ───────────────────────────────────
    Only the bar fill and ceiling tick are meant to animate at all; honour the
@@ -5508,6 +5517,25 @@ Fields to extract:
 
   // #4e: class filter, then a top slice with the rest folded behind "N MORE"
   // so your own row can be pinned directly beneath it.
+  // ── TAB BAR ITEMS ──────────────────────────────────────────────────
+  // The spec's five, in order. Labels are lowercase here and uppercased in CSS,
+  // exactly as the mockup does it. Counts feed the accessible name only — the
+  // mockup carries no visual badges.
+  const openBoard = view => () => {
+    setActiveTab("board");
+    setBoardView(view);
+    if (view === "builds" && communityBuilds.length === 0) loadCommunityBuilds();
+    track("tab_viewed", { tab: view === "builds" ? "builds" : "board" });
+  };
+  const goTab = id => () => { setActiveTab(id); track("tab_viewed", { tab: id }); };
+  const NAV_TABS = [
+    { id: "garage", label: "garage", count: 0,                 onSelect: goTab("garage") },
+    { id: "parts",  label: "parts",  count: numInst + numWish, onSelect: goTab("parts")  },
+    { id: "times",  label: "times",  count: runs.length,       onSelect: goTab("times")  },
+    { id: "builds", label: "builds", count: 0,                 onSelect: openBoard("builds") },
+    { id: "board",  label: "board",  count: 0,                 onSelect: openBoard("times")  },
+  ];
+
   const lbFiltered = lbClass === "all"
     ? liveLeaderboard
     : liveLeaderboard.filter(r => lbClassOf(r) === lbClass);
@@ -5517,18 +5545,9 @@ Fields to extract:
 
   const boardContent = (
     <div className="lb-area">
-      {/* Builds / Leaderboard toggle */}
-      <div style={{padding:"10px 14px 0"}}>
-        <div className="board-toggle">
-          <button className={`btog${boardView==="builds"?" on":""}`} aria-pressed={boardView==="builds"}
-            onClick={()=>{
-              setBoardView("builds");
-              if (communityBuilds.length === 0) loadCommunityBuilds();
-            }}>Builds</button>
-          <button className={`btog${boardView==="times"?" on":""}`} aria-pressed={boardView==="times"}
-            onClick={()=>setBoardView("times")}>Leaderboard</button>
-        </div>
-      </div>
+      {/* The Builds / Leaderboard toggle that used to sit here is gone: the tab
+          bar now addresses #4d and #4e directly, and two controls for the same
+          switch is worse than one. */}
 
       {/* ── TIMES VIEW (existing leaderboard) ── */}
       {boardView === "times" && (
@@ -5783,6 +5802,16 @@ Fields to extract:
             {bestRun60130 && <div className="hstat"><span className="hstat-label">Best 60–130</span><span className="hstat-val" style={{color:"var(--green)"}}>{bestRun60130.time}s</span></div>}
             {bestRun14    && <div className="hstat"><span className="hstat-label">Best 1/4</span><span className="hstat-val" style={{color:"var(--blue)"}}>{bestRun14.et}s</span></div>}
           </div>
+          {/* The tab bar's fifth slot is `board` in the spec, so Profile lost
+              its tab. It keeps a real route rather than being orphaned. */}
+          <button
+            className={`hdr-profile${activeTab==="profile" ? " on" : ""}`}
+            aria-current={activeTab==="profile" ? "page" : undefined}
+            aria-label="Your profile"
+            onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}
+          >
+            {getInitials(profile.name || profile.nickname) || "?"}
+          </button>
         </div>
         <div className="model-strip" role="group" aria-label="Select your model">
           {MODELS.map(m=>(
@@ -5891,41 +5920,28 @@ Fields to extract:
         }} />
       )}
 
+      {/* Tab bar (03-components.md). Five lowercase mono labels, no icons —
+          uppercased in CSS so the rendered text matches the mockup while the
+          source stays the spec's `garage · parts · times · builds · board`.
+          `builds` and `board` are the two halves of #4d and #4e, which the app
+          already models as boardView "builds" | "times". */}
       <nav className="bottom-nav" aria-label="Primary" inert={dialogOpen}>
-        <button className={`bnav${activeTab==="garage"?" active":""}`}
-          aria-current={activeTab==="garage" ? "page" : undefined}
-          onClick={()=>{setActiveTab("garage");track("tab_viewed",{tab:"garage"});}}>
-          <span className="bnav-icon" aria-hidden="true">🚗</span>Garage
-        </button>
-        <button className={`bnav${activeTab==="parts"?" active":""}`}
-          aria-current={activeTab==="parts" ? "page" : undefined}
-          aria-label={`Parts${(numInst+numWish)>0?`, ${(numInst+numWish)} items`:""}`}
-          onClick={()=>{setActiveTab("parts");track("tab_viewed",{tab:"parts"});}}>
-          <span className="bnav-icon" aria-hidden="true">⚙</span>Parts
-          {(numInst+numWish)>0&&<span className="bnav-badge" aria-hidden="true">{numInst+numWish}</span>}
-        </button>
-        <button className={`bnav${activeTab==="times"?" active":""}`}
-          aria-current={activeTab==="times" ? "page" : undefined}
-          aria-label={`Times${runs.length>0?`, ${runs.length} items`:""}`}
-          onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
-          <span className="bnav-icon" aria-hidden="true">🏁</span>Times
-          {runs.length>0&&<span className="bnav-badge" aria-hidden="true">{runs.length}</span>}
-        </button>
-        <button className={`bnav${activeTab==="board"?" active":""}`}
-          aria-current={activeTab==="board" ? "page" : undefined}
-          onClick={()=>{
-          setActiveTab("board");
-          setBoardView("builds");
-          if (communityBuilds.length === 0) loadCommunityBuilds();
-          track("tab_viewed",{tab:"builds"});
-        }}>
-          <span className="bnav-icon" aria-hidden="true">🔧</span>Builds
-        </button>
-        <button className={`bnav${activeTab==="profile"?" active":""}`}
-          aria-current={activeTab==="profile" ? "page" : undefined}
-          onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}>
-          <span className="bnav-icon" aria-hidden="true">👤</span>Profile
-        </button>
+        {NAV_TABS.map(t => {
+          const current = t.id === "builds" ? (activeTab === "board" && boardView === "builds")
+            : t.id === "board"              ? (activeTab === "board" && boardView === "times")
+            : activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              className={`bnav${current ? " active" : ""}`}
+              aria-current={current ? "page" : undefined}
+              aria-label={t.count > 0 ? `${t.label}, ${t.count} items` : undefined}
+              onClick={t.onSelect}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
