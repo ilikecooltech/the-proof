@@ -5862,7 +5862,22 @@ Fields to extract:
           transparent over --bg, one hairline under it. No stat strip, no model
           strip, no profile avatar — the mockup carries none of them. */}
       <header className="header" inert={dialogOpen}>
-        <h1 className="logo">the<span className="logo-slash">/</span>proof</h1>
+        {/* The mockup's logo is a TEXT wordmark, not artwork — there is no SVG,
+            <img> or background-image in any of the eight #4/#5 headers. It is
+            authored as:
+              <div style="font-family:'IBM Plex Mono',monospace;font-weight:600;
+                          font-size:14px;letter-spacing:.06em;color:#fff">
+                the<span style="color:#FF6A16">/</span>proof</div>
+            Reproduced verbatim: lowercase "the/proof", plain ASCII solidus
+            (U+002F), Mono 600 14px .06em on #FFFFFF with the slash in --action.
+            aria-label names the heading outright rather than leaving it to
+            name-from-content, which would otherwise be read as "the slash
+            proof". A visually-hidden span was tried first and Chrome folded the
+            aria-hidden glyphs into the name anyway ("the/proofthe-proof"), so
+            the label is set on the heading itself. */}
+        <h1 className="logo" aria-label="the-proof">
+          the<span className="logo-slash">/</span>proof
+        </h1>
         {hdrSlug.action ? (
           // Where the slug states build state it doubles as the way into setup;
           // elsewhere it is plain text, exactly as the mockup has it.
