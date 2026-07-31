@@ -1742,7 +1742,7 @@ function ProgressionBar({
   nowLabel = "NOW", wishLabel = "PLANNED", ariaLabel,
   // #4b hatches in --verify and labels the delta, not the absolute: the bar is
   // showing what ONE part unlocks, which is a gain, not a plan.
-  wishGain = false, ceilingLabel = null,
+  wishGain = false, ceilingLabel = null, hideTopEnd = false,
 }) {
   const projected = Math.max(hp, wishlistHp);
   const fillPct = pctOfScale(hp);
@@ -1783,10 +1783,12 @@ function ProgressionBar({
           <span className={`pbar-wish-lbl${wishGain ? " pbar-wish-lbl-gain" : ""}`} style={{ left: `${wishPct}%` }}>{wishGain ? wishLabel : `${projected} ${wishLabel}`}</span>
         )}
         {goalPct != null && (
-          <span className="pbar-goal-lbl" style={{ left: `${goalPct}%` }}>{goalHp} GOAL</span>
+          <span className="pbar-goal-lbl" style={{ left: `${goalPct}%` }}>GOAL</span>
         )}
         {/* Deliberately the quietest thing on the bar: a platform fact, not a to-do. */}
-        <span className={`pbar-top${ceilNearEdge ? " pbar-top-clear" : ""}`}>{HP_SCALE_TOP}+ TOP END</span>
+        {!hideTopEnd && (
+          <span className={`pbar-top${ceilNearEdge ? " pbar-top-clear" : ""}`}>{HP_SCALE_TOP}+ TOP END</span>
+        )}
       </div>
     </div>
   );
@@ -2561,14 +2563,14 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .plan-hero{padding:4px 0 2px}
 .plan-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
   color:var(--text-3)}
-.plan-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:52px;line-height:.9;
+.plan-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:46px;line-height:.92;letter-spacing:normal;
   letter-spacing:-.01em;color:var(--measure);margin-top:6px}
 .plan-hero-unit{font-size:20px;font-weight:600;color:var(--text-3);margin-left:4px}
 .plan-change{margin-top:8px;min-height:44px;padding:0 14px;background:transparent;
   border:1px solid var(--line-dashed);border-radius:var(--r-row);color:var(--text-2);
   font-family:var(--font-mono);font-size:11.5px;cursor:pointer}
-.plan-donor{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;
-  background:var(--relevant-bg);border:1px solid var(--relevant-bd);border-radius:var(--r-row)}
+.plan-donor{display:flex;align-items:center;gap:7px;margin-top:9px;padding:7px 9px;
+  background:var(--relevant-bg);border:1px solid var(--relevant-bd);border-radius:5px}
 .plan-donor-tag{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
   color:var(--relevant)}
 .plan-donor-txt{font-size:12px;color:var(--text-2);line-height:1.45}
@@ -2778,6 +2780,27 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   color:var(--text-hi);overflow:hidden;text-overflow:ellipsis}
 
 
+
+/* ── END-STATE PLANNER (#4f) ── */
+.plan-hero{padding:11px 18px;border-bottom:1px solid var(--line)}
+.plan-back{background:transparent;border:0;padding:0;margin-bottom:6px;min-height:44px;
+  color:var(--text-3);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer}
+.plan-hero-row{display:flex;align-items:baseline;gap:9px;margin-top:2px}
+.plan-hero-unit{font-family:var(--font-mono);font-size:11px;font-weight:400;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-3);white-space:nowrap}
+.plan-body{padding:10px 18px 0}
+/* FLAGGED: 30px, under the 44px target floor. Matched to #4f. */
+.plan-change{margin-left:auto;min-height:30px;padding:0 11px;border:1px solid var(--line-dashed);
+  border-radius:15px;background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  white-space:nowrap}
+.plan-orph-total{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--danger)}
+.bmap-plan .bmap-body{min-height:42px}
+.bmap-plan .bmap-marker-wide{font-size:10px}
+.bmap-plan .bmap-price{font-size:10.5px}
+
 /* ── LEADERBOARD (#4e) ── */
 .lb-filters{display:flex;gap:7px;padding:11px 18px}
 .lb-filters .csbtn{padding:0 13px}
@@ -2833,6 +2856,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    it in words for screen readers, so the glyph is never the only signal. */
 .bmap{display:flex;flex-direction:column;gap:6px;list-style:none;margin:0;padding:0}
 .bmap-dense{gap:5px}
+ul.bmap-plan{gap:5px}
 .bmap-row{display:flex;align-items:stretch;gap:6px}
 /* Every row ends in a price (#4a/#4f). Orphaned money reads red — that is the
    one place --danger is allowed to appear. */
@@ -4053,14 +4077,16 @@ function PlannerScreen({
   const showNext = !!nextRec && !rows.some(r => r.slotId === nextRec.slot);
 
   return (
-    <div className="garage-area screen-gutter">
-      <button className="act-skip" style={{textAlign:"left"}} onClick={onBack}>‹ Back to garage</button>
-
+    <div className="garage-area">
       <div className="plan-hero">
-        <div className="plan-hero-lbl">END STATE · {model.label}</div>
-        <div className="plan-hero-hp">{goalHp.toLocaleString()}<span className="plan-hero-unit">hp</span></div>
-        <button className="plan-change" aria-expanded={pickingGoal}
-          onClick={()=>setPickingGoal(v=>!v)}>Change goal</button>
+        <button className="plan-back" onClick={onBack}>‹ Back to garage</button>
+        <div className="plan-hero-lbl">{model.label} · GOAL</div>
+        <div className="plan-hero-row">
+          <span className="plan-hero-hp">{goalHp.toLocaleString()}</span>
+          <span className="plan-hero-unit">hp · {endStage === "big_single" ? "big single" : endStage === "s3_hybrid" ? "hybrid turbos" : "reliable daily"}</span>
+          <button className="plan-change" aria-expanded={pickingGoal}
+            onClick={()=>setPickingGoal(v=>!v)}>Change goal</button>
+        </div>
         {pickingGoal && (
           <div className="plan-goals" role="group" aria-label="Choose a power goal">
             {GOAL_CHOICES.map(g => (
@@ -4071,10 +4097,9 @@ function PlannerScreen({
             ))}
           </div>
         )}
-      </div>
 
       <ProgressionBar
-        hp={currentHp} goalHp={goalHp} ceiling={ceiling}
+        hp={currentHp} goalHp={goalHp} ceiling={ceiling} hideTopEnd
         ariaLabel={`Today ${currentHp} hp. Goal ${goalHp} hp.`}
       />
 
@@ -4086,8 +4111,10 @@ function PlannerScreen({
           </span>
         </div>
       )}
+      </div>
 
-      <h2 className="section-title" style={{ marginTop: 14 }}>
+      <div className="plan-body">
+      <h2 className="section-title">
         <span>Path from the goal back</span>
         {orphanedCount > 0 && (
           <span className="plan-orph-total">
@@ -4102,7 +4129,7 @@ function PlannerScreen({
           survive to {goalHp.toLocaleString()} hp.
         </div>
       ) : (
-        <ul className="bmap">
+        <ul className="bmap bmap-plan">
           {rows.map(r => (
             <li key={r.slotId} className={`bmap-row ${r.orphaned ? "bmap-orph" : "bmap-inst"}`}>
               <button type="button" className="bmap-body" onClick={() => onOpenSlot(r.slotId)}>
@@ -4152,6 +4179,7 @@ function PlannerScreen({
           Lock this plan — skip the orphans
         </button>
       )}
+      </div>
     </div>
   );
 }
