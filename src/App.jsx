@@ -2471,6 +2471,46 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-labels .pbar-top{right:0;left:auto;font-size:9px;color:var(--text-3)}
 .pbar-labels .pbar-top-clear{top:14px}
 
+/* ── BUILD MAP (03-components.md) ───────────────────────────────────────────
+   Marker, border and background carry the state together; the row also states
+   it in words for screen readers, so the glyph is never the only signal. */
+.bmap{display:flex;flex-direction:column;gap:6px}
+.bmap-dense{gap:5px}
+.bmap-row{display:flex;align-items:stretch;gap:6px}
+.bmap-body{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:6px 12px;
+  min-height:44px;border-radius:var(--r-row);text-align:left;font-family:inherit;cursor:pointer;
+  background:transparent;border:1px dashed var(--line-dashed);color:inherit}
+.bmap-dense .bmap-body{min-height:40px}
+.bmap-inst .bmap-body{background:var(--surface);border:1px solid var(--line)}
+.bmap-marker{font-family:var(--font-mono);font-size:11px;font-weight:600;flex-shrink:0}
+.bmap-marker-inst{color:var(--verify)}
+.bmap-marker-next{color:var(--action)}
+.bmap-marker-open{color:var(--text-3)}
+.bmap-text{min-width:0;display:flex;flex-direction:column;gap:1px}
+.bmap-name{font-family:var(--font-ui);font-weight:600;font-size:14px;line-height:1.2;color:var(--text-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bmap-inst .bmap-name{color:var(--text-hi)}
+.bmap-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;color:var(--text-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bmap-rm{flex-shrink:0;min-width:44px;min-height:44px;display:inline-flex;align-items:center;
+  justify-content:center;background:transparent;border:1px solid var(--line);border-radius:var(--r-row);
+  color:var(--text-3);font-size:18px;line-height:1;cursor:pointer}
+.bmap-rm:hover,.bmap-rm:active{color:var(--danger);border-color:var(--danger-bd)}
+
+/* ── HEALTH CHIPS (03-components.md) ────────────────────────────────────────
+   MAXED = safe but no headroom. Deliberately NOT "AT LIMIT" — testers could not
+   distinguish that from "actively damaging". */
+.hchips{display:flex;gap:6px;margin-top:10px}
+.hchip{flex:1;display:flex;align-items:center;justify-content:space-between;gap:6px;
+  font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.04em;
+  padding:4px 9px;min-height:26px;border-radius:var(--r-chip)}
+.hchip-ok{color:var(--verify);background:var(--verify-bg);border:1px solid var(--verify-bd)}
+.hchip-caution{color:var(--measure);background:var(--measure-bg);border:1px solid var(--measure-bd)}
+
+/* Visually hidden, still announced. */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
 /* Fuel hardware on a stock tune contributes zero to the estimate, so the row
    reads as inert rather than as an available gain. Text stays at the --text-3
    floor — dimming is done with the label, not by going below legal contrast. */
@@ -2911,8 +2951,10 @@ function ActivationNudge({ onBuild, onDismiss }) {
 // Recommends the next 1–3 mods from the community's proven path + popularity
 // (recommendNext / MOD_PATH), with the popular specific product and social proof.
 // `empty` tweaks the copy for users just starting out.
-function RecommendedNext({ installedMap, onAddSlot }) {
-  const recs = recommendNext(installedMap, 3);
+// `recs` is passed in, not recomputed: the screen owns the single recommendation
+// object and hands the same one to this card and to the build map, so the two
+// can never present different "next steps".
+function RecommendedNext({ installedMap, recs, onAddSlot }) {
   if (!recs.length) {
     return (
       <div className="reco-done">✓ You're running every mod on the proven path. You're deep in it.</div>
@@ -2926,7 +2968,8 @@ function RecommendedNext({ installedMap, onAddSlot }) {
       </div>
       {recs.map((r, i) => (
         <button key={r.slot} className={`reco-card${i === 0 ? " top" : ""}`} onClick={() => onAddSlot(r.slot)}>
-          {i === 0 && <span className="reco-badge">Next up</span>}
+          {/* Same [→] marker the build map puts on this exact slot. */}
+          {i === 0 && <span className="reco-badge"><span aria-hidden="true">[→]</span> Next up</span>}
           <div className="reco-main">
             <div className="reco-name">{r.name}</div>
             {r.variant && <div className="reco-pick">{r.variant.brand} · {r.variant.label}</div>}
@@ -2937,6 +2980,104 @@ function RecommendedNext({ installedMap, onAddSlot }) {
           </div>
           <span className="reco-add">+</span>
         </button>
+      ))}
+    </div>
+  );
+}
+
+// ── BUILD MAP ───────────────────────────────────────────────────────────────
+// THE reconciliation point. The map's "next up" row and the recommendation card
+// are rendered from the SAME object (`nextRec`, lifted to the screen and passed
+// to both). Two different answers to "what do I do next?" on one screen was the
+// single biggest usability failure in review — this makes disagreeing impossible.
+//
+// Sub-lines carry the snake_case part id plus a short reason and must stay under
+// ~34 characters: the row is ~274px of usable width and this must not wrap.
+function BuildMap({ installedMap, nextRec, onOpenSlot, onRemove, dense = false }) {
+  const installed = installedMap || {};
+  const rows = MOD_PATH.map(m => {
+    const slot      = getSlotById(m.slot);
+    if (!slot) return null;
+    const varId     = installed[m.slot];
+    const isInst    = !!varId;
+    const isNext    = !isInst && nextRec && nextRec.slot === m.slot;
+    const variant   = isInst ? getVariantById(m.slot, varId) : null;
+    const pct       = Math.round((m.builds / MOD_PATH_TOTAL) * 100);
+
+    let state = "open", marker = "[ ]", sub;
+    if (isInst)      { state = "inst"; marker = "[✓]"; sub = `${varId} · installed`; }
+    else if (isNext) { state = "next"; marker = "[→]"; sub = `${nextRec.variant?.id || m.pick} · next up`; }
+    else             { sub = `${m.pick} · ${pct}% of builds`; }
+
+    return { id: m.slot, name: slot.name, state, marker, sub, isInst, variant };
+  }).filter(Boolean);
+
+  // Installed first, then the next step, then the rest of the path in order.
+  const order = { inst: 0, next: 1, open: 2 };
+  rows.sort((a, b) => order[a.state] - order[b.state]);
+
+  return (
+    <div className={`bmap${dense ? " bmap-dense" : ""}`}>
+      {rows.map(r => (
+        <div key={r.id} className={`bmap-row bmap-${r.state}`}>
+          <button type="button" className="bmap-body" onClick={() => onOpenSlot(r.id)}>
+            <span className={`bmap-marker bmap-marker-${r.state}`} aria-hidden="true">{r.marker}</span>
+            <span className="bmap-text">
+              <span className="bmap-name">{r.name}</span>
+              <span className="bmap-sub">{r.sub}</span>
+            </span>
+            {/* The marker is a glyph, so the state is also stated in words —
+                never leave [✓] / [→] as the only signal. */}
+            <span className="sr-only">
+              {r.state === "inst" ? "installed" : r.state === "next" ? "next up" : "not yet fitted"}
+            </span>
+          </button>
+          {r.isInst && onRemove && (
+            <button type="button" className="bmap-rm" onClick={() => onRemove(r.id)}
+              aria-label={`Remove ${r.name} from your build`}>
+              <span aria-hidden="true">×</span>
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── HEALTH CHIPS ────────────────────────────────────────────────────────────
+// Paired states derived from the build, never authored. MAXED means "safe but no
+// headroom" — deliberately not "AT LIMIT", which testers could not tell apart
+// from "actively damaging". The ▲ glyph is echoed in the recommendation's
+// "clears fuel sys ▲" so the cause→effect chain stays legible.
+function healthFor(installedMap) {
+  const m = installedMap || {};
+  const hasTune = Object.keys(m).some(k => TUNING_SLOTS.has(k));
+  const hasFuelHardware = ["hpfp", "flex_fuel", "port_inj", "port_inj_full"].some(k => m[k]);
+  const hasEthanol = !!m.flex_fuel;
+
+  return [
+    {
+      label: "FUEL SYS",
+      // A tune without fuel hardware is asking the stock system for everything
+      // it has: safe, but there is no headroom left for the next step.
+      ok: !hasTune || hasFuelHardware,
+      state: (!hasTune || hasFuelHardware) ? "✓ OK" : "▲ MAXED",
+    },
+    {
+      label: "KNOCK MARGIN",
+      ok: !hasTune || hasEthanol,
+      state: (!hasTune || hasEthanol) ? "✓ OK" : "▲ MAXED",
+    },
+  ];
+}
+
+function HealthChips({ installedMap }) {
+  return (
+    <div className="hchips">
+      {healthFor(installedMap).map(c => (
+        <div key={c.label} className={`hchip${c.ok ? " hchip-ok" : " hchip-caution"}`}>
+          <span>{c.label}</span><span>{c.state}</span>
+        </div>
       ))}
     </div>
   );
@@ -3508,6 +3649,12 @@ export default function TheProof() {
   // ProgressionBar used on Garage, Parts, Activation and the Planner.
   const projectedHp  = baseHpCombined + installedTotals.hp + wishlistTotals.hp;
   const buildCeiling = ceilingForBuild({ ...installedMap, ...wishlistMap });
+
+  // ── SINGLE SOURCE OF TRUTH FOR "NEXT STEP" ──────────────────────────────
+  // Computed once here and handed to BOTH the recommendation card and the build
+  // map. Neither recomputes it, so the screen cannot show two different answers.
+  const recs    = recommendNext(installedMap, 3);
+  const nextRec = recs[0] || null;
   const totalTq = currentModel.torque + installedTotals.torque;
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
@@ -4055,6 +4202,7 @@ Fields to extract:
           </div>
         </div>
         <ProgressionBar hp={totalHp} wishlistHp={projectedHp} ceiling={buildCeiling} />
+        <HealthChips installedMap={installedMap} />
       </div>
 
       {/* ── ACTIVATION NUDGE (car but no build) ── */}
@@ -4110,37 +4258,27 @@ Fields to extract:
       )}
       {runCardsJSX}
 
-      {/* installed mods */}
-      <div className="section-title" style={{marginTop:14}}>
-        Installed Mods <span style={{color:"var(--green)",fontSize:11}}>{numInst} parts</span>
-        <button onClick={()=>{setBuildMode("installed");setActiveTab("parts");}}>+ Add</button>
-      </div>
-      {numInst === 0
-        ? <div style={{color:"var(--dim)",fontSize:12,padding:"8px 0 12px"}}>No installed mods yet. Tap Add to log what's on your car.</div>
-        : Object.entries(installedMap).map(([slotId, varId]) => {
-            const slot = getSlotById(slotId);
-            const v    = getVariantById(slotId, varId);
-            if (!slot||!v) return null;
-            return (
-              <div key={slotId} className="mod-row installed">
-                <div className="mod-orb-sm mo-inst">✓</div>
-                <div className="mod-name">
-                  <div className="mod-n">{slot.name}</div>
-                  <div className="mod-b">{v.brand} · {v.label}</div>
-                </div>
-                <button className="mod-action" onClick={()=>{
-                  setInstalledMap(prev=>{const n={...prev};delete n[slotId];saveBuild(n,wishlistMap);return n;});
-                }}>×</button>
-              </div>
-            );
-          })
-      }
-
       {/* ── WHAT'S NEXT / RECOMMENDED ── */}
-      <div className="section-title" style={{marginTop:14}}>
+      {/* The card and the build map below both render from `recs`/`nextRec`. */}
+      <h2 className="section-title" style={{marginTop:14}}>
         Recommended Next <span style={{color:"var(--text-3)",fontSize:11}}>proven path</span>
-      </div>
-      <RecommendedNext installedMap={installedMap} onAddSlot={goToSlot} />
+      </h2>
+      <RecommendedNext installedMap={installedMap} recs={recs} onAddSlot={goToSlot} />
+
+      {/* ── BUILD MAP ── */}
+      <h2 className="section-title" style={{marginTop:14}}>
+        Build Map <span style={{color:"var(--verify)",fontSize:11}}>{numInst} of {MOD_PATH.length} fitted</span>
+        <button onClick={()=>{setBuildMode("installed");setActiveTab("parts");}}>+ Add</button>
+      </h2>
+      <BuildMap
+        installedMap={installedMap}
+        nextRec={nextRec}
+        dense
+        onOpenSlot={goToSlot}
+        onRemove={slotId=>{
+          setInstalledMap(prev=>{const n={...prev};delete n[slotId];saveBuild(n,wishlistMap);return n;});
+        }}
+      />
       <button className="cmt-teaser" onClick={()=>{
         setBoardView("builds");
         setActiveTab("board");
