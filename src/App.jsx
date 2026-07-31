@@ -2294,7 +2294,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .scp-source:hover{color:var(--text-hi)}
 
 /* ── ACTIVATION NUDGE ── */
-.act-cta{width:100%;padding:11px;border:none;border-radius:var(--r-row);background:var(--action);color:var(--on-accent);font-family:var(--font-ui);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:filter .15s}
+.act-cta{flex:1;width:100%;min-height:46px;padding:0 12px;border:none;border-radius:var(--r-row);background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer;transition:filter .15s}
 .act-cta:hover{filter:brightness(1.08)}
 
 /* ── RECOMMENDED NEXT ── */
@@ -2508,16 +2508,26 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   border-left:2px solid var(--line-dashed);padding-left:11px}
 /* Blue = a fact about relevance to your car, not an action. */
 .act-card-proof{color:var(--relevant);font-weight:600}
-.act-card-meta{margin:10px 0 12px}
+.act-card-meta{margin:10px 0 0;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--text-3)}
+.act-card-actions{display:flex;gap:8px;margin-top:12px}
+.act-alt{min-height:46px;padding:0 13px;border:1px solid var(--line-dashed);border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.act-alt:hover{border-color:var(--text-2);color:var(--text-hi)}
 .act-safe{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;
   font-weight:600;letter-spacing:.06em;color:var(--verify);background:var(--verify-bg);
   border:1px solid var(--verify-bd);border-radius:var(--r-chip);padding:4px 9px}
 .act-safe-note{color:var(--text-2);background:transparent;border-color:var(--line-dashed)}
-.act-path{list-style:none;margin:16px 0 10px;padding:0;display:flex;flex-direction:column;gap:8px}
-.act-path li{display:flex;align-items:baseline;gap:10px}
-.act-when{flex-shrink:0;width:78px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;
+.act-path{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:4px}
+.act-path li{display:flex;align-items:center;gap:10px;padding:7px 12px;border:1px dashed var(--line);border-radius:var(--r-row);min-height:44px}
+.act-path li.act-step-now{border-color:var(--line-dashed)}
+.act-mark{flex:none;font-family:var(--font-mono);font-size:11.5px;color:var(--text-3)}
+.act-step-now .act-mark{color:var(--action)}
+.act-gain{flex:none;font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)}
+.act-step-now .act-gain{color:var(--verify)}
+.act-browse{width:100%;min-height:44px;background:transparent;border:0;color:var(--relevant);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.act-when{font-family:var(--font-ui);font-weight:400;font-size:12.5px;letter-spacing:0;
   color:var(--text-3)}
-.act-what{font-size:13.5px;color:var(--text-2);line-height:1.45}
+.act-what{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:14px;color:var(--text-body);line-height:1.3}
+.act-step-now .act-what{color:var(--text-hi)}
 .act-skip{width:100%;min-height:44px;background:transparent;border:0;color:var(--text-3);
   font-family:var(--font-ui);font-size:13px;text-decoration:underline;text-underline-offset:3px;
   cursor:pointer;margin-top:4px}
@@ -3372,7 +3382,7 @@ function PartSheet({
 //
 // It renders from the SAME recommendation object as every other screen (step 5),
 // so the app never proposes two different first moves.
-function ActivationScreen({ model, baseHp, nextRec, onStart, onSkip }) {
+function ActivationScreen({ model, baseHp, nextRec, recs, onStart, onOptions, onBrowse, onSkip }) {
   const variant = nextRec?.variant || null;
   // "+N hp ready today" is the catalog's gain for THIS model and THIS part.
   const readyHp = variant ? (variant.hp?.[model.id] || 0) : 0;
@@ -3386,6 +3396,19 @@ function ActivationScreen({ model, baseHp, nextRec, onStart, onSkip }) {
 
   // The anxiety line is taken from the part's own difficulty, never assumed.
   const reversible = variant?.difficulty === "Plug & Play";
+
+  // "+N options" counts the rest of THIS slot's catalogue — the depth the sheet
+  // opens onto. Never a bare "All 3".
+  const altCount = Math.max(0, (getSlotById(nextRec?.slot)?.variants.length || 1) - 1);
+
+  // The three-step path is the top three recommendations, each carrying the hp
+  // it actually unlocks for this model.
+  const pathSteps = (recs || []).slice(0, 3).map((r, i) => ({
+    key: r.slot,
+    label: r.variant?.label || r.name,
+    when: ["today", "when ready", "someday"][i],
+    gain: r.variant?.hp?.[model.id] || 0,
+  }));
 
   return (
     <div className="garage-area">
@@ -3415,22 +3438,41 @@ function ActivationScreen({ model, baseHp, nextRec, onStart, onSkip }) {
             {nextRec.name} — {variant.label}. The path is settled; you are not
             experimenting.
           </p>
+          {/* #4b's meta row is a plain mono line, not a chip: rating, likes,
+              then the anxiety answered inline. */}
           <div className="act-card-meta">
-            {reversible
-              ? <span className="act-safe"><span aria-hidden="true">✓</span> PLUG-IN · REVERSIBLE</span>
-              : <span className="act-safe act-safe-note">{variant.difficulty.toUpperCase()} INSTALL</span>}
+            {variant.rating != null && <><span aria-hidden="true">★</span> {variant.rating.toFixed(1)} · </>}
+            {reversible ? "PLUG-IN · REVERSIBLE ✓" : `${variant.difficulty.toUpperCase()} INSTALL`}
           </div>
-          <button className="act-cta" onClick={onStart}>Start my build</button>
+          <div className="act-card-actions">
+            <button className="act-cta" onClick={onStart}>Start my build</button>
+            {altCount > 0 && (
+              <button className="act-alt" onClick={onOptions}>
+                +{altCount} option{altCount === 1 ? "" : "s"}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Paced, not a checklist: nothing here is overdue. */}
+      {/* Paced, not a checklist: nothing here is overdue. Each step carries the
+          gain it actually unlocks, straight off the catalog. */}
+      <h2 className="section-title">The path {MOD_PATH_TOTAL} builds took</h2>
       <ol className="act-path">
-        <li><span className="act-when">today</span><span className="act-what">{nextRec?.name || "Your first mod"}</span></li>
-        <li><span className="act-when">when ready</span><span className="act-what">Log a run — see it in numbers</span></li>
-        <li><span className="act-when">someday</span><span className="act-what">Pick an end state and plan back from it</span></li>
+        {pathSteps.map((s, i) => (
+          <li key={s.key} className={`act-step${i === 0 ? " act-step-now" : ""}`}>
+            <span className="act-mark" aria-hidden="true">{i === 0 ? "[→]" : "[ ]"}</span>
+            <span className="act-what">
+              {s.label} <span className="act-when">· {s.when}</span>
+            </span>
+            {s.gain > 0 && <span className="act-gain">+{s.gain} hp</span>}
+          </li>
+        ))}
       </ol>
 
+      <button className="act-browse" onClick={onBrowse}>
+        See builds like yours ›
+      </button>
       <button className="act-skip" onClick={onSkip}>Skip — I already have mods</button>
     </div>
   );
@@ -4813,8 +4855,17 @@ Fields to extract:
       model={currentModel}
       baseHp={totalHp}
       nextRec={nextRec}
+      recs={recs}
       onStart={()=>{ setBuildMode("installed"); setActiveTab("parts");
         if (nextRec) goToSlot(nextRec.slot); track("activation_start"); }}
+      // "+N options" opens the same sheet the Parts rows open (#5b).
+      onOptions={()=>{ if (nextRec) { setBuildMode("installed"); openSheet(nextRec.slot); } }}
+      onBrowse={()=>{
+        setBoardView("builds");
+        setActiveTab("board");
+        if (communityBuilds.length === 0) loadCommunityBuilds();
+        track("community_builds_opened", { from:"activation" });
+      }}
       onSkip={dismissActivation}
     />
   ) : garageView === "planner" ? (
