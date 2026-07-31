@@ -2089,27 +2089,7 @@ button.hdr-slug{cursor:pointer}
 
 /* ── LEADERBOARD ── */
 .lb-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
-.lb-title{font-family:var(--font-ui);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.05em;color:#fff;margin-bottom:2px}
-.lb-sub{font-size:11px;color:var(--muted);margin-bottom:12px;font-weight:300}
-.lb-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;position:relative;overflow:hidden}
-.lb-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px}
-.lb-card.rank1::before{background:linear-gradient(180deg,#ffd000,#ff8c00)}
-.lb-card.rank2::before{background:#aaaacc}
-.lb-card.rank3::before{background:#cc8844}
-.lb-card.rankother::before{background:var(--border)}
-.lb-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.lb-rank{font-family:var(--font-ui);font-weight:700;font-size:22px;color:var(--dim);min-width:28px;text-align:center;line-height:1}
-.lb-rank.r1{color:var(--yellow)}
-.lb-rank.r2{color:#aaaacc}
-.lb-rank.r3{color:#cc8844}
-.lb-driver{flex:1;min-width:0}
-.lb-name{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.2}
-.lb-car{font-size:11px;color:var(--muted);margin-top:1px}
 .lb-time{text-align:right;flex-shrink:0}
-.lb-t60130{font-family:var(--font-ui);font-weight:700;font-size:24px;color:var(--green);line-height:1}
-.lb-time-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
-.lb-chips{display:flex;flex-wrap:wrap;gap:4px}
-.lb-chip{font-family:var(--font-mono);font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid;letter-spacing:.06em}
 .lc-tuner{background:rgba(68,153,255,.1);color:var(--blue);border-color:rgba(68,153,255,.25)}
 .lc-turbo{background:rgba(200,200,220,.07);color:var(--text-2);border-color:var(--line-dashed)}
 .lc-fuel{background:rgba(0,232,135,.08);color:var(--green);border-color:rgba(0,232,135,.2)}
@@ -2797,11 +2777,42 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .cmt-next-txt{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:13px;line-height:normal;
   color:var(--text-hi);overflow:hidden;text-overflow:ellipsis}
 
+
+/* ── LEADERBOARD (#4e) ── */
+.lb-filters{display:flex;gap:7px;padding:11px 18px}
+.lb-filters .csbtn{padding:0 13px}
+.lb-list{display:flex;flex-direction:column;gap:6px;padding:12px 18px 0}
+.lb-row{width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:9px 13px;
+  min-height:56px;border:1px solid var(--line);border-radius:var(--r-row);background:var(--surface);
+  cursor:pointer;font-family:inherit;transition:border-color .15s}
+.lb-row-top{background:var(--surface-raised);border-color:var(--line-strong)}
+.lb-rank{flex:none;width:30px;font-family:var(--font-ui);font-weight:700;font-size:20px;color:var(--text-3);
+  font-variant-numeric:tabular-nums}
+.lb-rank-top{color:var(--measure)}
+.lb-mid{flex:1;min-width:0}
+.lb-name{display:block;font-family:var(--font-ui);font-weight:600;font-size:15px;color:var(--text-hi);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-spec{display:block;margin-top:1px;font-family:var(--font-mono);font-size:10px;color:var(--text-3);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-right{flex:none;text-align:right}
+.lb-time{display:block;font-family:var(--font-ui);font-weight:700;font-size:22px;line-height:1;
+  color:var(--text-hi);font-variant-numeric:tabular-nums}
+/* FLAGGED: 9px, under the 10px text minimum. Matched to #4e. */
+.lb-da{display:block;margin-top:2px;font-family:var(--font-mono);font-size:9px;color:var(--verify);
+  white-space:nowrap}
+/* Your row: outlined in --measure, carrying the real gap to the next tier. */
+.lb-row-you{background:rgba(255,208,0,.05);border-color:rgba(255,208,0,.4)}
+.lb-row-you .lb-rank,.lb-row-you .lb-time{color:var(--measure)}
+.lb-cta{width:100%;min-height:46px;margin:2px 0 14px;border:none;border-radius:var(--r-row);
+  background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;
+  font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+
 /* ── LEADERBOARD DIVIDER + HIDDEN-CLAIM FOOTER (#4e) ── */
-.lb-divider{display:flex;align-items:center;gap:8px;padding:2px 14px;margin:8px 0}
+.lb-divider{display:flex;align-items:center;gap:8px;padding:2px 0;margin:0}
 .lb-divider-line{flex:1;border-top:1px dashed var(--line-dashed)}
+/* FLAGGED: 9px, under the 10px text minimum. Matched to #4e. */
 .lb-divider-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--text-3)}
-.lb-hidden{margin:8px 14px 0;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
+.lb-hidden{margin:0;padding:4px 1px;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
   color:var(--text-3)}
 
 /* ── LEADERBOARD GATE ───────────────────────────────────────────────────────*/
@@ -2816,7 +2827,6 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   color:var(--measure);margin-top:4px}
 .lb-you-gap{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--text-3);
   margin-top:4px}
-.lb-you-blocked{border-color:var(--measure-bd);border-style:dashed;opacity:.85}
 
 /* ── BUILD MAP (03-components.md) ───────────────────────────────────────────
    Marker, border and background carry the state together; the row also states
@@ -2927,12 +2937,6 @@ function diffClass(d) {
   if (d==="Plug & Play") return "d-plug";
   if (d==="DIY Friendly") return "d-diy";
   return "d-pro";
-}
-function rankClass(r) {
-  if (r===1) return "rank1"; if (r===2) return "rank2"; if (r===3) return "rank3"; return "rankother";
-}
-function rankNumClass(r) {
-  if (r===1) return "r1"; if (r===2) return "r2"; if (r===3) return "r3"; return "";
 }
 
 // ── PERF BAR COMPONENT ────────────────────────────────────────────────────
@@ -5967,37 +5971,35 @@ Fields to extract:
 
           {/* Class filters (#4e). Derived from each run's own turbo string, so
               a car lands in a class because of what it runs, not a label. */}
-          <div className="mf-bar">
+          <div className="lb-filters">
             {LB_CLASSES.map(c => (
-              <button key={c.id} className={`mfbtn${lbClass===c.id?" on":""}`} aria-pressed={lbClass===c.id}
+              <button key={c.id} className={`csbtn${lbClass===c.id?" on":""}`} aria-pressed={lbClass===c.id}
                 onClick={()=>setLbClass(c.id)}>{c.label}</button>
             ))}
           </div>
 
+          <div className="lb-list">
+
           {lbShown.map(run => (
-            <div key={run.rank} className={`lb-card ${rankClass(run.rank)}`}>
-              <div className="lb-top">
-                <div className={`lb-rank ${rankNumClass(run.rank)}`}>#{run.rank}</div>
-                <div className="lb-driver">
-                  <div className="lb-name">{run.driver}</div>
-                  <div className="lb-car">{run.car}</div>
-                </div>
-                <div className="lb-time">
-                  <div className="lb-t60130">{run.t60130}s</div>
-                  <div className="lb-time-label">60–130</div>
-                </div>
-              </div>
-              <div className="lb-chips">
-                <span className="lb-chip lc-tuner">{run.tuner}</span>
-                <span className="lb-chip lc-turbo">{run.turbo}</span>
-                <span className="lb-chip lc-fuel">{run.fuel}</span>
-                {run.manifolds !== "Unknown" && <span className="lb-chip lc-mani">{run.manifolds} mani</span>}
-                <span className="lb-chip lc-port">{run.supFuel}</span>
-                <span className="lb-chip lc-dp">{run.dp}</span>
-                {run.trans !== "Stock" && <span className="lb-chip lc-mani">{run.trans}</span>}
-              </div>
-              {run.da && <div className="lb-da">DA: {run.da}{run.et ? `  ·  1/4: ${run.et} @ ${run.mph} mph` : ""}</div>}
-            </div>
+            <button type="button" key={run.rank}
+              className={`lb-row${run.rank === 1 ? " lb-row-top" : ""}`}>
+              <span className={`lb-rank${run.rank === 1 ? " lb-rank-top" : ""}`}>
+                {String(run.rank).padStart(2, "0")}
+              </span>
+              <span className="lb-mid">
+                <span className="lb-name">{run.driver}</span>
+                {/* #4e compresses the whole spec into one mono line. */}
+                <span className="lb-spec">
+                  {[run.car, run.tuner, run.fuel, run.supFuel]
+                    .filter(v => v && v !== "Unknown" && v !== "None")
+                    .join(" · ").toUpperCase()}
+                </span>
+              </span>
+              <span className="lb-right">
+                <span className="lb-time">{run.t60130}</span>
+                {run.da && <span className="lb-da">✓ DA {run.da}</span>}
+              </span>
+            </button>
           ))}
 
           {/* #4e pins your row below a "N MORE" divider so the gap to the next
@@ -6010,26 +6012,32 @@ Fields to extract:
             </div>
           )}
 
-          {/* Your own placement, gated on evidence. The consequence is stated
-              plainly rather than silently dropping the run. */}
-          {myBoardRuns.proven ? (
-            <div className="lb-you">
-              <div className="lb-you-hd">YOU — PLACED</div>
-              <div className="lb-you-time">{myBoardRuns.proven.time}s</div>
-              <div className="lb-you-gap">
-                {(() => {
-                  // The real gap to the next tier up, not to the bottom of the
-                  // board — that is the number a builder acts on.
-                  const mine = parseFloat(myBoardRuns.proven.time);
-                  const ahead = [...lbFiltered].filter(r => r.t60130 < mine)
-                    .sort((a, b) => b.t60130 - a.t60130)[0];
-                  if (!ahead) return `fastest on the board`;
-                  const gap = +(mine - ahead.t60130).toFixed(2);
-                  return `${gap}s TO #${ahead.rank}`;
-                })()}
-              </div>
-            </div>
-          ) : null}
+          {/* Your own placement, gated on evidence — same row shape as the
+              field, outlined in --measure, carrying the real gap to the next
+              tier up rather than to the bottom of the board. */}
+          {myBoardRuns.proven ? (() => {
+            const mine  = parseFloat(myBoardRuns.proven.time);
+            const ahead = [...lbFiltered].filter(r => Number(r.t60130) < mine)
+              .sort((a, b) => Number(b.t60130) - Number(a.t60130))[0];
+            const gap   = ahead ? +(mine - Number(ahead.t60130)).toFixed(2) : null;
+            const place = lbFiltered.filter(r => Number(r.t60130) < mine).length + 1;
+            return (
+              <button type="button" className="lb-row lb-row-you">
+                <span className="lb-rank">{String(place).padStart(2, "0")}</span>
+                <span className="lb-mid">
+                  <span className="lb-name">YOU · {(profile.nickname || profile.name || "your build").toUpperCase()}</span>
+                  <span className="lb-spec">
+                    {currentModel.label.toUpperCase()} · {stageLabel.toUpperCase()}
+                    {gap != null ? ` · ${gap}s TO #${ahead.rank}` : " · FASTEST ON THE BOARD"}
+                  </span>
+                </span>
+                <span className="lb-right">
+                  <span className="lb-time">{myBoardRuns.proven.time}</span>
+                  {myBoardRuns.proven.da && <span className="lb-da">✓ DA {myBoardRuns.proven.da}</span>}
+                </span>
+              </button>
+            );
+          })() : null}
 
           {/* The consequence, stated plainly (#4e). */}
           {myBoardRuns.claimCount > 0 && (
@@ -6037,6 +6045,11 @@ Fields to extract:
               <span aria-hidden="true">▲</span> {myBoardRuns.claimCount} CLAIMED TIME{myBoardRuns.claimCount!==1?"S":""} HIDDEN — NO DATALOG, NO RANK
             </div>
           )}
+
+          <button className="lb-cta" onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
+            Beat it — log a run
+          </button>
+          </div>
         </>
       )}
 
