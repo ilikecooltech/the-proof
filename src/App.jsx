@@ -1889,6 +1889,10 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .slot-name{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.2}
 .slot-sel-text{font-size:11px;color:var(--verify);margin-top:1px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slot-desc-text{font-size:11px;color:var(--muted);margin-top:1px;font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot-install{display:block;width:calc(100% - 28px);min-height:44px;margin:0 14px 12px;
+  border:1px solid var(--verify-bd);border-radius:var(--r-row);background:var(--verify-bg);
+  color:var(--verify);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer}
 .slot-tag{font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.08em;padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0}
 .t-maint{background:rgba(100,160,255,.08);color:#88aaff;border:1px solid rgba(100,160,255,.2)}
 .t-pop{background:rgba(0,232,135,.1);color:var(--green);border:1px solid rgba(0,232,135,.2)}
@@ -2066,32 +2070,48 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .garage-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
 .garage-hero{background:var(--surface-raised);border:1px solid var(--line-strong);border-top:3px solid var(--fill-neutral);border-radius:12px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
 .garage-hero::before{content:none}
-.gh-name{font-family:var(--font-ui);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.05em;color:#fff;margin-bottom:2px}
-.gh-car{font-size:13px;color:var(--text-2);font-weight:500;margin-bottom:8px}
-.gh-note{font-size:11px;color:var(--muted);font-weight:300;font-style:italic}
-.gh-stats{display:flex;gap:0;margin-top:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
-.gh-stat{flex:1;padding:8px;text-align:center;border-right:1px solid var(--border)}
-.gh-stat:last-child{border-right:none}
-.gh-stat-val{font-family:var(--font-ui);font-weight:700;font-size:20px;color:var(--measure);line-height:1}
-.gh-stat-val.green{color:var(--green)}
-.gh-stat-val.blue{color:var(--blue)}
-.gh-stat-lbl{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
-.section-title{font-family:var(--font-ui);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 8px;display:flex;justify-content:space-between;align-items:center}
+/* ── GARAGE IDENTITY + STAT TILES (04-screens.md #4a) ──
+   Identity is a quiet mono kicker over the car name; the three tiles are
+   separate bordered cards, not one segmented strip, and every value is
+   --measure because all three are hero metrics. */
+.gh-id{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text-3)}
+.gh-car{font-family:var(--font-ui);font-weight:700;font-size:22px;letter-spacing:-.01em;
+  color:var(--text-hi);line-height:1.15;margin-top:1px}
+.gh-engine{font-weight:400;font-size:15px;color:var(--text-3);margin-left:7px}
+.gh-stats{display:flex;gap:8px;margin-top:9px}
+.gh-stat{flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--r-row);
+  background:var(--surface);padding:9px 11px}
+.gh-stat-wide{flex:1.2}
+.gh-stat-lbl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gh-stat-row{display:flex;align-items:baseline;gap:6px;margin-top:2px}
+.gh-stat-val{font-family:var(--font-ui);font-weight:700;font-size:30px;line-height:1;
+  color:var(--measure);font-variant-numeric:tabular-nums}
+.gh-stat-sfx{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3);white-space:nowrap}
+.gh-gain{color:var(--verify)}
+
+/* One orange action per screen, at the primary-button spec (03-components). */
+.g-cta{width:100%;min-height:46px;margin-top:10px;border:none;border-radius:var(--r-row);
+  background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;
+  font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+.g-tertiary{width:100%;min-height:44px;margin-top:4px;border:none;background:transparent;
+  color:var(--relevant);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* Section headings are Mono 10/600 .16em --text-3 with an optional counter on
+   the right — the one heading treatment used across every #4/#5 screen. */
+.section-title{font-family:var(--font-mono);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-3);margin:14px 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.section-count{font-family:var(--font-mono);font-weight:600;font-size:10px;letter-spacing:.16em;color:var(--text-body)}
 .section-title button{font-family:var(--font-ui);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:4px;cursor:pointer}
 .section-title button:active{color:#fff;border-color:var(--action)}
 .mod-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;margin-bottom:5px;background:rgba(255,255,255,.02);border:1px solid transparent}
 .mod-row.installed{border-color:rgba(0,232,135,.15);background:rgba(0,232,135,.03)}
 .mod-row.wishlist{border-color:rgba(68,153,255,.15);background:rgba(68,153,255,.03)}
-.mod-orb-sm{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
 .mo-inst{background:rgba(0,232,135,.15);color:var(--green)}
-.mo-wish{background:rgba(68,153,255,.15);color:var(--blue)}
 .mod-name{flex:1;min-width:0}
 .mod-n{font-family:var(--font-ui);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.2}
 .mod-b{font-size:10px;color:var(--muted);margin-top:1px}
-.mod-action{background:transparent;border:none;color:var(--dim);font-size:11px;font-family:var(--font-ui);font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;padding:4px 8px;border-radius:4px;border:1px solid var(--border);transition:all .15s;flex-shrink:0}
-.mod-action:active,.mod-action:hover{color:#fff;border-color:var(--action);background:rgba(255,106,22,.1)}
-.mod-action.install{color:var(--green);border-color:rgba(0,232,135,.3)}
-.mod-action.install:hover{background:rgba(0,232,135,.1)}
 
 /* ── TIMES LOG ── */
 .times-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
@@ -2248,33 +2268,10 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .scp-source:hover{color:var(--text-hi)}
 
 /* ── ACTIVATION NUDGE ── */
-.act-nudge{position:relative;margin:14px 0 4px;padding:14px;border-radius:var(--r-card);border:1px solid var(--line-strong);border-top:3px solid var(--fill-neutral);background:var(--surface-raised);overflow:hidden}
-.act-dismiss{position:absolute;top:8px;right:10px;background:transparent;border:none;color:var(--dim);font-size:20px;line-height:1;cursor:pointer;padding:2px 4px;transition:color .15s}
-.act-dismiss:hover{color:var(--text)}
-.act-kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
-.act-title{font-family:var(--font-ui);font-weight:700;font-size:19px;line-height:1.1;color:#fff;text-transform:uppercase;letter-spacing:.02em;margin:4px 0 6px;padding-right:20px}
-.act-body{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px}
-.act-body strong{color:var(--measure)}
-.act-steps{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.act-step{font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;color:var(--muted);background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:20px;padding:4px 10px}
 .act-cta{width:100%;padding:11px;border:none;border-radius:var(--r-row);background:var(--action);color:var(--on-accent);font-family:var(--font-ui);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:filter .15s}
 .act-cta:hover{filter:brightness(1.08)}
 
 /* ── RECOMMENDED NEXT ── */
-.reco-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
-.reco-sub{font-size:11px;color:var(--muted);margin-bottom:2px;line-height:1.4}
-.reco-card{position:relative;display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 12px;cursor:pointer;transition:border-color .15s,background .15s;font-family:inherit}
-.reco-card:hover{border-color:var(--line-strong);background:rgba(255,255,255,.03)}
-.reco-card.top{border-color:var(--line-strong);border-top:3px solid var(--fill-neutral)}
-.reco-badge{position:absolute;top:-8px;left:10px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--on-accent);background:var(--action);border-radius:4px;padding:2px 7px}
-.reco-main{flex:1;min-width:0}
-.reco-name{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.02em;color:#fff;line-height:1.1}
-.reco-pick{font-size:11px;color:var(--text-2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.reco-meta{text-align:center;flex-shrink:0;min-width:52px}
-.reco-pct{font-family:var(--font-ui);font-weight:700;font-size:20px;color:var(--relevant);line-height:1}
-.reco-pct-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);line-height:1.2;margin-top:1px}
-.reco-add{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:rgba(255,106,22,.12);border:1px solid rgba(255,106,22,.3);color:var(--action);font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1}
-.reco-done{font-size:12px;color:var(--green);background:rgba(0,232,135,.06);border:1px solid rgba(0,232,135,.2);border-radius:8px;padding:10px 12px;margin-bottom:6px}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 /* ── RUN LIST SORT / FILTER BAR ── */
 .run-ctrl-bar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
@@ -2411,12 +2408,6 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pub-toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
 .pub-toggle-pill.on .pub-toggle-thumb{transform:translateX(20px);background:var(--green)}
 /* ── COMMUNITY TEASER (Garage shortcut) ── */
-.cmt-teaser{width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line-strong);border-radius:10px;padding:12px 14px;cursor:pointer;margin:10px 0 6px;text-align:left;transition:border-color .15s,background .15s;box-sizing:border-box;font-family:inherit}
-.cmt-teaser:hover,.cmt-teaser:active{border-color:var(--line-strong);background:rgba(255,255,255,.03)}
-.cmt-teaser-left{flex:1;min-width:0}
-.cmt-teaser-title{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.1}
-.cmt-teaser-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--muted);margin-top:3px}
-.cmt-teaser-arr{font-family:var(--font-ui);font-weight:700;font-size:22px;color:var(--action);flex-shrink:0;margin-left:10px;line-height:1}
 /* ── PUBLIC PAGE BOTTOM SHEET ── */
 .pub-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .18s ease}
 .pub-sheet{background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch;position:relative}
@@ -3002,68 +2993,6 @@ function CustomFeatures({ value, onChange }) {
           Scorpion feature set by {SCORPION.name} ↗
         </a>
       </div>
-    </div>
-  );
-}
-
-// ── ACTIVATION NUDGE (Feature 1) ───────────────────────────────────────────
-// Prominent, dismissible card for users with a car but zero installed parts. Drives
-// them into the build flow by tying the payoff to features that already exist
-// (projected 60–130 + trap via the Trap Chart, leaderboard comparison).
-function ActivationNudge({ onBuild, onDismiss }) {
-  return (
-    <div className="act-nudge">
-      <button className="act-dismiss" onClick={onDismiss} aria-label="Dismiss">×</button>
-      <div className="act-kicker">Your build · 0 parts</div>
-      <div className="act-title">Add your first mod to unlock your projections</div>
-      <div className="act-body">
-        Log what's on your car and PROOF projects your <strong>60–130</strong> and <strong>trap speed</strong>,
-        then shows how your build stacks up against the leaderboard.
-      </div>
-      <div className="act-steps">
-        <span className="act-step">① Add a mod</span>
-        <span className="act-step">② See your projection</span>
-        <span className="act-step">③ Compare &amp; build</span>
-      </div>
-      <button className="act-cta" onClick={onBuild}>Start my build →</button>
-    </div>
-  );
-}
-
-// ── WHAT'S NEXT / RECOMMENDED (Feature 2) ──────────────────────────────────
-// Recommends the next 1–3 mods from the community's proven path + popularity
-// (recommendNext / MOD_PATH), with the popular specific product and social proof.
-// `empty` tweaks the copy for users just starting out.
-// `recs` is passed in, not recomputed: the screen owns the single recommendation
-// object and hands the same one to this card and to the build map, so the two
-// can never present different "next steps".
-function RecommendedNext({ installedMap, recs, onAddSlot }) {
-  if (!recs.length) {
-    return (
-      <div className="reco-done">✓ You're running every mod on the proven path. You're deep in it.</div>
-    );
-  }
-  const empty = Object.keys(installedMap || {}).filter(k => (installedMap || {})[k]).length === 0;
-  return (
-    <div className="reco-wrap">
-      <div className="reco-sub">
-        {empty ? "Most 4.0T builds start here — the community's proven path:" : "Your next step on the proven build path:"}
-      </div>
-      {recs.map((r, i) => (
-        <button key={r.slot} className={`reco-card${i === 0 ? " top" : ""}`} onClick={() => onAddSlot(r.slot)}>
-          {/* Same [→] marker the build map puts on this exact slot. */}
-          {i === 0 && <span className="reco-badge"><span aria-hidden="true">[→]</span> Next up</span>}
-          <div className="reco-main">
-            <div className="reco-name">{r.name}</div>
-            {r.variant && <div className="reco-pick">{r.variant.brand} · {r.variant.label}</div>}
-          </div>
-          <div className="reco-meta">
-            <div className="reco-pct">{r.pct}%</div>
-            <div className="reco-pct-lbl">of builds run this</div>
-          </div>
-          <span className="reco-add">+</span>
-        </button>
-      ))}
     </div>
   );
 }
@@ -3977,7 +3906,6 @@ export default function TheProof() {
   const baseHpCombined= (NON_RS_4OT.has(modelId) && hasTuningAny)  ? NORMALIZED_4OT_BASE : currentModel.hp;
 
   const speeds  = calcSpeeds(currentModel, installedTotals.hp, baseHp);
-  const wspds   = calcSpeeds(currentModel, installedTotals.hp + wishlistTotals.hp, baseHpCombined);
   const totalHp = baseHp + installedTotals.hp;
   // Where the build lands once the wishlist is fitted, and the safe ceiling that
   // the turbo it is running (or planning) actually allows. Both feed the single
@@ -4525,105 +4453,63 @@ Fields to extract:
   });
 
   // ── GARAGE OVERVIEW ───────────────────────────────────────────────
+  // ── GARAGE (04-screens.md #4a) ────────────────────────────────────
+  // Identity → three stat tiles → progression bar → health chips →
+  // build map → one orange action. Nothing else belongs on this screen:
+  // run logging lives on Times (#4c), browsing on Builds (#4d), and the
+  // build map's [→] row is the only "what's next" answer the design has.
   const garageContent = (
     <div className="garage-area">
-      {/* hero */}
       <div className="garage-hero">
-        <div className="gh-name">{profile.nickname || profile.name || "My Garage"}</div>
-        <div className="gh-car">{currentModel.label} {profile.year && `· ${profile.year}`} {profile.color && `· ${profile.color}`}</div>
-        {profile.note && <div className="gh-note">"{profile.note}"</div>}
+        <div className="gh-id">
+          {profile.nickname || profile.name || "Your garage"}
+          {profile.note ? ` · ${profile.note}` : ""}
+        </div>
+        <div className="gh-car">
+          {profile.year ? `${profile.year} ` : ""}Audi {currentModel.label}{" "}
+          <span className="gh-engine">{currentModel.engine}</span>
+        </div>
+
+        {/* Three tiles: hp / 60–130 / quarter mile. All three are the numbers
+            you came here for, so all three are --measure — not a mix of
+            yellow, green and blue (02-color-rules.md). */}
         <div className="gh-stats">
-          <div className="gh-stat">
-            <div className="gh-stat-val">{totalHp}</div>
-            <div className="gh-stat-lbl">Crank HP</div>
+          <div className="gh-stat gh-stat-wide">
+            <div className="gh-stat-lbl">Est. crank hp</div>
+            <div className="gh-stat-row">
+              <span className="gh-stat-val">{totalHp}</span>
+              {installedTotals.hp > 0 && (
+                <span className="gh-stat-sfx gh-gain">+{installedTotals.hp}</span>
+              )}
+            </div>
           </div>
           <div className="gh-stat">
-            <div className="gh-stat-val" style={{color:"var(--measure)"}}>~{calcWhp(totalHp)}</div>
-            <div className="gh-stat-lbl">Est WHP</div>
+            <div className="gh-stat-lbl">60–130</div>
+            <div className="gh-stat-row">
+              <span className="gh-stat-val">{bestRun60130 ? bestRun60130.time : speeds.t60130}</span>
+              {bestRun60130
+                ? <span className="gh-stat-sfx gh-gain"><span aria-hidden="true">✓</span><span className="sr-only">proven</span></span>
+                : <span className="gh-stat-sfx">est</span>}
+            </div>
           </div>
           <div className="gh-stat">
-            <div className="gh-stat-val green">{speeds.t60130}s</div>
-            <div className="gh-stat-lbl">60–130 est</div>
-          </div>
-          <div className="gh-stat">
-            <div className="gh-stat-val" style={{color:bestRun60130?"var(--green)":"var(--muted)"}}>{bestRun60130 ? `${bestRun60130.time}s` : "—"}</div>
-            <div className="gh-stat-lbl">Best 60–130</div>
-          </div>
-          <div className="gh-stat">
-            <div className="gh-stat-val blue">{bestRun14 ? `${bestRun14.et}s` : "—"}</div>
-            <div className="gh-stat-lbl">Best 1/4</div>
+            <div className="gh-stat-lbl">1/4 mile</div>
+            <div className="gh-stat-row">
+              <span className="gh-stat-val">{bestRun14 ? bestRun14.et : "—"}</span>
+              {bestRun14?.trap ? <span className="gh-stat-sfx">@{bestRun14.trap}</span> : null}
+            </div>
           </div>
         </div>
+
         <ProgressionBar hp={totalHp} wishlistHp={projectedHp} ceiling={buildCeiling} />
         <HealthChips installedMap={installedMap} />
       </div>
 
-      {/* ── ACTIVATION NUDGE (car but no build) ── */}
-      {numInst === 0 && !activationDismissed && (
-        <ActivationNudge
-          onBuild={() => { setBuildMode("installed"); setActiveTab("parts"); track("activation_nudge_cta"); }}
-          onDismiss={dismissActivation}
-        />
-      )}
-
-      {/* ── RUN LOG SECTION IN GARAGE ── */}
-      <h2 className="section-title" style={{marginTop:14}}>
-        Run Log <span style={{color:"var(--green)",fontSize:11}}>{runs.length} run{runs.length!==1?"s":""}</span>
-        <span style={{display:"flex",gap:6,marginLeft:"auto"}}>
-          <button onClick={()=>setActiveTab("times")} style={{fontSize:10,padding:"3px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer",fontFamily:"var(--font-mono)",letterSpacing:".06em"}}>+ LOG RUN</button>
-          <button onClick={loadRuns} style={{fontSize:14,padding:"2px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer"}} aria-label="Refresh runs">{runsLoading?"⟳":"↺"}</button>
-        </span>
-      </h2>
-
-      {/* Best times cards */}
-      <div className="best-times" style={{marginBottom:12}}>
-        <div className="bt-card speed-card">
-          <div className="bt-label">Best 60–130</div>
-          <div className="bt-val">
-            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
-              : bestRun60130 ? bestRun60130.time : "—"}
-            <span className="bt-unit">s</span>
-          </div>
-          {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
-          <ProofBadge run={bestRun60130}
-            onOpen={id=>{ setActiveTab("times"); setSelectedRunId(id); }} />
-        </div>
-        <div className="bt-card strip-card">
-          <div className="bt-label">Best 1/4 Mile</div>
-          <div className="bt-val blue">
-            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
-              : bestRun14 ? bestRun14.et : "—"}
-            <span className="bt-unit">s</span>
-          </div>
-          {bestRun14 && <div className="bt-sub">{bestRun14.trap ? `${bestRun14.trap} mph trap` : ""}</div>}
-        </div>
-      </div>
-
-      {/* Filter bar */}
-      {runFilterBarJSX}
-
-      {/* Run cards */}
-      {runsLoading && runs.length===0 && (
-        <div style={{color:"var(--dim)",fontSize:12,textAlign:"center",padding:"12px 0"}}>
-          <span style={{display:"inline-block",animation:"spin .8s linear infinite",fontSize:16}}>⟳</span> Loading runs…
-        </div>
-      )}
-      {!runsLoading && runs.length===0 && (
-        <div style={{color:"var(--dim)",fontSize:12,padding:"8px 0 4px"}}>No runs logged yet. Tap Log Run to record your first Draggy result.</div>
-      )}
-      {runCardsJSX}
-
-      {/* ── WHAT'S NEXT / RECOMMENDED ── */}
-      {/* The card and the build map below both render from `recs`/`nextRec`. */}
-      <h2 className="section-title" style={{marginTop:14}}>
-        Recommended Next <span style={{color:"var(--text-3)",fontSize:11}}>proven path</span>
-      </h2>
-      <RecommendedNext installedMap={installedMap} recs={recs} onAddSlot={goToSlot} />
-
-      {/* ── BUILD MAP ── */}
-      <h2 className="section-title" style={{marginTop:14}}>
-        Build Map <span style={{color:"var(--verify)",fontSize:11}}>{numInst} of {MOD_PATH.length} fitted</span>
-        <button onClick={()=>{setBuildMode("installed");setActiveTab("parts");}}>+ Add</button>
+      <h2 className="section-title">
+        <span>Build map</span>
+        {/* "3/32 slots" in #4a counts every build slot, not just the proven
+            path — SLOTS.length, which is 32. */}
+        <span className="section-count">{numInst}/{SLOTS.length} slots</span>
       </h2>
       <BuildMap
         installedMap={installedMap}
@@ -4634,64 +4520,18 @@ Fields to extract:
           setInstalledMap(prev=>{const n={...prev};delete n[slotId];saveBuild(n,wishlistMap);return n;});
         }}
       />
-      <button className="cmt-teaser" onClick={()=>{
-        setBoardView("builds");
-        setActiveTab("board");
-        if (communityBuilds.length === 0) loadCommunityBuilds();
-        track("community_builds_opened", {from:"garage"});
-      }}>
-        <div className="cmt-teaser-left">
-          <div className="cmt-teaser-title">Browse community builds</div>
-          <div className="cmt-teaser-sub">See what other 4.0T owners are running</div>
-        </div>
-        <span className="cmt-teaser-arr">→</span>
+
+      {/* The one orange action on the screen. */}
+      <button className="g-cta" onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
+        Log a run
       </button>
 
-      {/* wishlist */}
-      <h2 className="section-title">
-        Wishlist <span style={{color:"var(--blue)",fontSize:11}}>{numWish} parts · ${wishlistTotals.cost.toLocaleString()}</span>
-        <button onClick={()=>{setBuildMode("wishlist");setActiveTab("parts");}}>+ Add</button>
-      </h2>
-      {numWish === 0
-        ? <div style={{color:"var(--dim)",fontSize:12,padding:"8px 0 12px"}}>Nothing on the wishlist yet. Start planning your next mods.</div>
-        : Object.entries(wishlistMap).map(([slotId, varId]) => {
-            const slot = getSlotById(slotId);
-            const v    = getVariantById(slotId, varId);
-            if (!slot||!v) return null;
-            return (
-              <div key={slotId} className="mod-row wishlist">
-                <div className="mod-orb-sm mo-wish">★</div>
-                <div className="mod-name">
-                  <div className="mod-n">{slot.name}</div>
-                  <div className="mod-b">{v.brand} · {v.label} · ${v.price.toLocaleString()}</div>
-                </div>
-                <button className="mod-action install" onClick={()=>installFromWishlist(slotId)}>Install ✓</button>
-              </div>
-            );
-          })
-      }
-
-      {/* Wishlist → Installed gap */}
-      {numWish > 0 && (
-        <div style={{background:"rgba(68,153,255,.06)",border:"1px solid rgba(68,153,255,.15)",borderRadius:8,padding:"10px 12px",marginTop:8}}>
-          <div style={{fontFamily:"var(--font-ui)",fontWeight:700,fontSize:13,textTransform:"uppercase",letterSpacing:".06em",color:"var(--blue)",marginBottom:4}}>Wishlist Impact</div>
-          <div style={{fontSize:11,color:"var(--muted)",fontWeight:300}}>
-            Adding wishlist mods: <span style={{color:"var(--verify)",fontWeight:600}}>+{wishlistTotals.hp} crank hp</span> · <span style={{color:"var(--verify)",fontWeight:600}}>~{Math.round(wishlistTotals.hp*0.85)} whp gain</span> · est 60–130: <span style={{color:"var(--green)",fontWeight:600}}>{wspds.t60130}s</span> · cost: <span style={{color:"var(--text)",fontWeight:600}}>${wishlistTotals.cost.toLocaleString()}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Entry point to the end-state planner (#4f). */}
-      <button className="cmt-teaser" onClick={()=>{
+      {/* Tertiary, in the #4b/#4d link language. The planner has no tab of its
+          own, so this is its only route in — see the gap report. */}
+      <button className="g-tertiary" onClick={()=>{
         setGarageView("planner");
         track("planner_opened", { from:"garage" });
-      }}>
-        <div className="cmt-teaser-left">
-          <div className="cmt-teaser-title">Plan back from an end state</div>
-          <div className="cmt-teaser-sub">See which parts survive your goal — and which are orphaned</div>
-        </div>
-        <span className="cmt-teaser-arr" aria-hidden="true">→</span>
-      </button>
+      }}>Plan back from an end state ›</button>
     </div>
   );
 
@@ -5317,6 +5157,17 @@ Fields to extract:
                     : slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
                   <span className={`slot-chev${isOpen?" open":""}`} aria-hidden="true">▾</span>
                 </button>
+
+                {/* Wishlist → installed. This used to live in the Garage wishlist
+                    block; #4a has no wishlist, so the affordance moves to the
+                    slot it actually acts on. Sibling of the header, never nested
+                    inside it — the header is itself a button. */}
+                {buildMode==="installed" && otherVarId && !hasSel && (
+                  <button type="button" className="slot-install"
+                    onClick={()=>installFromWishlist(slot.id)}>
+                    <span aria-hidden="true">✓</span> Install from wishlist
+                  </button>
+                )}
 
                 {isOpen && (
                   <div className="var-picker" id={`slot-picker-${slot.id}`}>
