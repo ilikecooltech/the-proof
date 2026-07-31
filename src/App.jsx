@@ -2419,29 +2419,8 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 /* ── BOARD TOGGLE (Times ↔ Builds) ── */
 .board-toggle{display:flex;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px;flex-shrink:0}
 /* ── MODEL FILTER BAR ── */
-.mf-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;padding:0 14px}
-.mfbtn{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;padding:4px 8px;border:1px solid var(--border);border-radius:12px;color:var(--muted);background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s}
 .mfbtn.on{background:rgba(255,106,22,.12);border-color:var(--action);color:var(--action)}
 /* ── COMMUNITY BUILD CARDS ── */
-.cmt-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;padding:0 14px}
-.cmt-sort{display:flex;gap:4px}
-.csbtn{font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--border);border-radius:12px;color:var(--muted);background:transparent;cursor:pointer;transition:all .15s}
-.csbtn.on{background:rgba(255,106,22,.12);border-color:var(--action);color:var(--action)}
-.cmt-like{margin-left:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.25);border-radius:8px;padding:1px 6px;vertical-align:middle}
-.cmt-perf{display:flex;gap:10px;margin-top:3px}
-.cmt-perf-i{font-family:var(--font-ui);font-size:12px;font-weight:700;color:var(--green)}
-.cmt-perf-i b{font-family:var(--font-mono);font-size:10px;font-weight:400;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-left:2px}
-.cmt-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin:0 14px 6px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;width:calc(100% - 28px);box-sizing:border-box;text-align:left;font-family:inherit;color:inherit}
-.cmt-card:hover{border-color:var(--line-strong)}
-.cmt-card.hot{border-color:var(--relevant-bd)}
-.cmt-av{width:32px;height:32px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--font-ui);font-weight:700;font-size:12px;color:var(--text);flex-shrink:0}
-.cmt-info{flex:1;min-width:0}
-.cmt-name{font-family:var(--font-ui);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:#fff;line-height:1.1}
-.cmt-car{font-size:10px;color:var(--muted);margin-top:1px}
-.cmt-mods{font-family:var(--font-mono);font-size:10px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cmt-ct{text-align:right;flex-shrink:0}
-.cmt-n{font-family:var(--font-ui);font-weight:700;font-size:20px;color:var(--measure);line-height:1}
-.cmt-nlbl{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;line-height:1.2;margin-top:1px}
 /* ── SHARE CARD PREVIEW (Profile tab) ── */
 .sc-sect{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px}
 .sc-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px}
@@ -2734,6 +2713,47 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
   font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 
+
+/* ── BROWSE BUILDS (#4d) ── */
+.lb-area{padding:0}
+.cmt-filters{display:flex;gap:7px;padding:11px 18px}
+/* FLAGGED: 34px, under the 44px target floor in 06-accessibility.md.
+   Matched to #4d, which sizes its filter chips at 34px. */
+.csbtn{min-height:34px;padding:0 14px;border:1px solid var(--line-dashed);border-radius:17px;
+  background:transparent;color:var(--text-3);font-family:var(--font-mono);font-size:10.5px;
+  font-weight:400;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;white-space:nowrap;
+  transition:all .15s}
+.csbtn.on{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
+.cmt-list{display:flex;flex-direction:column;gap:7px;padding:11px 18px 0}
+.cmt-empty{padding:11px 18px;font-size:12px;color:var(--text-3)}
+
+.cmt-card{width:100%;text-align:left;display:block;padding:10px 14px;border:1px solid var(--line);
+  border-radius:var(--r-card);background:var(--surface);cursor:pointer;font-family:inherit;
+  transition:border-color .15s}
+/* The card carrying the relevance row is raised, per #4d. */
+.cmt-card.cmt-rel{padding:11px 14px;background:var(--surface-raised);border-color:var(--line-strong)}
+.cmt-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cmt-name{font-family:var(--font-ui);font-weight:700;font-size:17px;color:var(--text-hi)}
+.cmt-car{font-weight:400;font-size:12.5px;color:var(--text-3);margin-left:6px}
+/* FLAGGED: 9px, under the 10px text minimum. Matched to #4d. */
+.cmt-tag{font-family:var(--font-mono);font-size:9px;font-weight:600;letter-spacing:.08em;
+  color:var(--text-3);border:1px solid var(--line-dashed);border-radius:var(--r-chip);
+  padding:2px 6px;flex:none;white-space:nowrap}
+.cmt-tag-rel{color:var(--relevant);border-color:var(--relevant-bd)}
+.cmt-stats{display:flex;align-items:baseline;gap:16px;margin-top:9px}
+.cmt-stat{font-family:var(--font-ui);font-weight:700;font-size:24px;line-height:1;color:var(--text-hi);
+  font-variant-numeric:tabular-nums}
+.cmt-stat-hp{color:var(--measure)}
+.cmt-unit{font-size:12px;font-weight:700;line-height:1;color:var(--text-3);margin-left:3px}
+.cmt-proven{font-family:var(--font-mono);font-size:9.5px;font-weight:600;color:var(--verify);
+  border:1px solid var(--verify-bd);border-radius:var(--r-chip);padding:2px 6px;white-space:nowrap}
+.cmt-mods{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--text-3);white-space:nowrap}
+.cmt-summary{margin-top:8px;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
+  color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmt-more{width:100%;min-height:44px;margin-top:0;background:transparent;border:0;color:var(--text-3);
+  font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
 /* ── TIMES (#4c) ── */
 .times-area{padding:0}
 .tm-hero{display:flex;align-items:flex-end;justify-content:space-between;
@@ -2770,14 +2790,12 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 
 /* ── HAS YOUR NEXT PART (#4d) ──
    Leads the card, above the numbers. Blue: a fact about relevance. */
-.cmt-next{display:flex;align-items:center;gap:7px;margin:7px 0 2px;padding:7px 9px;
+.cmt-next{display:flex;align-items:center;gap:7px;margin:9px 0 0;padding:7px 9px;
   border:1px solid var(--relevant-bd);background:var(--relevant-bg);border-radius:5px}
 .cmt-next-tag{font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.1em;
   color:var(--relevant);flex:none}
-.cmt-next-txt{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:13px;
+.cmt-next-txt{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:13px;line-height:normal;
   color:var(--text-hi);overflow:hidden;text-overflow:ellipsis}
-.cmt-next-arr{color:var(--relevant);font-size:13px;flex:none}
-.cmt-card.cmt-rel{border-color:var(--line-strong);background:var(--surface-raised)}
 
 /* ── LEADERBOARD DIVIDER + HIDDEN-CLAIM FOOTER (#4e) ── */
 .lb-divider{display:flex;align-items:center;gap:8px;padding:2px 14px;margin:8px 0}
@@ -2855,7 +2873,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    44px minimum, no exceptions — including like buttons, dismiss ✕ glyphs and
    text-only tertiary buttons. Stated once here so the floor cannot silently
    regress when an individual component's padding is retuned. */
-.mbtn,.cbtn,.pmtbtn,.mtbtn,.mfbtn,.csbtn,.vc-like,
+.mbtn,.cbtn,.pmtbtn,.mtbtn,.vc-like,
 .run-ctrl-select,.section-title button,.tc-table-toggle,.draggy-reupload,
 .sc-preview,.pub-fcta,.share-copy,.admin-fab,.pub-ptab,.rf-cancel{
   min-height:44px}
@@ -2867,7 +2885,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   min-height:44px}
 /* Chips sit on one line at 44px, so centre them rather than letting the old
    vertical padding push the label off-axis. */
-.mbtn,.cbtn,.pmtbtn,.mtbtn,.mfbtn,.csbtn,.vc-like{
+.mbtn,.cbtn,.pmtbtn,.mtbtn,.csbtn,.vc-like{
   display:inline-flex;align-items:center;justify-content:center}
 .mtbtn{flex:1}
 /* The tab bar's 52px + 22px safe area now lives with the rest of its rules. */
@@ -4266,56 +4284,56 @@ function lbClassOf(run) {
 // ── COMMUNITY BUILD CARD ────────────────────────────────────────────────────
 function CommunityBuildCard({ build, onView, userCar, nextRec }) {
   const model = MODELS.find(m => m.id === build.car) || MODELS.find(m=>m.id==="s7");
-  const initials = getInitials(build.name);
   const slotNames = Object.entries(build.installed_map || {})
     .filter(([, vid]) => !!vid)
     .map(([sid]) => getSlotById(sid)?.name || sid)
     .filter(Boolean);
-  const modSummary = slotNames.slice(0, 3).join(" · ") + (slotNames.length > 3 ? " …" : "");
-  const isHot = build.modCount >= 5;
   const likeYours = userCar && build.car === userCar;
-  const hasPerf = build.bestT60130 != null || build.bestTrap != null;
+  const proven = build.bestT60130 != null;
 
   // #4d: "that row is the reason to tap; it must out-read the hp/time figures."
-  // True only when this build is actually running the part we are recommending
-  // to this user — the same nextRec every other screen renders from.
+  // Only true when this build actually runs the part we are recommending.
   const theirVarId = nextRec ? (build.installed_map || {})[nextRec.slot] : null;
   const theirPart  = theirVarId ? getVariantById(nextRec.slot, theirVarId) : null;
   const relevance  = theirPart
-    ? `${theirPart.brand} ${theirPart.label}${build.bestT60130 != null ? ` → ran ${build.bestT60130} after` : ""}`
+    ? `${theirPart.brand} ${theirPart.label}${proven ? ` → ran ${build.bestT60130} after` : ""}`
     : null;
 
+  // The mod summary is the caps mono line #4d puts under the numbers.
+  const summary = slotNames.slice(0, 3).map(n => n.toUpperCase()).join(" · ");
+
   return (
-    <button type="button" className={`cmt-card${isHot ? " hot" : ""}${relevance ? " cmt-rel" : ""}`} onClick={onView}
+    <button type="button" className={`cmt-card${relevance ? " cmt-rel" : ""}`} onClick={onView}
       aria-label={`View ${build.name || "Anonymous"}'s build — ${build.year || ""} ${model.label}, ${build.modCount} mods${relevance ? `. Has your next part: ${relevance}` : ""}`}>
-      <div className="cmt-av" aria-hidden="true">{initials}</div>
-      <div className="cmt-info">
-        <div className="cmt-name">
+      <div className="cmt-top">
+        <span className="cmt-name">
           {build.name || "Anonymous"}
-          {likeYours && <span className="cmt-like">like yours</span>}
+          <span className="cmt-car">{build.year ? `${build.year} ` : ""}{model.label}{build.tuner ? ` · ${build.tuner}` : ""}</span>
+        </span>
+        {likeYours
+          ? <span className="cmt-tag cmt-tag-rel">LIKE YOURS</span>
+          : !proven && <span className="cmt-tag">IN PROGRESS</span>}
+      </div>
+
+      <div className="cmt-stats">
+        <span className="cmt-stat cmt-stat-hp">
+          {build.estHp != null ? build.estHp.toLocaleString() : "—"}<span className="cmt-unit">hp</span>
+        </span>
+        <span className="cmt-stat">
+          {proven ? build.bestT60130 : "—"}<span className="cmt-unit">s</span>
+        </span>
+        {proven && <span className="cmt-proven">✓ PROVEN</span>}
+        <span className="cmt-mods">{build.modCount} mods</span>
+      </div>
+
+      {relevance && (
+        <div className="cmt-next">
+          <span className="cmt-next-tag">HAS YOUR NEXT PART</span>
+          <span className="cmt-next-txt">{relevance}</span>
+          <span className="cmt-next-arr" aria-hidden="true">▸</span>
         </div>
-        <div className="cmt-car">{build.year || ""} {model.label}{build.tuner ? ` · ${build.tuner}` : ""}</div>
-        {/* Leads the card, above the numbers — blue, because relevance is a
-            fact about your build, not an action. */}
-        {relevance && (
-          <div className="cmt-next">
-            <span className="cmt-next-tag">HAS YOUR NEXT PART</span>
-            <span className="cmt-next-txt">{relevance}</span>
-            <span className="cmt-next-arr" aria-hidden="true">▸</span>
-          </div>
-        )}
-        {modSummary && <div className="cmt-mods">{modSummary}</div>}
-        {hasPerf && (
-          <div className="cmt-perf">
-            {build.bestT60130 != null && <span className="cmt-perf-i">{build.bestT60130}s <b>60–130</b></span>}
-            {build.bestTrap != null && <span className="cmt-perf-i">{build.bestTrap} <b>mph trap</b></span>}
-          </div>
-        )}
-      </div>
-      <div className="cmt-ct">
-        <div className="cmt-n">{build.modCount}</div>
-        <div className="cmt-nlbl">mods</div>
-      </div>
+      )}
+      {!relevance && summary && <div className="cmt-summary">{summary}</div>}
     </button>
   );
 }
@@ -4421,7 +4439,6 @@ export default function TheProof() {
   const [adminPicks, setAdminPicks]     = useState({});
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const isAdminMode = typeof window !== "undefined" && window.location.search.includes("admin");
-  const [buildModelFilter, setBuildModelFilter] = useState("all");
   const [buildSort, setBuildSort]       = useState("like");   // "like" | "fast" | "mods"
   const [lbClass, setLbClass]           = useState("all");    // see LB_CLASSES
   const [communityBuilds, setCommunityBuilds]   = useState([]);
@@ -4665,8 +4682,15 @@ export default function TheProof() {
           const userRuns = (runsByUser[p.user_id] || []).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
           const best60 = userRuns.filter(r => r.type === "60-130" && r.time != null).sort((a, b) => a.time - b.time)[0];
           const bestTrapRun = userRuns.filter(r => r.trap != null).sort((a, b) => b.trap - a.trap)[0];
+          // #4d leads each card with an hp figure. Computed with the same
+          // estimator the Garage uses, so a build never shows one number here
+          // and another on its own page.
+          const car = MODELS.find(m => m.id === p.car) || MODELS.find(m => m.id === "s7");
+          const hasTune = Object.keys(installed).some(k => TUNING_SLOTS.has(k));
+          const carBase = (NON_RS_4OT.has(p.car) && hasTune) ? NORMALIZED_4OT_BASE : car.hp;
           return {
             ...p, installed_map: installed, modCount, runs: userRuns,
+            estHp: modCount ? carBase + calcTotals(installed, p.car).hp : car.hp,
             bestT60130: best60?.time ?? null,
             bestTrap: bestTrapRun?.trap ?? null,
           };
@@ -5825,16 +5849,8 @@ Fields to extract:
   );
 
   // ── LEADERBOARD CONTENT ───────────────────────────────────────────
-  const MODEL_FILTERS = [
-    { id:"all", label:"All" },
-    { id:"rs7", label:"RS7" }, { id:"rs6", label:"RS6" },
-    { id:"s7",  label:"S7"  }, { id:"s6",  label:"S6"  },
-    { id:"s8",  label:"S8"  }, { id:"a8",  label:"A8"  },
-  ];
-  const filteredCommunity = (buildModelFilter === "all"
-    ? communityBuilds
-    : communityBuilds.filter(b => b.car === buildModelFilter)
-  ).slice().sort((a, b) => {
+  // #4d has no per-model filter row; "Like yours" is its relevance control.
+  const filteredCommunity = communityBuilds.slice().sort((a, b) => {
     if (buildSort === "like") {
       // #4d: builds running your next part first, then same-model builds.
       // Relevance is the reason to browse, so it outranks the numbers.
@@ -6027,17 +6043,13 @@ Fields to extract:
       {/* ── BUILDS VIEW (community browser) ── */}
       {boardView === "builds" && (
         <>
-          <div className="mf-bar">
-            {MODEL_FILTERS.map(f => (
-              <button key={f.id} className={`mfbtn${buildModelFilter===f.id?" on":""}`} aria-pressed={buildModelFilter===f.id}
-                onClick={()=>setBuildModelFilter(f.id)}>{f.label}</button>
-            ))}
-          </div>
+          {/* #4d carries one filter row of three chips. The per-model filter
+              that used to sit above it has no counterpart in the mockup and is
+              largely subsumed by "Like yours" — flagged in the report. */}
           {communityLoading
-            ? <div className="cmt-hdr">Loading builds…</div>
+            ? <div className="cmt-empty">Loading builds…</div>
             : <>
-                <div className="cmt-hdr">
-                  <span>{filteredCommunity.length} build{filteredCommunity.length===1?"":"s"}</span>
+                <div className="cmt-filters">
                   <div className="cmt-sort">
                     {/* #4d pins "Like yours" first — it is the default reason
                         to browse at all. */}
@@ -6047,13 +6059,18 @@ Fields to extract:
                   </div>
                 </div>
                 {filteredCommunity.length === 0
-                  ? <div style={{padding:"20px 14px",fontSize:12,color:"var(--muted)"}}>No builds logged yet for this model.</div>
-                  : filteredCommunity.map((b, i) => (
-                    <CommunityBuildCard key={b.user_id || i} build={b}
-                      userCar={profile.car}
-                      nextRec={nextRec}
-                      onView={()=>setViewedBuild(b)} />
-                  ))
+                  ? <div className="cmt-empty">No builds logged yet.</div>
+                  : <div className="cmt-list">
+                      {filteredCommunity.map((b, i) => (
+                        <CommunityBuildCard key={b.user_id || i} build={b}
+                          userCar={profile.car}
+                          nextRec={nextRec}
+                          onView={()=>setViewedBuild(b)} />
+                      ))}
+                      <button className="cmt-more" onClick={()=>loadCommunityBuilds()}>
+                        More builds
+                      </button>
+                    </div>
                 }
               </>
           }
