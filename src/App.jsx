@@ -1678,14 +1678,71 @@ function calcWhp(crankHp) { return Math.round(crankHp * 0.85); }
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap');
 :root{
-  --bg:#0a0a0c;--surface:#0f0f14;--card:#141420;--card2:#1a1a28;
-  --border:#1e1e30;--accent:#e8550a;--accent2:#ff8c00;
-  /* Foreground for text sitting ON an accent/green/red fill. White fails AA on
-     these (3.66:1 on --accent, 2.33:1 on --accent2, 1.63:1 on --green); near-black
-     clears it everywhere (5.40 / 8.48 / 12.14 / 5.68 on --red) with no brand change. */
-  --on-accent:#0a0a0c;
-  --dim:#8080ac;--text:#d0d0e8;--muted:#8888c0;
-  --green:#00e887;--red:#ff3b5c;--yellow:#ffd000;--blue:#4499ff;
+  /* ── surfaces (dark, cool-neutral) ── */
+  --bg:            #0A0A0C;  /* app background */
+  --surface:       #101017;  /* list rows, resting cards */
+  --surface-raised:#14141A;  /* selected / primary card */
+  --nav:           #0D0D12;  /* tab bar, sheet background */
+  --line:          #22222E;  /* hairline dividers, resting borders */
+  --line-strong:   #2C2C3C;  /* card borders that need to read */
+  --line-dashed:   #34344A;  /* empty-slot borders, secondary buttons */
+  --track:         #3A3A54;  /* progress bar unfilled track */
+
+  /* ── text ── */
+  --text:          #DEDEEA;  /* body (see --text-hi for pure-white headings) */
+  --text-hi:       #FFFFFF;  /* primary values, headings */
+  --text-body:     #DEDEEA;
+  --text-2:        #B4B4CC;  /* secondary / inactive labels */
+  --text-3:        #9494B0;  /* micro-labels, meta — CONTRAST FLOOR, never dimmer */
+  --fill-neutral:  #C8C8DC;  /* progress fill, neutral markers */
+
+  /* ── semantic (see 02-color-rules.md) ──
+     --action  ONLY things you can act on: buttons, active tab, selected chips, [→]
+     --measure hero metrics + caution state          --verify proven / safe / installed / price
+     --relevant matched to your car or build         --danger  orphaned spend only            */
+  --action:        #FF6A16;
+  --measure:       #FFD000;
+  --verify:        #00E887;
+  --relevant:      #5CC8FF;
+  --danger:        #FF3B5C;
+
+  /* on-color foregrounds — near-black on orange is 5.4:1; white would be 2.6:1 */
+  --on-action:     #0A0A0C;
+
+  /* tinted fills + borders (rgba over --bg) */
+  --action-bg:     rgba(255,106,22,.12);
+  --measure-bg:    rgba(255,208,0,.05);   --measure-bd: rgba(255,208,0,.30);
+  --verify-bg:     rgba(0,232,135,.08);   --verify-bd:  rgba(0,232,135,.35);
+  --relevant-bg:   rgba(92,200,255,.07);  --relevant-bd:rgba(92,200,255,.35);
+  --danger-bg:     rgba(255,59,92,.05);   --danger-bd:  rgba(255,59,92,.30);
+
+  /* ── type ── */
+  --font-ui:   'Titillium Web', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* ── radii ── */
+  --r-chip: 3px;   /* status pills, badges */
+  --r-row:  6px;   /* list rows, buttons */
+  --r-card: 8px;   /* cards */
+  --r-pill: 22px;  /* filter chips, like buttons */
+  --r-sheet:16px;  /* bottom sheet top corners */
+
+  /* ── legacy aliases ──────────────────────────────────────────────────────
+     The old palette names still appear across ~600 CSS rules. Mapping them onto
+     the new values here is what makes the token swap a one-step, shippable
+     change; step 2 (de-orange) then moves individual USAGES off --accent. */
+  --card:      var(--surface);
+  --card2:     var(--surface-raised);
+  --border:    var(--line);
+  --accent:    var(--action);
+  --accent2:   var(--action);
+  --on-accent: var(--on-action);
+  --dim:       var(--text-3);
+  --muted:     var(--text-2);
+  --green:     var(--verify);
+  --red:       var(--danger);
+  --yellow:    var(--measure);
+  --blue:      var(--relevant);
   --nav-h:60px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
