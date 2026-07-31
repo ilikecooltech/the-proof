@@ -1855,8 +1855,8 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 
 .model-strip{display:flex;gap:6px;overflow-x:auto;padding:6px 14px;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .model-strip::-webkit-scrollbar{display:none}
-.mbtn{font-family:var(--font-ui);font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 13px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.mbtn.active{background:var(--action);border-color:var(--action);color:var(--on-accent)}
+.mbtn{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:0 13px;border:1px solid var(--line-dashed);background:transparent;color:var(--text-3);border-radius:var(--r-pill);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.mbtn.active{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
 
 /* ── BODY ── */
 .body{flex:1;overflow:hidden;display:flex;flex-direction:column}
@@ -1864,8 +1864,8 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 /* ── CAT STRIP (mobile) ── */
 .cat-strip{display:flex;gap:6px;overflow-x:auto;padding:10px 14px;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--surface);flex-shrink:0}
 .cat-strip::-webkit-scrollbar{display:none}
-.cbtn{font-family:var(--font-ui);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;position:relative}
-.cbtn.active{background:var(--action);border-color:var(--action);color:var(--on-accent)}
+.cbtn{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:0 14px;border:1px solid var(--line-dashed);background:transparent;color:var(--text-3);border-radius:var(--r-pill);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s;position:relative}
+.cbtn.active{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
 .cbtn-dot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--green);border:1.5px solid var(--bg)}
 
 /* ── PARTS AREA ── */
@@ -2004,7 +2004,7 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 /* metric toggle */
 .perf-metric-toggle{display:flex;gap:4px;align-items:center}
 .pmtbtn{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
-.pmtbtn.pma{background:var(--action);border-color:var(--action);color:var(--on-accent)}
+.pmtbtn.pma{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
 .pmtbtn:not(.pma):hover{border-color:var(--muted);color:var(--muted)}
 
 /* ── BUILD PANEL ── */
@@ -2197,7 +2197,7 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 /* ── TRAP CHART ── */
 .times-view-toggle{display:flex;gap:6px;margin-bottom:12px}
 .tvbtn{flex:1;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
-.tvbtn.tva{background:var(--action);border-color:var(--action);color:var(--on-accent)}
+.tvbtn.tva{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
 .tvbtn:not(.tva):hover{border-color:var(--muted);color:var(--muted)}
 .trap-chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
 .tc-title{font-family:var(--font-ui);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1}
@@ -2621,7 +2621,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    44px minimum, no exceptions — including like buttons, dismiss ✕ glyphs and
    text-only tertiary buttons. Stated once here so the floor cannot silently
    regress when an individual component's padding is retuned. */
-.mbtn,.cbtn,.pmtbtn,.tvbtn,.btog,.mtbtn,.mfbtn,.csbtn,.vc-like,.mod-action,
+.mbtn,.cbtn,.pmtbtn,.tvbtn,.btog,.mtbtn,.mfbtn,.csbtn,.vc-like,
 .run-ctrl-select,.section-title button,.tc-table-toggle,.draggy-reupload,
 .sc-preview,.pub-fcta,.share-copy,.admin-fab,.pub-ptab,.rf-cancel{
   min-height:44px}
@@ -2633,7 +2633,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   min-height:44px}
 /* Chips sit on one line at 44px, so centre them rather than letting the old
    vertical padding push the label off-axis. */
-.mbtn,.cbtn,.pmtbtn,.tvbtn,.btog,.mtbtn,.mfbtn,.csbtn,.vc-like,.mod-action{
+.mbtn,.cbtn,.pmtbtn,.tvbtn,.btog,.mtbtn,.mfbtn,.csbtn,.vc-like{
   display:inline-flex;align-items:center;justify-content:center}
 .tvbtn,.btog,.mtbtn{flex:1}
 /* The tab bar is 52px of control plus a 22px safe area. */
