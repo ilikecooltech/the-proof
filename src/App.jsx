@@ -1872,28 +1872,30 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 
 /* ── HEADER ── */
-.header{background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50}
-.header-row1{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;gap:12px}
-.logo{font-family:var(--font-ui);font-weight:700;font-size:19px;letter-spacing:.08em;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.logo-slash{color:var(--fill-neutral)}
-.logo-badge{background:var(--fill-neutral);color:var(--bg);font-size:10px;font-weight:700;letter-spacing:.15em;padding:2px 7px;border-radius:3px}
-/* Profile's route in, now that the fifth tab is the board. */
-.hdr-profile{flex:none;width:44px;height:44px;border-radius:22px;border:1px solid var(--line-dashed);
-  background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:11px;
-  font-weight:600;letter-spacing:.04em;cursor:pointer;display:inline-flex;align-items:center;
-  justify-content:center;transition:all .15s}
-.hdr-profile:hover{border-color:var(--text-2);color:var(--text-hi)}
-.hdr-profile.on{border-color:var(--action);color:var(--action);background:var(--action-bg)}
-.stats-strip{display:flex;overflow-x:auto;gap:0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-.stats-strip::-webkit-scrollbar{display:none}
-.hstat{display:flex;flex-direction:column;align-items:center;padding:4px 8px;border-left:1px solid var(--border);flex-shrink:0;min-width:56px}
-.hstat-label{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
-.hstat-val{font-family:var(--font-ui);font-weight:700;font-size:16px;line-height:1.1;color:var(--measure);white-space:nowrap}
-.hstat-val.green{color:var(--green)}
-.hstat-delta{font-family:var(--font-mono);font-size:10px;color:var(--green);line-height:1}
-.hstat-cost{font-family:var(--font-mono);font-size:12px;color:var(--text);line-height:1.2}
+/* 402x40: 10px 18px 11px, transparent over --bg, one hairline. */
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 18px 11px;background:transparent;border-bottom:1px solid var(--line);
+  flex:none;z-index:50}
+.logo{margin:0;font-family:var(--font-mono);font-weight:600;font-size:14px;letter-spacing:.06em;
+  text-transform:none;color:var(--text-hi);flex:none}
+.logo-slash{color:var(--action)}
+/* Plain slug: Mono 10.5/400 .06em --text-3. The chip variant states build
+   state and is the way into setup, so it is a real button — visually identical
+   to the mockup's span, which is why its tap target is the chip itself.
+   FLAGGED: 19px tall, under the 44px target floor. The header is 40px in the
+   mockup, so a 44px target cannot fit without changing its height. */
+.hdr-slug{font-family:var(--font-mono);font-size:10.5px;font-weight:400;line-height:normal;letter-spacing:.06em;
+  color:var(--text-3);background:transparent;border:0;padding:0;flex:none;white-space:nowrap;
+  text-align:right;cursor:default}
+button.hdr-slug{cursor:pointer}
+.hdr-slug-upper{text-transform:uppercase;letter-spacing:.08em}
+.hdr-slug-lg{font-size:11px}
+.hdr-slug-verify{color:var(--verify)}
+.hdr-slug-chip{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--text-body);border:1px solid var(--line-dashed);border-radius:var(--r-chip);
+  padding:2px 7px}
 
-.model-strip{display:flex;gap:6px;overflow-x:auto;padding:6px 14px;border-top:1px solid var(--border);-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.model-strip{display:flex;gap:6px;overflow-x:auto;padding:0 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .model-strip::-webkit-scrollbar{display:none}
 .mbtn{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:0 13px;border:1px solid var(--line-dashed);background:transparent;color:var(--text-3);border-radius:var(--r-pill);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .mbtn.active{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
@@ -5368,6 +5370,21 @@ Fields to extract:
   // ── PROFILE SETTINGS ──────────────────────────────────────────────
   const profileContent = (
     <div className="profile-area">
+      {/* ── YOUR CAR ──
+          The mockup's header carries no model selector; #5a is where the car is
+          chosen. Until #5a is built as its own screen, the picker lives here,
+          which is also where the header's build-state chip routes to. */}
+      <h2 className="section-title">Your car</h2>
+      <div className="model-strip" role="group" aria-label="Select your model">
+        {MODELS.map(m=>(
+          <button key={m.id} className={`mbtn${modelId===m.id?" active":""}`}
+            aria-pressed={modelId===m.id}
+            onClick={()=>{ setProfile(p=>({...p,car:m.id})); saveProfile({...profile, car:m.id}); }}>
+            {m.label}
+          </button>
+        ))}
+      </div>
+
       {/* ── SHARE SECTION ── */}
       <div className="share-box">
         <div className="share-title">Your build link</div>
@@ -5559,6 +5576,29 @@ Fields to extract:
 
   // #4e: class filter, then a top slice with the rest folded behind "N MORE"
   // so your own row can be pinned directly beneath it.
+  // ── HEADER CONTEXT SLUG ────────────────────────────────────────────
+  // The mockup gives every screen the same header and varies only this: a
+  // bordered chip where it states build state, plain mono text elsewhere.
+  // Verbatim per screen — #4a "Stage 2", #4b "Stock", #4c "60–130 MPH",
+  // #4d "103 BUILDS", #4e "✓ DATALOG REQUIRED", #4f "End-state plan",
+  // #5b "2016 S6 · STAGE 2".
+  const stageLabel = REC_STAGE_LABEL[inferStage(installedMap)] || "Stock";
+  const openSetup = () => { setActiveTab("profile"); track("tab_viewed", { tab: "profile" }); };
+  const hdrSlug = (() => {
+    if (activeTab === "garage" && garageView === "planner")
+      return { text: "End-state plan", upper: true };
+    if (activeTab === "garage")
+      return { text: stageLabel, chip: true, action: openSetup };
+    if (activeTab === "parts")
+      return { text: `${profile.year || ""} ${currentModel.label} · ${stageLabel.toUpperCase()}`.trim(), action: openSetup };
+    if (activeTab === "times")   return { text: "60–130 MPH", lg: true };
+    if (activeTab === "board" && boardView === "times")
+      return { text: "✓ DATALOG REQUIRED", tone: "verify" };
+    if (activeTab === "board")
+      return { text: `${communityBuilds.length} BUILDS`, lg: true };
+    return { text: "Your car", upper: true };
+  })();
+
   // ── TAB BAR ITEMS ──────────────────────────────────────────────────
   // The spec's five, in order. Labels are lowercase here and uppercased in CSS,
   // exactly as the mockup does it. Counts feed the accessible name only — the
@@ -5817,53 +5857,26 @@ Fields to extract:
 
   return (
     <div className="app">
+      {/* Header (identical on every #4/#5 screen): the wordmark on the left and
+          a single per-screen context slug on the right. 402x40, 10px 18px 11px,
+          transparent over --bg, one hairline under it. No stat strip, no model
+          strip, no profile avatar — the mockup carries none of them. */}
       <header className="header" inert={dialogOpen}>
-        <div className="header-row1">
-          <h1 className="logo">PROOF<span className="logo-slash">.BUILD</span> <span className="logo-badge">{currentModel.label}</span></h1>
-          {/* Scrolls horizontally and holds no focusable children, so it needs
-              to be reachable by keyboard in its own right. */}
-          <div className="stats-strip" tabIndex={0} role="group" aria-label="Current estimates">
-            <div className="hstat">
-              <span className="hstat-label">Crank HP</span>
-              <span className="hstat-val">{totalHp}</span>
-            </div>
-            <div className="hstat">
-              <span className="hstat-label">Est WHP</span>
-              <span className="hstat-val" style={{color:"var(--measure)"}}>~{calcWhp(totalHp)}</span>
-            </div>
-            <div className="hstat">
-              <span className="hstat-label">0–60</span>
-              <span className="hstat-val">{speeds.t060}s</span>
-              {installedTotals.hp>0&&<span className="hstat-delta">−{(currentModel.t060-speeds.t060).toFixed(2)}s</span>}
-            </div>
-            <div className="hstat">
-              <span className="hstat-label">60–130</span>
-              <span className="hstat-val green">{speeds.t60130}s</span>
-              {installedTotals.hp>0&&<span className="hstat-delta">−{(currentModel.t60130-speeds.t60130).toFixed(2)}s</span>}
-            </div>
-            {bestRun60130 && <div className="hstat"><span className="hstat-label">Best 60–130</span><span className="hstat-val" style={{color:"var(--green)"}}>{bestRun60130.time}s</span></div>}
-            {bestRun14    && <div className="hstat"><span className="hstat-label">Best 1/4</span><span className="hstat-val" style={{color:"var(--blue)"}}>{bestRun14.et}s</span></div>}
-          </div>
-          {/* The tab bar's fifth slot is `board` in the spec, so Profile lost
-              its tab. It keeps a real route rather than being orphaned. */}
+        <h1 className="logo">the<span className="logo-slash">/</span>proof</h1>
+        {hdrSlug.action ? (
+          // Where the slug states build state it doubles as the way into setup;
+          // elsewhere it is plain text, exactly as the mockup has it.
           <button
-            className={`hdr-profile${activeTab==="profile" ? " on" : ""}`}
-            aria-current={activeTab==="profile" ? "page" : undefined}
-            aria-label="Your profile"
-            onClick={()=>{setActiveTab("profile");track("tab_viewed",{tab:"profile"});}}
-          >
-            {getInitials(profile.name || profile.nickname) || "?"}
-          </button>
-        </div>
-        <div className="model-strip" role="group" aria-label="Select your model">
-          {MODELS.map(m=>(
-            <button key={m.id} className={`mbtn${modelId===m.id?" active":""}`}
-              aria-pressed={modelId===m.id}
-              onClick={()=>{ setProfile(p=>({...p,car:m.id})); saveProfile({...profile, car:m.id}); }}>
-              {m.label}
-            </button>
-          ))}
-        </div>
+            type="button"
+            className={`hdr-slug${hdrSlug.chip ? " hdr-slug-chip" : ""}${hdrSlug.tone ? " hdr-slug-" + hdrSlug.tone : ""}${hdrSlug.upper ? " hdr-slug-upper" : ""}${hdrSlug.lg ? " hdr-slug-lg" : ""}`}
+            onClick={hdrSlug.action}
+            aria-label={`${hdrSlug.text} — open your car and profile`}
+          >{hdrSlug.text}</button>
+        ) : (
+          <span className={`hdr-slug${hdrSlug.chip ? " hdr-slug-chip" : ""}${hdrSlug.tone ? " hdr-slug-" + hdrSlug.tone : ""}${hdrSlug.upper ? " hdr-slug-upper" : ""}${hdrSlug.lg ? " hdr-slug-lg" : ""}`}>
+            {hdrSlug.text}
+          </span>
+        )}
       </header>
 
       {/* The hp estimate recomputes on every part change; announce it rather
