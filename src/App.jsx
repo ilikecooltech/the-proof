@@ -1,4 +1,4 @@
-import { useState, useEffect, useId, useRef } from "react";
+import { Component, useState, useEffect, useId, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import posthog from "posthog-js";
 import { pickTunePair } from "./tuneCompare.js";
@@ -21,6 +21,37 @@ const track = (event, props = {}) => { if (PH_KEY) posthog.capture(event, props)
 const SUPABASE_URL  = "https://bqvdudylkqwpyvhshewj.supabase.co";
 const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── SCREEN ERROR BOUNDARY ────────────────────────────────────────────────────
+// Without one of these, a single bad value anywhere in the tree unmounts the
+// WHOLE app and leaves a blank page with no way back — which is exactly how a
+// string where a number was expected read as "the interactive elements are
+// gone". The shell (header, tab bar) lives outside this, so a broken screen
+// costs you that screen and nothing else: you can still navigate away.
+class ScreenBoundary extends Component {
+  constructor(props) { super(props); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  componentDidCatch(err, info) { console.error("Screen render failed:", err, info); }
+  componentDidUpdate(prev) {
+    // A new screen gets a fresh attempt; otherwise the error sticks forever.
+    if (prev.resetKey !== this.props.resetKey && this.state.err) this.setState({ err: null });
+  }
+  render() {
+    if (!this.state.err) return this.props.children;
+    return (
+      <div className="screen-error" role="alert">
+        <div className="screen-error-hd">This screen didn’t load</div>
+        <p className="screen-error-body">
+          Something in this view failed to render. The rest of the app still
+          works — switch tabs and come back.
+        </p>
+        <button className="screen-error-btn" onClick={() => this.setState({ err: null })}>
+          Try again
+        </button>
+      </div>
+    );
+  }
+}
 
 function getUserId() {
   let id = localStorage.getItem("proof-user-id");
@@ -2567,6 +2598,15 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .proof-link{margin-top:6px;text-decoration:none;min-height:44px}
 .run-card.run-claim{border-style:dashed;opacity:.8}
 
+/* ── SCREEN ERROR STATE ── */
+.screen-error{margin:18px;padding:16px;border:1px solid var(--line-strong);border-radius:var(--r-card);
+  background:var(--surface-raised)}
+.screen-error-hd{font-family:var(--font-ui);font-weight:700;font-size:16px;color:var(--text-hi)}
+.screen-error-body{font-size:13.5px;line-height:1.5;color:var(--text-2);margin:8px 0 0;text-wrap:pretty}
+.screen-error-btn{min-height:44px;margin-top:12px;padding:0 15px;border:1px solid var(--line-dashed);
+  border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+
 /* ── FIELD BANDS (#4c) ──
    Four counts, your band highlighted, your true position a --measure line. */
 .fb{display:flex;flex-direction:column;gap:7px;margin-bottom:6px}
@@ -3239,8 +3279,20 @@ function HealthChips({ installedMap }) {
 // so the edges are derived from the real distribution and rounded to a readable
 // step. Four bands, always populated, still the design's shape.
 function fieldBands(times, mine) {
-  const all = times.filter(t => t != null && !isNaN(t)).sort((a, b) => a - b);
+  // Supabase hands back Postgres `numeric` columns as STRINGS, so every value
+  // here has to be coerced before it touches arithmetic. Left as-is, "4.03" + 0.3
+  // concatenates to "4.030.3" and the band edges arrive as strings, where
+  // .toFixed() throws and takes the whole render down with it.
+  // Drop empties BEFORE coercing: Number(null) and Number("") are both 0, which
+  // would quietly enter a missing time into the field as a 0.00s car.
+  const all = (times || [])
+    .filter(t => t != null && t !== "")
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
   if (all.length < 2) return null;
+  const me = Number(mine);
+  mine = Number.isFinite(me) ? me : null;
   const lo = all[0], hi = all[all.length - 1];
   const span = hi - lo;
   if (span <= 0) return null;
@@ -5752,11 +5804,13 @@ Fields to extract:
       <div className="sr-only" aria-live="polite" aria-atomic="true">{likeAnnounce}</div>
 
       <main className="body" inert={dialogOpen}>
-        {activeTab==="garage" && garageScreen}
-        {activeTab==="parts"  && partsWithToggle}
-        {activeTab==="times"  && timesContent}
-        {activeTab==="board"  && boardContent}
-        {activeTab==="profile"&& profileContent}
+        <ScreenBoundary resetKey={activeTab}>
+          {activeTab==="garage" && garageScreen}
+          {activeTab==="parts"  && partsWithToggle}
+          {activeTab==="times"  && timesContent}
+          {activeTab==="board"  && boardContent}
+          {activeTab==="profile"&& profileContent}
+        </ScreenBoundary>
       </main>
 
       {/* Part sheet (#5b) — options for one slot, recommended pick first. */}
