@@ -2471,6 +2471,33 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-labels .pbar-top{right:0;left:auto;font-size:9px;color:var(--text-3)}
 .pbar-labels .pbar-top-clear{top:14px}
 
+/* ── PROOF STATES (03-components.md / 04-screens.md) ────────────────────────
+   ✓ LOG reads as settled fact; ▲ CLAIM is deliberately quieter and dashed, so
+   an unbacked time cannot be mistaken for a verified one at a glance. */
+.run-proof-row{display:inline-flex;align-items:center;gap:6px}
+.proof-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);
+  font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  padding:3px 8px;border-radius:var(--r-chip);white-space:nowrap}
+.proof-log{color:var(--verify);background:var(--verify-bg);border:1px solid var(--verify-bd)}
+.proof-claim{color:var(--measure);background:transparent;border:1px dashed var(--measure-bd);opacity:.75}
+/* Tertiary link, still a 44px target. */
+.proof-link{margin-top:6px;text-decoration:none;min-height:44px}
+.run-card.run-claim{border-style:dashed;opacity:.8}
+
+/* ── LEADERBOARD GATE ───────────────────────────────────────────────────────*/
+.lb-req{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;
+  font-weight:600;letter-spacing:.1em;color:var(--verify);background:var(--verify-bg);
+  border:1px solid var(--verify-bd);border-radius:var(--r-chip);padding:3px 8px;margin-bottom:6px}
+.lb-you{margin-top:12px;padding:12px;border-radius:var(--r-card);background:var(--surface-raised);
+  border:1px solid var(--measure-bd)}
+.lb-you-hd{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  color:var(--measure)}
+.lb-you-time{font-family:var(--font-ui);font-weight:700;font-size:30px;line-height:1;
+  color:var(--measure);margin-top:4px}
+.lb-you-gap{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--text-3);
+  margin-top:4px}
+.lb-you-blocked{border-color:var(--measure-bd);border-style:dashed;opacity:.85}
+
 /* ── BUILD MAP (03-components.md) ───────────────────────────────────────────
    Marker, border and background carry the state together; the row also states
    it in words for screen readers, so the glyph is never the only signal. */
@@ -2982,6 +3009,39 @@ function RecommendedNext({ installedMap, recs, onAddSlot }) {
         </button>
       ))}
     </div>
+  );
+}
+
+// ── PROOF STATE ─────────────────────────────────────────────────────────────
+// Proof is a visible state, not a footnote. A run backed by attached evidence —
+// a Draggy datalog (splits) or a slip/video — is a LOG; anything else is a CLAIM.
+// The distinction is load-bearing: no datalog, no leaderboard rank.
+function runProof(run) {
+  const hasDatalog = !!(run.splits && Object.keys(run.splits).length > 0);
+  const hasSlip    = !!run.videoUrl;
+  const proven     = hasDatalog || hasSlip;
+  return {
+    proven, hasDatalog, hasSlip,
+    label: proven ? "✓ LOG" : "▲ CLAIM",
+    // Spelled out because the glyph must never be the only signal.
+    words: proven
+      ? (hasDatalog ? "Verified by datalog" : "Verified by time slip")
+      : "Claimed — no datalog attached",
+  };
+}
+
+// The badge is an <a>, never a <span> — it opens the logged run with its date,
+// DA and fuel. A claim renders in --measure at 75% opacity with a dashed border.
+function ProofBadge({ run, onOpen }) {
+  if (!run) return null;
+  const p = runProof(run);
+  return (
+    <a className={`proof-chip proof-link${p.proven ? " proof-log" : " proof-claim"}`}
+      href={`#run-${run.id}`}
+      onClick={() => onOpen(run.id)}>
+      <span aria-hidden="true">{p.proven ? "✓ Proven ›" : "▲ CLAIM ›"}</span>
+      <span className="sr-only">{p.words}. Open run detail</span>
+    </a>
   );
 }
 
@@ -3655,6 +3715,16 @@ export default function TheProof() {
   // map. Neither recomputes it, so the screen cannot show two different answers.
   const recs    = recommendNext(installedMap, 3);
   const nextRec = recs[0] || null;
+
+  // Leaderboard placement is gated on evidence: only datalog/slip-backed runs
+  // can place, and the number of runs that could NOT place is counted so the
+  // consequence can be stated rather than the runs quietly disappearing.
+  const myBoardRuns = (() => {
+    const sixty = runs.filter(r => r.type === "60-130" && r.time != null);
+    const proven = sixty.filter(r => runProof(r).proven)
+      .sort((a, b) => parseFloat(a.time) - parseFloat(b.time))[0] || null;
+    return { proven, claimCount: sixty.filter(r => !runProof(r).proven).length };
+  })();
   const totalTq = currentModel.torque + installedTotals.torque;
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
@@ -4076,8 +4146,10 @@ Fields to extract:
   const runCardsJSX = filteredRuns.map(run => {
     const isOpen   = selectedRunId===run.id;
     const hasSplits = run.splits && Object.keys(run.splits).length>0;
+    const proof     = runProof(run);
     return (
-      <div key={run.id} className={`run-card${isOpen?" selected":""}`}>
+      <div key={run.id} id={`run-${run.id}`}
+        className={`run-card${isOpen?" selected":""}${proof.proven?"":" run-claim"}`}>
         <button className="run-del" aria-label={`Delete the ${run.type} run logged ${run.date}`}
           onClick={e=>{e.stopPropagation();deleteRun(run.id);}}>
           <span aria-hidden="true">×</span>
@@ -4087,7 +4159,13 @@ Fields to extract:
           onClick={()=>setSelectedRunId(isOpen?null:run.id)}>
         <div className="run-top">
           <span className="run-date">{run.date}</span>
-          <span className="run-type">{run.type}</span>
+          <span className="run-proof-row">
+            <span className="run-type">{run.type}</span>
+            <span className={`proof-chip${proof.proven?" proof-log":" proof-claim"}`}>
+              <span aria-hidden="true">{proof.label}</span>
+              <span className="sr-only">{proof.words}</span>
+            </span>
+          </span>
         </div>
         <div className="run-times">
           {run.time!=null && (
@@ -4232,6 +4310,8 @@ Fields to extract:
             <span className="bt-unit">s</span>
           </div>
           {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
+          <ProofBadge run={bestRun60130}
+            onOpen={id=>{ setActiveTab("times"); setSelectedRunId(id); }} />
         </div>
         <div className="bt-card strip-card">
           <div className="bt-label">Best 1/4 Mile</div>
@@ -4357,6 +4437,8 @@ Fields to extract:
             <span className="bt-unit">s</span>
           </div>
           {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
+          <ProofBadge run={bestRun60130}
+            onOpen={id=>{ setActiveTab("times"); setSelectedRunId(id); }} />
         </div>
         <div className="bt-card strip-card">
           <div className="bt-label">Best 1/4 Mile</div>
@@ -4742,7 +4824,8 @@ Fields to extract:
       {/* ── TIMES VIEW (existing leaderboard) ── */}
       {boardView === "times" && (
         <>
-          <div className="lb-title">60–130 Leaderboard</div>
+          <h2 className="lb-title">60–130 Leaderboard</h2>
+          <div className="lb-req"><span aria-hidden="true">✓</span> DATALOG REQUIRED</div>
           <div className="lb-sub">Real runs · Audi 4.0T community · All catless downpipes</div>
           {liveLeaderboard.map(run => (
             <div key={run.rank} className={`lb-card ${rankClass(run.rank)}`}>
@@ -4769,6 +4852,29 @@ Fields to extract:
               {run.da && <div className="lb-da">DA: {run.da}{run.et ? `  ·  1/4: ${run.et} @ ${run.mph} mph` : ""}</div>}
             </div>
           ))}
+
+          {/* Your own placement, gated on evidence. The consequence is stated
+              plainly rather than silently dropping the run. */}
+          {myBoardRuns.proven ? (
+            <div className="lb-you">
+              <div className="lb-you-hd">YOUR BEST — PLACED</div>
+              <div className="lb-you-time">{myBoardRuns.proven.time}s</div>
+              <div className="lb-you-gap">
+                {(() => {
+                  const slowest = liveLeaderboard[liveLeaderboard.length - 1];
+                  const gap = +(parseFloat(myBoardRuns.proven.time) - slowest.t60130).toFixed(2);
+                  return gap > 0
+                    ? `${gap}s to #${slowest.rank}`
+                    : `inside the top ${liveLeaderboard.length}`;
+                })()}
+              </div>
+            </div>
+          ) : myBoardRuns.claimCount > 0 ? (
+            <div className="lb-you lb-you-blocked">
+              <div className="lb-you-hd"><span aria-hidden="true">▲</span> {myBoardRuns.claimCount} CLAIMED TIME{myBoardRuns.claimCount!==1?"S":""} HIDDEN</div>
+              <div className="lb-you-gap">NO DATALOG, NO RANK</div>
+            </div>
+          ) : null}
         </>
       )}
 
