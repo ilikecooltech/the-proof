@@ -690,6 +690,12 @@ function readPowerGoal() {
 // or tunes are added, the block normalizes to a common output baseline.
 // RS6/RS7 have higher compression pistons (genuine engine difference) so they stay higher.
 const TUNING_SLOTS        = new Set(["turbo_upgrade","ecu_s1","ecu_s2","ecu_custom"]);
+// Fuel system hardware makes no power on its own — a stock ECU will not command
+// the extra fuel, so the gain only exists once a tune can exploit it. The
+// catalog's per-variant hp figures all assume that tune is present, so without
+// one these slots must contribute zero (05-data-and-math.md: "fuel is inert
+// without a tune"). Cost still counts: you paid for the parts either way.
+const FUEL_SLOTS = new Set(["hpfp","flex_fuel","port_inj","fuel_lines","port_inj_full"]);
 const NON_RS_4OT          = new Set(["s6","s7","a8","s8"]);
 const NORMALIZED_4OT_BASE = 450; // S6/S7 stock level — the "true" block baseline
 
@@ -1648,9 +1654,11 @@ function calcTotals(selectedMap, modelId) {
     const hpDelta = (NON_RS_4OT.has(modelId) && hasTuningMod && TUNING_SLOTS.has(slotId))
       ? (v.hp["s6"] || 0)
       : (v.hp[modelId] || 0);
-    hp += hpDelta;
-    torque += v.torque[modelId]||0;
-    cost += v.price;
+    // Fuel is inert without a tune: a stock ECU never commands the extra fuel.
+    const inertFuel = FUEL_SLOTS.has(slotId) && !hasTuningMod;
+    hp     += inertFuel ? 0 : hpDelta;
+    torque += inertFuel ? 0 : (v.torque[modelId]||0);
+    cost   += v.price;
   });
   return { hp, torque, cost };
 }
@@ -1669,6 +1677,86 @@ function calcSpeeds(model, hpGain, baseHpOverride) {
 // Consistent with community data: stock RS7 560 crank = ~476 whp
 // SRM1000 kit = 992 whp measured = ~1167 hp crank
 function calcWhp(crankHp) { return Math.round(crankHp * 0.85); }
+
+// ── PROGRESSION SCALE (05-data-and-math.md) ─────────────────────────────────
+// One scale everywhere: 0 → 1040 hp. Every label sits on a real tick, and every
+// percentage below is DERIVED — the mockup's 58% / 72% / 43% are outputs of this
+// function, never constants to be copied.
+const HP_SCALE_TOP = 1040;
+
+// "1040+ TOP END" is a near-ceiling, not a hard max — the `+` is load-bearing.
+// Never relabel it MAX.
+const CEILINGS = {
+  daily:  { hp: 750,  label: "DAILY"  },  // reliable, stock turbos
+  hybrid: { hp: 850,  label: "HYBRID" },  // keeps the fuel system
+  single: { hp: 1040, label: "SINGLE" },  // orphans OEM-turbo parts
+};
+
+const pctOfScale = v => Math.max(0, Math.min(100, (v / HP_SCALE_TOP) * 100));
+
+// The daily-safe ceiling a build can actually reach, taken from the turbo it is
+// running (or planning). This is the bar's emotional anchor — not the top end.
+function ceilingForBuild(map) {
+  const stage = inferStage(map);
+  if (stage === "big_single") return CEILINGS.single;
+  if (stage === "s3_hybrid")  return CEILINGS.hybrid;
+  return CEILINGS.daily;
+}
+
+// The signature graphic. Driven entirely by {hp, wishlistHp, ceiling} — the same
+// component on Garage, Parts, Activation and the Planner, so the four screens
+// cannot disagree about where a build sits.
+function ProgressionBar({
+  hp, wishlistHp = 0, ceiling = CEILINGS.daily, goalHp = null,
+  nowLabel = "NOW", wishLabel = "PLANNED", ariaLabel,
+}) {
+  const projected = Math.max(hp, wishlistHp);
+  const fillPct = pctOfScale(hp);
+  const wishPct = pctOfScale(projected);
+  const ceilPct = pctOfScale(ceiling.hp);
+  const goalPct = goalHp != null ? pctOfScale(goalHp) : null;
+  const hasWish = projected > hp;
+  // The ceiling label is centred on its tick, so keep it off the two ends where
+  // it would collide with NOW or the top-end label.
+  const ceilNearEdge = ceilPct > 92;
+
+  return (
+    <div className="pbar-wrap">
+      {/* The ceiling reads ABOVE the bar: it is the number that decides what the
+          car can safely make, and it must out-read the platform's top end. */}
+      <div className="pbar-ceiling-row">
+        <span className="pbar-ceiling-lbl" style={{ left: `${ceilPct}%` }}>
+          {ceiling.hp} {ceiling.label} <span aria-hidden="true">✓</span>
+        </span>
+      </div>
+
+      <div
+        className="pbar-track"
+        role="img"
+        aria-label={ariaLabel || `${hp} hp of a ${HP_SCALE_TOP} hp scale` +
+          (hasWish ? `, ${projected} hp with planned parts` : "") +
+          `. Safe ceiling for this build ${ceiling.hp} hp.`}
+      >
+        {hasWish && <div className="pbar-wish" style={{ width: `${wishPct}%` }} />}
+        <div className="pbar-fill" style={{ width: `${fillPct}%` }} />
+        <div className="pbar-tick" style={{ left: `${ceilPct}%` }} />
+        {goalPct != null && <div className="pbar-tick pbar-tick-goal" style={{ left: `${goalPct}%` }} />}
+      </div>
+
+      <div className="pbar-labels">
+        <span className="pbar-now" style={{ left: `${fillPct}%` }}>{hp} {nowLabel}</span>
+        {hasWish && (
+          <span className="pbar-wish-lbl" style={{ left: `${wishPct}%` }}>{projected} {wishLabel}</span>
+        )}
+        {goalPct != null && (
+          <span className="pbar-goal-lbl" style={{ left: `${goalPct}%` }}>{goalHp} GOAL</span>
+        )}
+        {/* Deliberately the quietest thing on the bar: a platform fact, not a to-do. */}
+        <span className={`pbar-top${ceilNearEdge ? " pbar-top-clear" : ""}`}>{HP_SCALE_TOP}+ TOP END</span>
+      </div>
+    </div>
+  );
+}
 
 // Rating stars were replaced by a thumbs-up Like control + a data-derived
 // "Recommended" badge (see the variant card). Catalog `rating` fields remain in the
@@ -2356,6 +2444,39 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pub-flogo{font-family:var(--font-ui);font-weight:700;font-size:12px;letter-spacing:.12em;color:var(--dim)}
 .pub-fcta{font-family:var(--font-ui);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--action);border:1px solid rgba(255,106,22,.35);border-radius:5px;padding:7px 12px;background:transparent;cursor:pointer}
 
+/* ── PROGRESSION BAR (03-components.md) ─────────────────────────────────────
+   Every horizontal position here is set inline from a computed percentage; the
+   stylesheet owns appearance only, so the geometry can never drift from data. */
+.pbar-wrap{margin:12px 0 14px}
+.pbar-ceiling-row{position:relative;height:15px;margin-bottom:4px}
+.pbar-ceiling-lbl{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--font-ui);font-weight:700;font-size:11.5px;color:var(--verify)}
+.pbar-track{position:relative;height:8px;border-radius:2px;background:var(--track);overflow:hidden}
+.pbar-fill{position:absolute;top:0;left:0;height:100%;border-radius:2px;background:var(--fill-neutral);
+  transition:width .25s ease}
+/* The hatch is drawn from 0 to the projected total and sits UNDER the solid
+   fill, so the two can never disagree about where "now" ends. */
+.pbar-wish{position:absolute;top:0;left:0;height:100%;border-radius:2px;transition:width .25s ease;
+  background:repeating-linear-gradient(115deg,var(--fill-neutral) 0 2px,transparent 2px 6px)}
+.pbar-tick{position:absolute;top:0;width:2px;height:100%;background:var(--verify);transition:left .25s ease}
+.pbar-tick-goal{background:var(--measure)}
+.pbar-labels{position:relative;height:14px;margin-top:5px}
+.pbar-labels span{position:absolute;top:0;white-space:nowrap;font-family:var(--font-mono);font-size:10px;
+  letter-spacing:.04em}
+.pbar-now{transform:translateX(-100%);padding-right:5px;color:var(--text-hi);font-weight:600}
+.pbar-wish-lbl{padding-left:5px;color:var(--text-3)}
+.pbar-goal-lbl{transform:translateX(-50%);color:var(--measure);font-weight:600}
+/* 9px is the one place below the 10px floor, and only because this label is
+   meant to be the quietest thing on the bar. */
+.pbar-labels .pbar-top{right:0;left:auto;font-size:9px;color:var(--text-3)}
+.pbar-labels .pbar-top-clear{top:14px}
+
+/* Fuel hardware on a stock tune contributes zero to the estimate, so the row
+   reads as inert rather than as an available gain. Text stays at the --text-3
+   floor — dimming is done with the label, not by going below legal contrast. */
+.slot-card.fuel-inert .slot-name,.slot-card.fuel-inert .slot-desc-text{color:var(--text-3)}
+.t-inert{background:var(--measure-bg);color:var(--measure);border:1px solid var(--measure-bd)}
+
 /* ── DENSITY + HIT TARGETS (06-accessibility.md) ─────────────────────────────
    44px minimum, no exceptions — including like buttons, dismiss ✕ glyphs and
    text-only tertiary buttons. Stated once here so the floor cannot silently
@@ -2378,6 +2499,15 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 /* The tab bar is 52px of control plus a 22px safe area. */
 .bottom-nav{height:auto;min-height:52px;padding-bottom:22px;background:var(--nav)}
 .bnav{min-height:52px}
+
+/* ── REDUCED MOTION (06-accessibility.md) ───────────────────────────────────
+   Only the bar fill and ceiling tick are meant to animate at all; honour the
+   preference by dropping every transition and the spinner rotation. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;scroll-behavior:auto !important}
+}
 `;
 
 // ── TAG CLASS ────────────────────────────────────────────────────────────
@@ -3373,6 +3503,11 @@ export default function TheProof() {
   const speeds  = calcSpeeds(currentModel, installedTotals.hp, baseHp);
   const wspds   = calcSpeeds(currentModel, installedTotals.hp + wishlistTotals.hp, baseHpCombined);
   const totalHp = baseHp + installedTotals.hp;
+  // Where the build lands once the wishlist is fitted, and the safe ceiling that
+  // the turbo it is running (or planning) actually allows. Both feed the single
+  // ProgressionBar used on Garage, Parts, Activation and the Planner.
+  const projectedHp  = baseHpCombined + installedTotals.hp + wishlistTotals.hp;
+  const buildCeiling = ceilingForBuild({ ...installedMap, ...wishlistMap });
   const totalTq = currentModel.torque + installedTotals.torque;
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
@@ -3919,6 +4054,7 @@ Fields to extract:
             <div className="gh-stat-lbl">Best 1/4</div>
           </div>
         </div>
+        <ProgressionBar hp={totalHp} wishlistHp={projectedHp} ceiling={buildCeiling} />
       </div>
 
       {/* ── ACTIVATION NUDGE (car but no build) ── */}
@@ -4553,6 +4689,7 @@ Fields to extract:
             {buildMode==="installed" ? "Logging installed mods" : "Adding to wishlist"}
           </span>
         </div>
+        <ProgressionBar hp={totalHp} wishlistHp={projectedHp} ceiling={buildCeiling} />
         <div className="slots-list">
           {catSlots.map(slot => {
             const selVarId   = selectedMap[slot.id];
@@ -4573,7 +4710,14 @@ Fields to extract:
                   { modelId: activeModelId, goalHp: powerGoal })
               : null;
 
+            // Fuel hardware makes nothing on a stock tune, and calcTotals credits
+            // it with nothing — so dim the row to match, rather than showing a
+            // confident hp figure the estimate does not actually contain.
+            const fuelInert = FUEL_SLOTS.has(slot.id) &&
+              !Object.keys(selectedMap).some(k => TUNING_SLOTS.has(k));
+
             let cardCls = "slot-card";
+            if (fuelInert) cardCls += " fuel-inert";
             if (hasConf) cardCls += " conflict";
             else if (hasWarn) cardCls += " warn";
             else if (hasSel) cardCls += " sel";
@@ -4595,7 +4739,9 @@ Fields to extract:
                       : <div className="slot-desc-text">{slot.desc}{otherVarId ? ` · ${buildMode==="installed"?"★ On wishlist":"✓ Installed"}` : ""}</div>
                     }
                   </div>
-                  {slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
+                  {fuelInert
+                    ? <span className="slot-tag t-inert">NEEDS TUNE</span>
+                    : slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
                   <span className={`slot-chev${isOpen?" open":""}`} aria-hidden="true">▾</span>
                 </button>
 
