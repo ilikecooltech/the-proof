@@ -2137,32 +2137,48 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 /* ── GARAGE / PROFILE ── */
-.garage-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px}
-.garage-hero{background:var(--surface-raised);border:1px solid var(--line-strong);border-top:3px solid var(--fill-neutral);border-radius:12px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
+/* The mockup's scroll regions are overflow:hidden, so they reserve nothing for
+   a scrollbar and content is a full 366px inside the 18px gutters. Our overlay
+   scrollbar was taking 2px off every screen. Hidden here — the same treatment
+   the model and category strips already use — so scrolling still works by
+   wheel, touch and keyboard but the measurements line up. */
+.garage-area,.parts-area,.times-area,.lb-area,.profile-area,.build-inner,.sheet-body{
+  scrollbar-width:none}
+.garage-area::-webkit-scrollbar,.parts-area::-webkit-scrollbar,.times-area::-webkit-scrollbar,
+.lb-area::-webkit-scrollbar,.profile-area::-webkit-scrollbar,.build-inner::-webkit-scrollbar,
+.sheet-body::-webkit-scrollbar{display:none}
+.garage-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0}
+/* Garage lays out its own full-bleed bands; Activation and Planner still take a
+   plain gutter until their own pixel pass. */
+.screen-gutter{padding:11px 18px 0}
+.garage-hero{padding:10px 18px;border-bottom:1px solid var(--line)}
+.garage-body{padding:10px 18px 0}
 .garage-hero::before{content:none}
 /* ── GARAGE IDENTITY + STAT TILES (04-screens.md #4a) ──
    Identity is a quiet mono kicker over the car name; the three tiles are
    separate bordered cards, not one segmented strip, and every value is
    --measure because all three are hero metrics. */
-.gh-id{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
+.gh-id{font-family:var(--font-mono);font-size:10px;font-weight:400;line-height:normal;letter-spacing:.16em;
   text-transform:uppercase;color:var(--text-3)}
 .gh-car{font-family:var(--font-ui);font-weight:700;font-size:22px;letter-spacing:-.01em;
   color:var(--text-hi);line-height:1.15;margin-top:1px}
-.gh-engine{font-weight:400;font-size:15px;color:var(--text-3);margin-left:7px}
+.gh-engine{font-weight:400;font-size:15px;color:var(--text-3)}
 .gh-stats{display:flex;gap:8px;margin-top:9px}
 .gh-stat{flex:1;min-width:0;border:1px solid var(--line);border-radius:var(--r-row);
   background:var(--surface);padding:9px 11px}
 .gh-stat-wide{flex:1.2}
-.gh-stat-lbl{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.14em;
+.gh-stat-lbl{font-family:var(--font-mono);font-size:9.5px;line-height:normal;letter-spacing:.14em;
   text-transform:uppercase;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gh-stat-row{display:flex;align-items:baseline;gap:6px;margin-top:2px}
-.gh-stat-val{font-family:var(--font-ui);font-weight:700;font-size:30px;line-height:1;
+.gh-stat-wide .gh-stat-row{gap:7px}
+.gh-stat-val{font-family:var(--font-ui);font-weight:700;font-size:30px;line-height:1;letter-spacing:normal;
   color:var(--measure);font-variant-numeric:tabular-nums}
-.gh-stat-sfx{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3);white-space:nowrap}
+.gh-stat-sfx{font-family:var(--font-mono);font-size:10px;line-height:normal;letter-spacing:normal;color:var(--text-3);white-space:nowrap}
+.gh-stat-wide .gh-stat-sfx{font-size:10.5px}
 .gh-gain{color:var(--verify)}
 
 /* One orange action per screen, at the primary-button spec (03-components). */
-.g-cta{width:100%;min-height:46px;margin-top:10px;border:none;border-radius:var(--r-row);
+.g-cta{width:100%;min-height:46px;margin-top:9px;border:none;border-radius:var(--r-row);
   background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;
   font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
 .g-tertiary{width:100%;min-height:44px;margin-top:4px;border:none;background:transparent;
@@ -2171,7 +2187,7 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 
 /* Section headings are Mono 10/600 .16em --text-3 with an optional counter on
    the right — the one heading treatment used across every #4/#5 screen. */
-.section-title{font-family:var(--font-mono);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-3);margin:14px 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.section-title{font-family:var(--font-mono);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-3);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .section-count{font-family:var(--font-mono);font-weight:600;font-size:10px;letter-spacing:.16em;color:var(--text-body)}
 .section-title button{font-family:var(--font-ui);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:4px;cursor:pointer}
 .section-title button:active{color:#fff;border-color:var(--action)}
@@ -2506,10 +2522,10 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 /* ── PROGRESSION BAR (03-components.md) ─────────────────────────────────────
    Every horizontal position here is set inline from a computed percentage; the
    stylesheet owns appearance only, so the geometry can never drift from data. */
-.pbar-wrap{margin:12px 0 14px}
-.pbar-ceiling-row{position:relative;height:15px;margin-bottom:4px}
+.pbar-wrap{margin:9px 0 0}
+.pbar-ceiling-row{position:relative;height:14px}
 .pbar-ceiling-lbl{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;
-  font-family:var(--font-ui);font-weight:700;font-size:11.5px;color:var(--verify)}
+  font-family:var(--font-mono);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--verify)}
 .pbar-track{position:relative;height:8px;border-radius:2px;background:var(--track);overflow:hidden}
 .pbar-fill{position:absolute;top:0;left:0;height:100%;border-radius:2px;background:var(--fill-neutral);
   transition:width .25s ease}
@@ -2519,10 +2535,10 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   background:repeating-linear-gradient(115deg,var(--fill-neutral) 0 2px,transparent 2px 6px)}
 .pbar-tick{position:absolute;top:0;width:2px;height:100%;background:var(--verify);transition:left .25s ease}
 .pbar-tick-goal{background:var(--measure)}
-.pbar-labels{position:relative;height:14px;margin-top:5px}
+.pbar-labels{position:relative;height:13px;margin-top:3px}
 .pbar-labels span{position:absolute;top:0;white-space:nowrap;font-family:var(--font-mono);font-size:10px;
   letter-spacing:.04em}
-.pbar-now{transform:translateX(-100%);padding-right:5px;color:var(--text-hi);font-weight:600}
+.pbar-now{transform:translateX(-100%);color:var(--text-hi);font-weight:600}
 .pbar-wish-lbl{padding-left:5px;color:var(--text-3)}
 .pbar-goal-lbl{transform:translateX(-50%);color:var(--measure);font-weight:600}
 /* 9px is the one place below the 10px floor, and only because this label is
@@ -2680,15 +2696,15 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   background:transparent;border:1px dashed var(--line-dashed);color:inherit}
 .bmap-dense .bmap-body{min-height:40px}
 .bmap-inst .bmap-body{background:var(--surface);border:1px solid var(--line)}
-.bmap-marker{font-family:var(--font-mono);font-size:11px;font-weight:600;flex-shrink:0}
+.bmap-marker{font-family:var(--font-mono);font-size:11.5px;font-weight:400;flex-shrink:0}
 .bmap-marker-inst{color:var(--verify)}
 .bmap-marker-next{color:var(--action)}
 .bmap-marker-open{color:var(--text-3)}
 .bmap-text{min-width:0;display:flex;flex-direction:column;gap:1px}
-.bmap-name{font-family:var(--font-ui);font-weight:600;font-size:14px;line-height:1.2;color:var(--text-2);
+.bmap-name{font-family:var(--font-ui);font-weight:600;font-size:14.5px;line-height:normal;color:var(--text-2);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bmap-inst .bmap-name{color:var(--text-hi)}
-.bmap-sub{font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;color:var(--text-3);
+.bmap-sub{font-family:var(--font-mono);font-size:10.5px;letter-spacing:normal;color:var(--text-3);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bmap-rm{flex-shrink:0;min-width:44px;min-height:44px;display:inline-flex;align-items:center;
   justify-content:center;background:transparent;border:1px solid var(--line);border-radius:var(--r-row);
@@ -2698,11 +2714,11 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 /* ── HEALTH CHIPS (03-components.md) ────────────────────────────────────────
    MAXED = safe but no headroom. Deliberately NOT "AT LIMIT" — testers could not
    distinguish that from "actively damaging". */
-.hchips{display:flex;gap:6px;margin-top:10px}
+.hchips{display:flex;gap:6px;margin-top:8px}
 .hchip{flex:1;display:flex;align-items:center;justify-content:space-between;gap:6px;
-  font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.04em;
-  padding:4px 9px;min-height:26px;border-radius:var(--r-chip)}
-.hchip-ok{color:var(--verify);background:var(--verify-bg);border:1px solid var(--verify-bd)}
+  font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.06em;line-height:normal;
+  padding:4px 9px;border-radius:var(--r-chip)}
+.hchip-ok{color:var(--verify);background:rgba(0,232,135,.05);border:1px solid rgba(0,232,135,.3)}
 .hchip-caution{color:var(--measure);background:var(--measure-bg);border:1px solid var(--measure-bd)}
 
 /* Visually hidden, still announced. */
@@ -3577,7 +3593,7 @@ function ActivationScreen({ model, baseHp, nextRec, recs, onStart, onOptions, on
   }));
 
   return (
-    <div className="garage-area">
+    <div className="garage-area screen-gutter">
       <div className="act-hero">
         <div className="act-hero-lbl">YOUR {model.label} · STOCK</div>
         <div className="act-hero-hp">{baseHp}<span className="act-hero-unit">hp</span></div>
@@ -3699,7 +3715,7 @@ function PlannerScreen({
   const showNext = !!nextRec && !rows.some(r => r.slotId === nextRec.slot);
 
   return (
-    <div className="garage-area">
+    <div className="garage-area screen-gutter">
       <button className="act-skip" style={{textAlign:"left"}} onClick={onBack}>‹ Back to garage</button>
 
       <div className="plan-hero">
@@ -5020,6 +5036,8 @@ Fields to extract:
         <HealthChips installedMap={installedMap} />
       </div>
 
+      {/* #4a's scroll region: its own 18px gutter, 10px above the heading. */}
+      <div className="garage-body">
       <h2 className="section-title">
         <span>Build map</span>
         {/* "3/32 slots" in #4a counts every build slot, not just the proven
@@ -5047,6 +5065,7 @@ Fields to extract:
         setGarageView("planner");
         track("planner_opened", { from:"garage" });
       }}>Plan back from an end state ›</button>
+      </div>
     </div>
   );
 
