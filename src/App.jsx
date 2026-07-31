@@ -2232,7 +2232,7 @@ button.hdr-slug{cursor:pointer}
 .rf-btns{display:flex;gap:8px}
 .rf-save{flex:1;padding:10px;background:var(--action);border:none;color:var(--on-accent);font-family:var(--font-ui);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer}
 .rf-cancel{padding:10px 16px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--font-ui);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer}
-.run-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative}
+.run-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-row);padding:8px 12px;margin-bottom:6px;position:relative}
 .run-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .run-date{font-family:var(--font-mono);font-size:10px;color:var(--muted)}
 .run-type{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:var(--r-chip);background:rgba(200,200,220,.07);color:var(--text-2);border:1px solid var(--line-dashed)}
@@ -2262,10 +2262,6 @@ button.hdr-slug{cursor:pointer}
 .save-toast{background:rgba(0,232,135,.12);border:1px solid rgba(0,232,135,.3);border-radius:6px;padding:9px 14px;margin-bottom:10px;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);text-align:center;animation:fadeIn .2s ease}
 
 /* ── TRAP CHART ── */
-.times-view-toggle{display:flex;gap:6px;margin-bottom:12px}
-.tvbtn{flex:1;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:all .15s}
-.tvbtn.tva{background:var(--action-bg);border-color:var(--action);color:var(--action);font-weight:600}
-.tvbtn:not(.tva):hover{border-color:var(--muted);color:var(--muted)}
 .trap-chart-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
 .tc-title{font-family:var(--font-ui);font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1}
 .tc-sub{font-size:11px;color:var(--muted);margin:3px 0 12px;font-weight:300}
@@ -2374,7 +2370,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .run-ctrl-select option{background:var(--card2);color:var(--text)}
 .run-ctrl-divider{width:1px;height:16px;background:var(--border);align-self:center}
 /* ── RUN CARD EXPANDED DETAIL ── */
-.run-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative;transition:border-color .15s}
+.run-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-row);padding:8px 12px;margin-bottom:6px;position:relative;transition:border-color .15s}
 .run-toggle{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;font-family:inherit;text-align:left;cursor:pointer}
 .run-card:hover{border-color:var(--line-strong)}
 .run-card.selected{border-color:var(--line-strong);background:rgba(255,255,255,.03)}
@@ -2628,14 +2624,19 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    ✓ LOG reads as settled fact; ▲ CLAIM is deliberately quieter and dashed, so
    an unbacked time cannot be mistaken for a verified one at a glance. */
 .run-proof-row{display:inline-flex;align-items:center;gap:6px}
+/* FLAGGED: 9.5px, under the 10px text minimum in 01-tokens.md, which reserves
+   sub-10px for the muted "1040+ TOP END" label alone. Matched to the mockup —
+   #4c's run chips and #4c/#3a's hero proof badge are both 9.5px/600. */
 .proof-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);
-  font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
-  padding:3px 8px;border-radius:var(--r-chip);white-space:nowrap}
-.proof-log{color:var(--verify);background:var(--verify-bg);border:1px solid var(--verify-bd)}
-.proof-claim{color:var(--measure);background:transparent;border:1px dashed var(--measure-bd);opacity:.75}
+  font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:2px 6px;border-radius:var(--r-chip);white-space:nowrap}
+/* The hero badge sits on a tinted fill at .1em; the run-list chips are bare. */
+.proof-link{letter-spacing:.1em;background:var(--verify-bg);border:1px solid var(--verify-bd)}
+.proof-log{color:var(--verify);border:1px solid var(--verify-bd)}
+.proof-claim{color:var(--measure);background:transparent;border:1px solid var(--measure-bd)}
 /* Tertiary link, still a 44px target. */
 .proof-link{margin-top:6px;text-decoration:none;min-height:44px}
-.run-card.run-claim{border-style:dashed;opacity:.8}
+.run-card.run-claim{border-style:dashed;border-color:var(--line-dashed);background:transparent;opacity:.75}
 
 /* ── VEHICLE SETUP (#5a) ──
    Chip on-state is SEL from the mockup's own logic class:
@@ -2664,6 +2665,9 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .setup-h2{margin:0 0 7px;font-family:var(--font-mono);font-weight:600;font-size:10px;
   letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
 .setup-row{display:flex;gap:5px}
+.setup-years{overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
+.setup-years::-webkit-scrollbar{display:none}
+.setup-years .setup-pill{flex:none}
 .setup-area .setup-row:has(.setup-pill){gap:7px}
 
 /* Year pills — 44px, fully round. */
@@ -2730,11 +2734,31 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
   font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 
+/* ── TIMES (#4c) ── */
+.times-area{padding:0}
+.tm-hero{display:flex;align-items:flex-end;justify-content:space-between;
+  padding:13px 18px;border-bottom:1px solid var(--line)}
+.tm-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:400;line-height:normal;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.tm-hero-row{display:flex;align-items:baseline;gap:8px;margin-top:2px}
+.tm-hero-val{font-family:var(--font-ui);font-weight:700;font-size:52px;line-height:.9;
+  letter-spacing:normal;color:var(--measure);font-variant-numeric:tabular-nums}
+.tm-hero-unit{font-size:22px;color:var(--text-3)}
+.tm-hero-right{text-align:right;padding-bottom:4px}
+.tm-hero-pct{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3);margin-top:5px}
+.tm-body{padding:13px 18px 0}
+.tm-refresh{margin-left:auto;min-width:44px;min-height:44px;background:transparent;border:0;
+  color:var(--text-3);font-size:14px;cursor:pointer}
+.tm-cta{width:100%;min-height:46px;margin:11px 0 14px;border:none;border-radius:var(--r-row);
+  background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;
+  font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+
 /* ── FIELD BANDS (#4c) ──
    Four counts, your band highlighted, your true position a --measure line. */
-.fb{display:flex;flex-direction:column;gap:7px;margin-bottom:6px}
+.tm-h2-field{margin-bottom:9px}
+.fb{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
 .fb-row{display:flex;align-items:center;gap:9px}
-.fb-lbl{width:82px;flex:none;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.fb-lbl{width:74px;flex:none;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
 .fb-lbl-mine{color:var(--measure);font-weight:600}
 .fb-track{flex:1;height:14px;border-radius:2px;background:var(--surface-raised);overflow:hidden;position:relative}
 .fb-fill{height:100%;background:var(--track)}
@@ -2742,7 +2766,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .fb-you{position:absolute;top:0;bottom:0;width:2px;background:var(--measure)}
 .fb-n{width:24px;flex:none;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
 .fb-n-mine{color:var(--text-body)}
-.fb-cap{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-3);margin-top:1px}
+.fb-cap{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-3);margin-top:1px;line-height:normal}
 
 /* ── HAS YOUR NEXT PART (#4d) ──
    Leads the card, above the numbers. Blue: a fact about relevance. */
@@ -2831,7 +2855,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    44px minimum, no exceptions — including like buttons, dismiss ✕ glyphs and
    text-only tertiary buttons. Stated once here so the floor cannot silently
    regress when an individual component's padding is retuned. */
-.mbtn,.cbtn,.pmtbtn,.tvbtn,.mtbtn,.mfbtn,.csbtn,.vc-like,
+.mbtn,.cbtn,.pmtbtn,.mtbtn,.mfbtn,.csbtn,.vc-like,
 .run-ctrl-select,.section-title button,.tc-table-toggle,.draggy-reupload,
 .sc-preview,.pub-fcta,.share-copy,.admin-fab,.pub-ptab,.rf-cancel{
   min-height:44px}
@@ -2843,9 +2867,9 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   min-height:44px}
 /* Chips sit on one line at 44px, so centre them rather than letting the old
    vertical padding push the label off-axis. */
-.mbtn,.cbtn,.pmtbtn,.tvbtn,.mtbtn,.mfbtn,.csbtn,.vc-like{
+.mbtn,.cbtn,.pmtbtn,.mtbtn,.mfbtn,.csbtn,.vc-like{
   display:inline-flex;align-items:center;justify-content:center}
-.tvbtn,.mtbtn{flex:1}
+.mtbtn{flex:1}
 /* The tab bar's 52px + 22px safe area now lives with the rest of its rules. */
 
 /* ── REDUCED MOTION (06-accessibility.md) ───────────────────────────────────
@@ -3443,7 +3467,7 @@ function FieldBands({ times, mine }) {
   if (!data) return null;
   return (
     <>
-      <h2 className="section-title">
+      <h2 className="section-title tm-h2-field">
         <span>The field</span>
         <span className="section-count">{data.total} cars</span>
       </h2>
@@ -3662,7 +3686,10 @@ function PartSheet({
 //
 // The power model is 05-data-and-math.md's, not invented here:
 //   hp = base + stage.hp + (stage === 'stock' ? 0 : fuel.hp)
-const SETUP_YEARS  = [2015, 2016, 2017];
+// Full C7/D4 4.0T production span — deliberately NOT narrowed to the mockup's
+// three chips, which would strip valid years off existing profiles. The row
+// scrolls horizontally; each pill keeps #5a's exact geometry.
+const SETUP_YEARS  = [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
 const SETUP_STAGES = [
   { id: "stock",  label: "Stock",  hp: 0,   slot: null },
   { id: "s1",     label: "STG 1",  hp: 100, slot: "ecu_s1" },
@@ -3760,7 +3787,7 @@ function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave }) {
       <div className="setup-body">
         <div>
           <h2 className="setup-h2">Year</h2>
-          <div className="setup-row">
+          <div className="setup-row setup-years">
             {SETUP_YEARS.map(y => (
               <button key={y} type="button" className={`setup-pill${on(year === y)}`}
                 aria-pressed={year === y} onClick={() => touch(setYear)(y)}>
@@ -4390,7 +4417,6 @@ export default function TheProof() {
   const [draggyParsing, setDraggyParsing] = useState(false);
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
-  const [timesView, setTimesView]     = useState("runs"); // "runs" | "chart"
   const [boardView, setBoardView]       = useState("builds"); // "builds" | "times"
   const [adminPicks, setAdminPicks]     = useState({});
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -5234,6 +5260,9 @@ Fields to extract:
             nesting interactive content inside a button is invalid. */}
         {isOpen && (
           <div className="run-detail" id={`run-detail-${run.id}`}>
+            {/* #4c: "TRAP CHART IN DETAIL VIEW" — it is no longer a top-level
+                toggle on Times, it lives here, against the run you opened. */}
+            <TrapChart leaderboard={liveLeaderboard} bestRun60130={run} />
             <div className="run-detail-grid">
               {run.surface && <div className="rdg-item"><span className="rdg-label">Surface</span><span className="rdg-val">{run.surface}</span></div>}
               {run.fuel    && <div className="rdg-item"><span className="rdg-label">Fuel</span><span className="rdg-val">{run.fuel}</span></div>}
@@ -5412,6 +5441,16 @@ Fields to extract:
   ) : garageContent;
 
   // ── TIMES LOG ─────────────────────────────────────────────────────
+  // "faster than N% of field" (#4c) — computed from the same leaderboard the
+  // bands use, so the two can never disagree.
+  const fieldPercentile = (() => {
+    if (!bestRun60130) return null;
+    const mine = parseFloat(bestRun60130.time);
+    const field = liveLeaderboard.map(r => Number(r.t60130)).filter(Number.isFinite);
+    if (!Number.isFinite(mine) || field.length === 0) return null;
+    return Math.round((field.filter(t => t > mine).length / field.length) * 100);
+  })();
+
   const timesContent = (
     <div className="times-area">
       {/* Save feedback toast */}
@@ -5419,40 +5458,29 @@ Fields to extract:
         <div className="save-toast">{saveFeedback}</div>
       )}
 
-      {/* ── SUB-VIEW TOGGLE: My Runs ↔ Trap Chart ── */}
-      <div className="times-view-toggle">
-        <button className={`tvbtn${timesView==="runs"?" tva":""}`} aria-pressed={timesView==="runs"}
-          onClick={()=>{setTimesView("runs");track("times_view",{view:"runs"});}}>My Runs</button>
-        <button className={`tvbtn${timesView==="chart"?" tva":""}`} aria-pressed={timesView==="chart"}
-          onClick={()=>{setTimesView("chart");track("times_view",{view:"chart"});}}>Trap Chart</button>
-      </div>
-
-      {timesView === "chart" ? (
-        <TrapChart leaderboard={liveLeaderboard} bestRun60130={bestRun60130} />
-      ) : (
-      <>
-      <div className="best-times">
-        <div className="bt-card speed-card">
-          <div className="bt-label">Best 60–130</div>
-          <div className="bt-val">
-            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
-              : bestRun60130 ? bestRun60130.time : "—"}
-            <span className="bt-unit">s</span>
+      {/* #4c hero: one number, the proof state, and where it puts you. The
+          Trap Chart is no longer a top-level toggle — the mockup's own caption
+          says it lives in the run detail, which is where it renders now. */}
+      <div className="tm-hero">
+        <div className="tm-hero-left">
+          <div className="tm-hero-lbl">Your best</div>
+          <div className="tm-hero-row">
+            <span className="tm-hero-val">
+              {runsLoading ? "…" : bestRun60130 ? bestRun60130.time : "—"}
+              <span className="tm-hero-unit">s</span>
+            </span>
           </div>
-          {bestRun60130 && <div className="bt-sub">{bestRun60130.surface} · {bestRun60130.fuel||"fuel n/a"}</div>}
+        </div>
+        <div className="tm-hero-right">
           <ProofBadge run={bestRun60130}
             onOpen={id=>{ setActiveTab("times"); setSelectedRunId(id); }} />
-        </div>
-        <div className="bt-card strip-card">
-          <div className="bt-label">Best 1/4 Mile</div>
-          <div className="bt-val blue">
-            {runsLoading ? <span style={{fontSize:14,color:"var(--muted)"}}>…</span>
-              : bestRun14 ? bestRun14.et : "—"}
-            <span className="bt-unit">s</span>
-          </div>
-          {bestRun14 && <div className="bt-sub">{bestRun14.trap ? `${bestRun14.trap} mph trap` : ""}</div>}
+          {fieldPercentile != null && (
+            <div className="tm-hero-pct">faster than {fieldPercentile}% of field</div>
+          )}
         </div>
       </div>
+
+      <div className="tm-body">
 
       {/* You vs the field, as bands (#4c). */}
       <FieldBands
@@ -5460,16 +5488,11 @@ Fields to extract:
         mine={bestRun60130 ? parseFloat(bestRun60130.time) : null}
       />
 
-      <div style={{display:"flex",gap:8,marginBottom:10,marginTop:12}}>
-        <button className="add-run-btn" style={{flex:1,marginBottom:0}} onClick={()=>setRunFormOpen(v=>!v)}>
-          {/* The datalog is the point — say so in the CTA (#4c). */}
-          {runFormOpen ? "✕ Cancel" : "Log a run — attach datalog"}
-        </button>
-        <button className="add-run-btn" style={{marginBottom:0,padding:"0 14px",flex:"none",fontSize:16}}
-          title="Refresh runs" aria-label="Refresh runs" onClick={()=>loadRuns()}>
-          {runsLoading ? "⟳" : "↺"}
-        </button>
-      </div>
+      <h2 className="section-title">
+        <span>Your runs</span>
+        <button className="tm-refresh" title="Refresh runs" aria-label="Refresh runs"
+          onClick={()=>loadRuns()}>{runsLoading ? "⟳" : "↺"}</button>
+      </h2>
 
       {runFormOpen && (
         <div className="run-form">
@@ -5627,8 +5650,12 @@ Fields to extract:
 
       {/* ── RUN CARDS (shared) ── */}
       {runCardsJSX}
-      </>
-      )}
+
+      {/* #4c puts the CTA at the foot of the list, not above it. */}
+      <button className="tm-cta" onClick={()=>setRunFormOpen(v=>!v)}>
+        {runFormOpen ? "✕ Cancel" : "Log a run — attach datalog"}
+      </button>
+      </div>
     </div>
   );
 
