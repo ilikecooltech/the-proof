@@ -5149,7 +5149,9 @@ Fields to extract:
       <div className="header" inert={dialogOpen}>
         <div className="header-row1">
           <div className="logo">PROOF<span className="logo-slash">.BUILD</span> <span className="logo-badge">{currentModel.label}</span></div>
-          <div className="stats-strip">
+          {/* Scrolls horizontally and holds no focusable children, so it needs
+              to be reachable by keyboard in its own right. */}
+          <div className="stats-strip" tabIndex={0} role="group" aria-label="Current estimates">
             <div className="hstat">
               <span className="hstat-label">Crank HP</span>
               <span className="hstat-val">{totalHp}</span>
