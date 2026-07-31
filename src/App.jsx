@@ -1754,12 +1754,29 @@ function ProgressionBar({
   // it would collide with NOW or the top-end label.
   const ceilNearEdge = ceilPct > 92;
 
+  // ── LABEL COLLISION ──────────────────────────────────────────────────────
+  // Every label is absolutely positioned on the same 366px row, so at high hp
+  // the NOW label (which ends AT the fill edge) runs straight into
+  // "1040+ TOP END", which is pinned right. At 919/1040 the fill sits at 88%
+  // and the two overlap outright. Widths below are the labels' share of the
+  // track at their authored sizes — NOW is ~8 mono chars at 10px, TOP END is
+  // 13 at 9px — with a couple of points of breathing room.
+  const NOW_SHARE = 14;
+  const TOP_SHARE = 23;
+  const rightMost = Math.max(fillPct, hasWish ? wishPct : 0);
+  // Drop TOP END onto its own line when anything would reach it.
+  const stackTop  = !hideTopEnd && (ceilNearEdge || rightMost > 100 - TOP_SHARE);
+  // At very low hp the NOW label, translated fully left of the fill edge,
+  // would hang off the start of the track — pin it to the left instead.
+  const nowAtLeft = fillPct < NOW_SHARE;
+
   return (
     <div className="pbar-wrap">
       {/* The ceiling reads ABOVE the bar: it is the number that decides what the
           car can safely make, and it must out-read the platform's top end. */}
       <div className={`pbar-ceiling-row${ceilingLabel ? " pbar-ceiling-lg" : ""}`}>
-        <span className="pbar-ceiling-lbl" style={{ left: `${ceilPct}%` }}>
+        <span className={`pbar-ceiling-lbl${ceilNearEdge ? " pbar-ceiling-lbl-end" : ""}`}
+          style={ceilNearEdge ? { right: 0 } : { left: `${ceilPct}%` }}>
           {ceiling.hp} {ceilingLabel || ceiling.label} <span aria-hidden="true">✓</span>
         </span>
       </div>
@@ -1777,8 +1794,9 @@ function ProgressionBar({
         {goalPct != null && <div className="pbar-tick pbar-tick-goal" style={{ left: `${goalPct}%` }} />}
       </div>
 
-      <div className="pbar-labels">
-        <span className="pbar-now" style={{ left: `${fillPct}%` }}>{hp} {nowLabel}</span>
+      <div className={`pbar-labels${stackTop ? " pbar-labels-stacked" : ""}`}>
+        <span className={`pbar-now${nowAtLeft ? " pbar-now-left" : ""}`}
+          style={nowAtLeft ? { left: 0 } : { left: `${fillPct}%` }}>{hp} {nowLabel}</span>
         {hasWish && (
           <span className={`pbar-wish-lbl${wishGain ? " pbar-wish-lbl-gain" : ""}`} style={{ left: `${wishPct}%` }}>{wishGain ? wishLabel : `${projected} ${wishLabel}`}</span>
         )}
@@ -1787,7 +1805,7 @@ function ProgressionBar({
         )}
         {/* Deliberately the quietest thing on the bar: a platform fact, not a to-do. */}
         {!hideTopEnd && (
-          <span className={`pbar-top${ceilNearEdge ? " pbar-top-clear" : ""}`}>{HP_SCALE_TOP}+ TOP END</span>
+          <span className={`pbar-top${stackTop ? " pbar-top-clear" : ""}`}>{HP_SCALE_TOP}+ TOP END</span>
         )}
       </div>
     </div>
@@ -1942,14 +1960,21 @@ button.hdr-slug{cursor:pointer}
 .sheet-scrim-btn{flex:1;border:none;background:transparent;cursor:pointer;min-height:44px}
 .sheet{background:var(--nav);border-top:1px solid var(--line-strong);
   border-radius:var(--r-sheet) var(--r-sheet) 0 0;padding:12px 18px 24px;
-  max-height:82vh;display:flex;flex-direction:column}
+  max-height:82vh;display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .sheet:focus{outline:none}
 .sheet-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;flex:none}
+/* A long list needs a visible scroll affordance; the mockup never had to show
+   one because its sample slot had three options that fit. */
+.sheet-body::-webkit-scrollbar{width:3px}
+.sheet-body::-webkit-scrollbar-thumb{background:var(--line-dashed);border-radius:2px}
 .sheet-title{font-family:var(--font-ui);font-weight:700;font-size:19px;color:var(--text-hi);margin:0;
   text-transform:none;letter-spacing:normal}
 .sheet-x{width:44px;height:44px;flex:none;border:1px solid var(--line-dashed);border-radius:22px;
   background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:15px;cursor:pointer}
-.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px}
+.sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px}
+/* The cards must not be squeezed by the scroll container either. */
+.sheet-body>*{flex:none}
 .sheet-more{width:100%;min-height:46px;border:1px solid var(--line-dashed);border-radius:var(--r-row);
   background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:11.5px;
   letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
@@ -2127,11 +2152,11 @@ button.hdr-slug{cursor:pointer}
    scrollbar was taking 2px off every screen. Hidden here — the same treatment
    the model and category strips already use — so scrolling still works by
    wheel, touch and keyboard but the measurements line up. */
-.garage-area,.parts-area,.times-area,.lb-area,.profile-area,.build-inner,.sheet-body{
+.garage-area,.parts-area,.times-area,.lb-area,.profile-area,.build-inner{
   scrollbar-width:none}
+.sheet-body{scrollbar-width:thin;scrollbar-color:var(--line-dashed) transparent}
 .garage-area::-webkit-scrollbar,.parts-area::-webkit-scrollbar,.times-area::-webkit-scrollbar,
 .lb-area::-webkit-scrollbar,.profile-area::-webkit-scrollbar,.build-inner::-webkit-scrollbar,
-.sheet-body::-webkit-scrollbar{display:none}
 .garage-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0}
 /* Garage lays out its own full-bleed bands; Activation and Planner still take a
    plain gutter until their own pixel pass. */
@@ -2489,6 +2514,9 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-ceiling-row{position:relative;height:14px}
 .pbar-ceiling-lbl{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;
   font-family:var(--font-mono);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--verify)}
+/* At a 1040 ceiling the tick sits at 100%, so a centred label hangs off the
+   right edge. Pin it instead. */
+.pbar-ceiling-lbl-end{transform:none}
 .pbar-track{position:relative;height:8px;border-radius:2px;background:var(--track);overflow:hidden}
 .pbar-fill{position:absolute;top:0;left:0;height:100%;border-radius:2px;background:var(--fill-neutral);
   transition:width .25s ease}
@@ -2501,9 +2529,12 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-tick{position:absolute;top:0;width:2px;height:100%;background:var(--verify);transition:left .25s ease}
 .pbar-tick-goal{background:var(--measure)}
 .pbar-labels{position:relative;height:13px;margin-top:3px}
+/* TOP END drops to its own line rather than colliding with NOW at high hp. */
+.pbar-labels-stacked{height:26px}
 .pbar-labels span{position:absolute;top:0;white-space:nowrap;font-family:var(--font-mono);font-size:10px;
   letter-spacing:.04em}
 .pbar-now{transform:translateX(-100%);color:var(--text-hi);font-weight:600}
+.pbar-now-left{transform:none}
 .pbar-wish-lbl{padding-left:5px;color:var(--text-3)}
 /* #4b labels the delta in --verify, tight to the hatch. */
 .pbar-wish-lbl-gain{padding-left:3px;color:var(--verify)}
