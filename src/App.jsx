@@ -2471,6 +2471,62 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-labels .pbar-top{right:0;left:auto;font-size:9px;color:var(--text-3)}
 .pbar-labels .pbar-top-clear{top:14px}
 
+/* ── ACTIVATION (#4b) ───────────────────────────────────────────────────────*/
+.act-hero{padding:4px 0 2px}
+.act-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
+  color:var(--text-3)}
+.act-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:52px;line-height:.9;
+  letter-spacing:-.01em;color:var(--measure);margin-top:6px}
+.act-hero-unit{font-size:20px;font-weight:600;color:var(--text-3);margin-left:4px}
+.act-hero-ready{font-family:var(--font-ui);font-weight:700;font-size:15px;color:var(--verify);margin-top:6px}
+.act-card{background:var(--surface-raised);border:1px solid var(--line-strong);
+  border-top:3px solid var(--fill-neutral);border-radius:var(--r-card);padding:13px 15px;margin-top:4px}
+.act-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.act-card-brand{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  color:var(--text-3);text-transform:uppercase}
+.act-card-price{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--verify)}
+.act-card-title{font-family:var(--font-ui);font-weight:600;font-size:21px;color:var(--text-hi);
+  margin:6px 0 8px;line-height:1.15}
+.act-card-reason{font-size:13.5px;line-height:1.5;color:var(--text-2);text-wrap:pretty;
+  border-left:2px solid var(--line-dashed);padding-left:11px}
+/* Blue = a fact about relevance to your car, not an action. */
+.act-card-proof{color:var(--relevant);font-weight:600}
+.act-card-meta{margin:10px 0 12px}
+.act-safe{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;
+  font-weight:600;letter-spacing:.06em;color:var(--verify);background:var(--verify-bg);
+  border:1px solid var(--verify-bd);border-radius:var(--r-chip);padding:4px 9px}
+.act-safe-note{color:var(--text-2);background:transparent;border-color:var(--line-dashed)}
+.act-path{list-style:none;margin:16px 0 10px;padding:0;display:flex;flex-direction:column;gap:8px}
+.act-path li{display:flex;align-items:baseline;gap:10px}
+.act-when{flex-shrink:0;width:78px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;
+  color:var(--text-3)}
+.act-what{font-size:13.5px;color:var(--text-2);line-height:1.45}
+.act-skip{width:100%;min-height:44px;background:transparent;border:0;color:var(--text-3);
+  font-family:var(--font-ui);font-size:13px;text-decoration:underline;text-underline-offset:3px;
+  cursor:pointer;margin-top:4px}
+
+/* ── END-STATE PLANNER (#4f) ────────────────────────────────────────────────*/
+.plan-hero{padding:4px 0 2px}
+.plan-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
+  color:var(--text-3)}
+.plan-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:52px;line-height:.9;
+  letter-spacing:-.01em;color:var(--measure);margin-top:6px}
+.plan-hero-unit{font-size:20px;font-weight:600;color:var(--text-3);margin-left:4px}
+.plan-change{margin-top:8px;min-height:44px;padding:0 14px;background:transparent;
+  border:1px solid var(--line-dashed);border-radius:var(--r-row);color:var(--text-2);
+  font-family:var(--font-mono);font-size:11.5px;cursor:pointer}
+.plan-donor{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;
+  background:var(--relevant-bg);border:1px solid var(--relevant-bd);border-radius:var(--r-row)}
+.plan-donor-tag{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  color:var(--relevant)}
+.plan-donor-txt{font-size:12px;color:var(--text-2);line-height:1.45}
+.plan-goals{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+/* Red is ONLY money wasted at the goal — it is not an error color. */
+.plan-orph-total{font-family:var(--font-mono);font-size:11px;color:var(--danger)}
+.bmap-orph .bmap-body{background:var(--danger-bg);border:1px solid var(--danger-bd)}
+.bmap-marker-orph{color:var(--danger)}
+.bmap-orph .bmap-name{color:var(--text-2)}
+
 /* ── PROOF STATES (03-components.md / 04-screens.md) ────────────────────────
    ✓ LOG reads as settled fact; ▲ CLAIM is deliberately quieter and dashed, so
    an unbacked time cannot be mistaken for a verified one at a glance. */
@@ -2792,8 +2848,8 @@ function TuneComparison({ runs }) {
       <div className="tc-sub">What a custom map buys you — measured from your runs, backed by reference data.</div>
 
       <div className="times-view-toggle" style={{ marginBottom: 12 }}>
-        <button className={`tvbtn${view === "data" ? " tva" : ""}`} onClick={() => setView("data")}>Your Data</button>
-        <button className={`tvbtn${view === "ref" ? " tva" : ""}`} onClick={() => setView("ref")}>Reference</button>
+        <button className={`tvbtn${view === "data" ? " tva" : ""}`} aria-pressed={view === "data"} onClick={() => setView("data")}>Your Data</button>
+        <button className={`tvbtn${view === "ref" ? " tva" : ""}`} aria-pressed={view === "ref"} onClick={() => setView("ref")}>Reference</button>
       </div>
 
       {view === "data" ? (
@@ -3143,6 +3199,207 @@ function HealthChips({ installedMap }) {
   );
 }
 
+// ── ACTIVATION (04-screens.md #4b) ──────────────────────────────────────────
+// A new owner must NOT land on the populated Garage — that screen reads as
+// "you're 3 of 32 done" before they have done anything. This is the zero-mods
+// screen: one solved problem, paced, with the anxiety answered inline.
+//
+// It renders from the SAME recommendation object as every other screen (step 5),
+// so the app never proposes two different first moves.
+function ActivationScreen({ model, baseHp, nextRec, onStart, onSkip }) {
+  const variant = nextRec?.variant || null;
+  // "+N hp ready today" is the catalog's gain for THIS model and THIS part.
+  const readyHp = variant ? (variant.hp?.[model.id] || 0) : 0;
+  const unlocked = baseHp + readyHp;
+
+  // The share of logged builds running THIS slot, straight off the recommendation
+  // (pct = builds/MOD_PATH_TOTAL). Summing several slots would double-count the
+  // builds that run more than one, which is how you end up claiming "14 out of
+  // 10". Change MOD_PATH and this sentence changes with it.
+  const inTen = Math.min(10, Math.round((nextRec?.pct || 0) / 10));
+
+  // The anxiety line is taken from the part's own difficulty, never assumed.
+  const reversible = variant?.difficulty === "Plug & Play";
+
+  return (
+    <div className="garage-area">
+      <div className="act-hero">
+        <div className="act-hero-lbl">YOUR {model.label} · STOCK</div>
+        <div className="act-hero-hp">{baseHp}<span className="act-hero-unit">hp</span></div>
+        {readyHp > 0 && (
+          <div className="act-hero-ready">+{readyHp} hp ready today</div>
+        )}
+      </div>
+
+      <ProgressionBar
+        hp={baseHp} wishlistHp={unlocked} ceiling={CEILINGS.daily}
+        wishLabel="ONE PART"
+        ariaLabel={`Stock ${baseHp} hp. One part takes this to ${unlocked} hp.`}
+      />
+
+      {variant && (
+        <div className="act-card">
+          <div className="act-card-top">
+            <span className="act-card-brand">{variant.brand}</span>
+            <span className="act-card-price">${variant.price.toLocaleString()}</span>
+          </div>
+          <h2 className="act-card-title">Your first mod is a solved problem</h2>
+          <p className="act-card-reason">
+            <strong className="act-card-proof">{inTen} out of 10 builds like yours start here.</strong>{" "}
+            {nextRec.name} — {variant.label}. The path is settled; you are not
+            experimenting.
+          </p>
+          <div className="act-card-meta">
+            {reversible
+              ? <span className="act-safe"><span aria-hidden="true">✓</span> PLUG-IN · REVERSIBLE</span>
+              : <span className="act-safe act-safe-note">{variant.difficulty.toUpperCase()} INSTALL</span>}
+          </div>
+          <button className="act-cta" onClick={onStart}>Start my build</button>
+        </div>
+      )}
+
+      {/* Paced, not a checklist: nothing here is overdue. */}
+      <ol className="act-path">
+        <li><span className="act-when">today</span><span className="act-what">{nextRec?.name || "Your first mod"}</span></li>
+        <li><span className="act-when">when ready</span><span className="act-what">Log a run — see it in numbers</span></li>
+        <li><span className="act-when">someday</span><span className="act-what">Pick an end state and plan back from it</span></li>
+      </ol>
+
+      <button className="act-skip" onClick={onSkip}>Skip — I already have mods</button>
+    </div>
+  );
+}
+
+// ── END-STATE PLANNER (04-screens.md #4f) ───────────────────────────────────
+// Goal-first, for the builder who plans backward from a target rather than
+// forward from today. Every part is [✓] KEEPS or [✗] ORPH against the end state,
+// and the orphaned-$ total is a SUM of the orphaned rows — never typed.
+function plannerRows(goalHp, installedMap, wishlistMap) {
+  const endStage = stageForGoalHp(goalHp);
+  const build = { ...(installedMap || {}), ...(wishlistMap || {}) };
+  const rows = Object.entries(build).map(([slotId, varId]) => {
+    const slot = getSlotById(slotId);
+    const v    = getVariantById(slotId, varId);
+    if (!slot || !v) return null;
+    // orphanedBy is the catalog's own statement of which end states make this
+    // product throwaway money.
+    const orphanedBy = VARIANT_FIT[varId]?.orphanedBy || [];
+    const orphaned   = !!endStage && orphanedBy.includes(endStage);
+    return {
+      slotId, varId, name: slot.name, brand: v.brand, label: v.label,
+      price: v.price, orphaned,
+      installed: !!(installedMap || {})[slotId],
+    };
+  }).filter(Boolean);
+
+  const orphanedRows = rows.filter(r => r.orphaned);
+  return {
+    endStage,
+    rows: [...rows.filter(r => !r.orphaned), ...orphanedRows],
+    orphanedTotal: orphanedRows.reduce((t, r) => t + r.price, 0),
+    orphanedCount: orphanedRows.length,
+  };
+}
+
+// Representative goal for each band in REC_GOAL_BANDS — the number a builder
+// actually names, mapped onto the stage that goal implies.
+const GOAL_CHOICES = [550, 700, 900, 1040];
+
+function PlannerScreen({
+  goalHp, onSetGoal, model, currentHp, installedMap, wishlistMap, leaderboard,
+  onOpenSlot, onSkipOrphans, onBack,
+}) {
+  const [pickingGoal, setPickingGoal] = useState(false);
+  const { endStage, rows, orphanedTotal, orphanedCount } =
+    plannerRows(goalHp, installedMap, wishlistMap);
+
+  const ceiling = endStage === "big_single" ? CEILINGS.single
+    : endStage === "s3_hybrid" ? CEILINGS.hybrid : CEILINGS.daily;
+
+  // A leaderboard car that actually ran a spec at or past the goal — evidence
+  // the target is reachable, not a projection.
+  const donor = [...leaderboard].sort((a, b) => a.t60130 - b.t60130)[0] || null;
+
+  return (
+    <div className="garage-area">
+      <button className="act-skip" style={{textAlign:"left"}} onClick={onBack}>‹ Back to garage</button>
+
+      <div className="plan-hero">
+        <div className="plan-hero-lbl">END STATE · {model.label}</div>
+        <div className="plan-hero-hp">{goalHp.toLocaleString()}<span className="plan-hero-unit">hp</span></div>
+        <button className="plan-change" aria-expanded={pickingGoal}
+          onClick={()=>setPickingGoal(v=>!v)}>Change goal</button>
+        {pickingGoal && (
+          <div className="plan-goals" role="group" aria-label="Choose a power goal">
+            {GOAL_CHOICES.map(g => (
+              <button key={g} className={`mfbtn${g===goalHp?" on":""}`} aria-pressed={g===goalHp}
+                onClick={()=>{ onSetGoal(g); setPickingGoal(false); }}>
+                {g.toLocaleString()} hp
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ProgressionBar
+        hp={currentHp} goalHp={goalHp} ceiling={ceiling}
+        ariaLabel={`Today ${currentHp} hp. Goal ${goalHp} hp.`}
+      />
+
+      {donor && (
+        <div className="plan-donor">
+          <span className="plan-donor-tag">PROVEN DONOR</span>
+          <span className="plan-donor-txt">
+            {donor.driver} · {donor.car} ran {donor.t60130}s on {donor.turbo} / {donor.fuel}
+          </span>
+        </div>
+      )}
+
+      <h2 className="section-title" style={{ marginTop: 14 }}>
+        Against this goal
+        {orphanedCount > 0 && (
+          <span className="plan-orph-total">
+            ${orphanedTotal.toLocaleString()} orphaned
+          </span>
+        )}
+      </h2>
+
+      {rows.length === 0 ? (
+        <div style={{ color: "var(--text-3)", fontSize: 12, padding: "8px 0 12px" }}>
+          Nothing in the build yet. Add parts and this map will show which of them
+          survive to {goalHp.toLocaleString()} hp.
+        </div>
+      ) : (
+        <div className="bmap">
+          {rows.map(r => (
+            <div key={r.slotId} className={`bmap-row ${r.orphaned ? "bmap-orph" : "bmap-inst"}`}>
+              <button type="button" className="bmap-body" onClick={() => onOpenSlot(r.slotId)}>
+                <span className={`bmap-marker ${r.orphaned ? "bmap-marker-orph" : "bmap-marker-inst"}`}
+                  aria-hidden="true">{r.orphaned ? "[✗] ORPH" : "[✓] KEEPS"}</span>
+                <span className="bmap-text">
+                  <span className="bmap-name">{r.name}</span>
+                  <span className="bmap-sub">{r.varId} · ${r.price.toLocaleString()}</span>
+                </span>
+                <span className="sr-only">
+                  {r.orphaned
+                    ? `orphaned at ${goalHp} horsepower, ${r.price} dollars`
+                    : "kept at the goal"}
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {orphanedCount > 0 && (
+        <button className="act-cta" style={{ marginTop: 12 }} onClick={onSkipOrphans}>
+          Lock this plan — skip the orphans
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── HELPERS ──────────────────────────────────────────────────────────────────
 function getInitials(name) {
   if (!name) return "?";
@@ -3450,6 +3707,8 @@ export default function TheProof() {
     return {};
   });
   const [likeCounts, setLikeCounts] = useState({});
+  // Announced through the polite live region when a like count moves.
+  const [likeAnnounce, setLikeAnnounce] = useState("");
   const [likesLive, setLikesLive]   = useState(false);
 
   function persistMyLikes(next) {
@@ -3504,7 +3763,15 @@ export default function TheProof() {
       persistMyLikes(next);
       return next;
     });
-    setLikeCounts(prev => ({ ...prev, [variantId]: Math.max(0, (prev[variantId] || 0) + delta) }));
+    setLikeCounts(prev => {
+      const next = { ...prev, [variantId]: Math.max(0, (prev[variantId] || 0) + delta) };
+      // Like-count changes announce the same way the hp estimate does.
+      const slotId = SLOTS.find(s => s.variants.some(x => x.id === variantId))?.id;
+      const v = slotId ? getVariantById(slotId, variantId) : null;
+      const name = v ? `${v.brand} ${v.label}` : "part";
+      setLikeAnnounce(`${wasLiked ? "Removed like from" : "Liked"} ${name}. ${next[variantId]} like${next[variantId]===1?"":"s"}.`);
+      return next;
+    });
     track("part_like_toggled", { variant: variantId, liked: !wasLiked });
 
     (async () => {
@@ -3524,7 +3791,15 @@ export default function TheProof() {
   }
   // Optional user-set power goal (crank HP) feeding the recommendation engine.
   // See readPowerGoal() — hook only for now; the engine infers from the wishlist.
-  const [powerGoal] = useState(readPowerGoal);
+  const [powerGoal, setPowerGoalState] = useState(readPowerGoal);
+  function setPowerGoal(n) {
+    setPowerGoalState(n);
+    try { localStorage.setItem("proof-power-goal", String(n)); } catch { /* private mode */ }
+    track("power_goal_set", { goal: n });
+  }
+  // Garage tab sub-view: the end-state planner lives here rather than claiming a
+  // sixth tab slot, which would break the five-item tab bar in 03-components.md.
+  const [garageView, setGarageView] = useState("garage");
   const [runsLoading, setRunsLoading] = useState(true);
   const [saveFeedback, setSaveFeedback] = useState(""); // "Saved!" toast
 
@@ -4292,13 +4567,13 @@ Fields to extract:
       )}
 
       {/* ── RUN LOG SECTION IN GARAGE ── */}
-      <div className="section-title" style={{marginTop:14}}>
+      <h2 className="section-title" style={{marginTop:14}}>
         Run Log <span style={{color:"var(--green)",fontSize:11}}>{runs.length} run{runs.length!==1?"s":""}</span>
-        <div style={{display:"flex",gap:6,marginLeft:"auto"}}>
+        <span style={{display:"flex",gap:6,marginLeft:"auto"}}>
           <button onClick={()=>setActiveTab("times")} style={{fontSize:10,padding:"3px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer",fontFamily:"var(--font-mono)",letterSpacing:".06em"}}>+ LOG RUN</button>
-          <button onClick={loadRuns} style={{fontSize:14,padding:"2px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer"}} title="Refresh runs">{runsLoading?"⟳":"↺"}</button>
-        </div>
-      </div>
+          <button onClick={loadRuns} style={{fontSize:14,padding:"2px 8px",background:"rgba(255,255,255,.06)",border:"1px solid var(--border)",borderRadius:4,color:"var(--muted)",cursor:"pointer"}} aria-label="Refresh runs">{runsLoading?"⟳":"↺"}</button>
+        </span>
+      </h2>
 
       {/* Best times cards */}
       <div className="best-times" style={{marginBottom:12}}>
@@ -4373,10 +4648,10 @@ Fields to extract:
       </button>
 
       {/* wishlist */}
-      <div className="section-title">
+      <h2 className="section-title">
         Wishlist <span style={{color:"var(--blue)",fontSize:11}}>{numWish} parts · ${wishlistTotals.cost.toLocaleString()}</span>
         <button onClick={()=>{setBuildMode("wishlist");setActiveTab("parts");}}>+ Add</button>
-      </div>
+      </h2>
       {numWish === 0
         ? <div style={{color:"var(--dim)",fontSize:12,padding:"8px 0 12px"}}>Nothing on the wishlist yet. Start planning your next mods.</div>
         : Object.entries(wishlistMap).map(([slotId, varId]) => {
@@ -4405,8 +4680,62 @@ Fields to extract:
           </div>
         </div>
       )}
+
+      {/* Entry point to the end-state planner (#4f). */}
+      <button className="cmt-teaser" onClick={()=>{
+        setGarageView("planner");
+        track("planner_opened", { from:"garage" });
+      }}>
+        <div className="cmt-teaser-left">
+          <div className="cmt-teaser-title">Plan back from an end state</div>
+          <div className="cmt-teaser-sub">See which parts survive your goal — and which are orphaned</div>
+        </div>
+        <span className="cmt-teaser-arr" aria-hidden="true">→</span>
+      </button>
     </div>
   );
+
+  // ── GARAGE TAB ROUTING ────────────────────────────────────────────
+  // A new owner with nothing logged must not land on the populated Garage —
+  // "3 of 32 fitted" is a discouraging first impression when the answer is 0.
+  const showActivation = numInst === 0 && !activationDismissed;
+  const plannerGoal = powerGoal || (buildCeiling.hp === CEILINGS.daily.hp ? 700 : buildCeiling.hp);
+
+  const garageScreen = showActivation ? (
+    <ActivationScreen
+      model={currentModel}
+      baseHp={totalHp}
+      nextRec={nextRec}
+      onStart={()=>{ setBuildMode("installed"); setActiveTab("parts");
+        if (nextRec) goToSlot(nextRec.slot); track("activation_start"); }}
+      onSkip={dismissActivation}
+    />
+  ) : garageView === "planner" ? (
+    <PlannerScreen
+      goalHp={plannerGoal}
+      onSetGoal={setPowerGoal}
+      model={currentModel}
+      currentHp={totalHp}
+      installedMap={installedMap}
+      wishlistMap={wishlistMap}
+      leaderboard={liveLeaderboard}
+      onOpenSlot={goToSlot}
+      onBack={()=>setGarageView("garage")}
+      onSkipOrphans={()=>{
+        // "Skip the orphans" actually skips them: drop every orphaned part from
+        // the wishlist. Installed parts are left alone — those are already bought.
+        const { rows } = plannerRows(plannerGoal, installedMap, wishlistMap);
+        const drop = new Set(rows.filter(r => r.orphaned && !r.installed).map(r => r.slotId));
+        setWishlistMap(prev => {
+          const next = { ...prev };
+          drop.forEach(id => delete next[id]);
+          saveBuild(installedMap, next);
+          return next;
+        });
+        track("planner_orphans_skipped", { dropped: drop.size });
+      }}
+    />
+  ) : garageContent;
 
   // ── TIMES LOG ─────────────────────────────────────────────────────
   const timesContent = (
@@ -4418,9 +4747,9 @@ Fields to extract:
 
       {/* ── SUB-VIEW TOGGLE: My Runs ↔ Trap Chart ── */}
       <div className="times-view-toggle">
-        <button className={`tvbtn${timesView==="runs"?" tva":""}`}
+        <button className={`tvbtn${timesView==="runs"?" tva":""}`} aria-pressed={timesView==="runs"}
           onClick={()=>{setTimesView("runs");track("times_view",{view:"runs"});}}>My Runs</button>
-        <button className={`tvbtn${timesView==="chart"?" tva":""}`}
+        <button className={`tvbtn${timesView==="chart"?" tva":""}`} aria-pressed={timesView==="chart"}
           onClick={()=>{setTimesView("chart");track("times_view",{view:"chart"});}}>Trap Chart</button>
       </div>
 
@@ -4811,12 +5140,12 @@ Fields to extract:
       {/* Builds / Leaderboard toggle */}
       <div style={{padding:"10px 14px 0"}}>
         <div className="board-toggle">
-          <button className={`btog${boardView==="builds"?" on":""}`}
+          <button className={`btog${boardView==="builds"?" on":""}`} aria-pressed={boardView==="builds"}
             onClick={()=>{
               setBoardView("builds");
               if (communityBuilds.length === 0) loadCommunityBuilds();
             }}>Builds</button>
-          <button className={`btog${boardView==="times"?" on":""}`}
+          <button className={`btog${boardView==="times"?" on":""}`} aria-pressed={boardView==="times"}
             onClick={()=>setBoardView("times")}>Leaderboard</button>
         </div>
       </div>
@@ -4883,7 +5212,7 @@ Fields to extract:
         <>
           <div className="mf-bar">
             {MODEL_FILTERS.map(f => (
-              <button key={f.id} className={`mfbtn${buildModelFilter===f.id?" on":""}`}
+              <button key={f.id} className={`mfbtn${buildModelFilter===f.id?" on":""}`} aria-pressed={buildModelFilter===f.id}
                 onClick={()=>setBuildModelFilter(f.id)}>{f.label}</button>
             ))}
           </div>
@@ -4893,8 +5222,8 @@ Fields to extract:
                 <div className="cmt-hdr">
                   <span>{filteredCommunity.length} build{filteredCommunity.length===1?"":"s"}</span>
                   <div className="cmt-sort">
-                    <button className={`csbtn${buildSort==="mods"?" on":""}`} onClick={()=>setBuildSort("mods")}>Most mods</button>
-                    <button className={`csbtn${buildSort==="fast"?" on":""}`} onClick={()=>setBuildSort("fast")}>Fastest</button>
+                    <button className={`csbtn${buildSort==="mods"?" on":""}`} aria-pressed={buildSort==="mods"} onClick={()=>setBuildSort("mods")}>Most mods</button>
+                    <button className={`csbtn${buildSort==="fast"?" on":""}`} aria-pressed={buildSort==="fast"} onClick={()=>setBuildSort("fast")}>Fastest</button>
                   </div>
                 </div>
                 {filteredCommunity.length === 0
@@ -4918,7 +5247,7 @@ Fields to extract:
     <>
       <div className="cat-strip">
         {CATEGORIES.map(cat => (
-          <button key={cat} className={`cbtn${activeCat===cat?" active":""}`}
+          <button key={cat} className={`cbtn${activeCat===cat?" active":""}`} aria-pressed={activeCat===cat}
             onClick={()=>{setActiveCat(cat);setOpenSlot(null);}}>
             {cat}
             {catCounts[cat]>0 && <span className="cbtn-dot"/>}
@@ -5128,12 +5457,12 @@ Fields to extract:
     <>
       <div style={{padding:"8px 14px 0",background:"var(--surface)",flexShrink:0}}>
         <div className="mode-toggle">
-          <button className={`mtbtn${buildMode==="installed"?" active inst":""}`}
+          <button className={`mtbtn${buildMode==="installed"?" active inst":""}`} aria-pressed={buildMode==="installed"}
             onClick={()=>setBuildMode("installed")}>
             <span className="mtbtn-dot dot-inst"/>
             Installed ({numInst})
           </button>
-          <button className={`mtbtn${buildMode==="wishlist"?" active wish":""}`}
+          <button className={`mtbtn${buildMode==="wishlist"?" active wish":""}`} aria-pressed={buildMode==="wishlist"}
             onClick={()=>setBuildMode("wishlist")}>
             <span className="mtbtn-dot dot-wish"/>
             Wishlist ({numWish})
@@ -5146,9 +5475,9 @@ Fields to extract:
 
   return (
     <div className="app">
-      <div className="header" inert={dialogOpen}>
+      <header className="header" inert={dialogOpen}>
         <div className="header-row1">
-          <div className="logo">PROOF<span className="logo-slash">.BUILD</span> <span className="logo-badge">{currentModel.label}</span></div>
+          <h1 className="logo">PROOF<span className="logo-slash">.BUILD</span> <span className="logo-badge">{currentModel.label}</span></h1>
           {/* Scrolls horizontally and holds no focusable children, so it needs
               to be reachable by keyboard in its own right. */}
           <div className="stats-strip" tabIndex={0} role="group" aria-label="Current estimates">
@@ -5174,23 +5503,32 @@ Fields to extract:
             {bestRun14    && <div className="hstat"><span className="hstat-label">Best 1/4</span><span className="hstat-val" style={{color:"var(--blue)"}}>{bestRun14.et}s</span></div>}
           </div>
         </div>
-        <div className="model-strip">
+        <div className="model-strip" role="group" aria-label="Select your model">
           {MODELS.map(m=>(
             <button key={m.id} className={`mbtn${modelId===m.id?" active":""}`}
+              aria-pressed={modelId===m.id}
               onClick={()=>{ setProfile(p=>({...p,car:m.id})); saveProfile({...profile, car:m.id}); }}>
               {m.label}
             </button>
           ))}
         </div>
-      </div>
+      </header>
 
-      <div className="body" inert={dialogOpen}>
-        {activeTab==="garage" && garageContent}
+      {/* The hp estimate recomputes on every part change; announce it rather
+          than letting the number change silently for screen-reader users. */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {`Estimated ${totalHp} crank horsepower, ${calcWhp(totalHp)} at the wheels. `}
+        {`Estimated 60 to 130 in ${speeds.t60130} seconds.`}
+      </div>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">{likeAnnounce}</div>
+
+      <main className="body" inert={dialogOpen}>
+        {activeTab==="garage" && garageScreen}
         {activeTab==="parts"  && partsWithToggle}
         {activeTab==="times"  && timesContent}
         {activeTab==="board"  && boardContent}
         {activeTab==="profile"&& profileContent}
-      </div>
+      </main>
 
       {/* Public page sheet — own profile preview */}
       {showPublicPage && (
