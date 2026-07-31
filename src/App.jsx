@@ -1881,14 +1881,38 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .slot-card.conflict{border-color:rgba(255,59,92,.5)}
 .slot-hdr{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:56px;width:100%;box-sizing:border-box;text-align:left;background:transparent;border:0;font-family:inherit;color:inherit}
 .slot-hdr:active{background:rgba(255,255,255,.03)}
-.slot-orb{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .2s;color:var(--dim)}
-.orb-ok{background:var(--verify-bg);border-color:var(--verify);color:var(--verify)}
-.orb-warn{background:rgba(255,208,0,.1);border-color:var(--yellow);color:var(--yellow)}
-.orb-conflict{background:rgba(255,59,92,.1);border-color:var(--red);color:var(--red)}
 .slot-info{flex:1;min-width:0}
 .slot-name{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;line-height:1.2}
 .slot-sel-text{font-size:11px;color:var(--verify);margin-top:1px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .slot-desc-text{font-size:11px;color:var(--muted);margin-top:1px;font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ── SLOT ROW (#5b) ──
+   Bracket marker in mono, not a filled orb; every row ends in a price. */
+.slot-mark{font-family:var(--font-mono);font-size:11.5px;font-weight:600;flex:none;color:var(--text-3)}
+.slot-mark-inst{color:var(--verify)}
+.slot-mark-wish{color:var(--relevant)}
+.slot-mark-warn{color:var(--measure)}
+.slot-mark-conflict{color:var(--danger)}
+.slot-price{font-family:var(--font-mono);font-size:11.5px;color:var(--text-3);flex:none;white-space:nowrap}
+
+/* ── PART SHEET (#5b) ── */
+.sheet-scrim{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
+  justify-content:flex-end;background:rgba(4,4,6,.7)}
+.sheet-scrim-btn{flex:1;border:none;background:transparent;cursor:pointer;min-height:44px}
+.sheet{background:var(--nav);border-top:1px solid var(--line-strong);
+  border-radius:var(--r-sheet) var(--r-sheet) 0 0;padding:12px 18px 24px;
+  max-height:82vh;display:flex;flex-direction:column}
+.sheet:focus{outline:none}
+.sheet-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:11px;flex:none}
+.sheet-title{font-family:var(--font-ui);font-weight:700;font-size:19px;color:var(--text-hi);margin:0;
+  text-transform:none;letter-spacing:normal}
+.sheet-x{width:44px;height:44px;flex:none;border:1px solid var(--line-dashed);border-radius:22px;
+  background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:15px;cursor:pointer}
+.sheet-body{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:8px}
+.sheet-more{width:100%;min-height:46px;border:1px solid var(--line-dashed);border-radius:var(--r-row);
+  background:transparent;color:var(--text-2);font-family:var(--font-mono);font-size:11.5px;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.sheet-more:hover{border-color:var(--text-2);color:var(--text-hi)}
+
 .slot-install{display:block;width:calc(100% - 28px);min-height:44px;margin:0 14px 12px;
   border:1px solid var(--verify-bd);border-radius:var(--r-row);background:var(--verify-bg);
   color:var(--verify);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;
@@ -1902,33 +1926,35 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .t-lb{background:rgba(68,153,255,.1);color:var(--blue);border:1px solid rgba(68,153,255,.2)}
 .t-uni{background:rgba(255,208,0,.1);color:var(--yellow);border:1px solid rgba(255,208,0,.2)}
 .t-oth{background:rgba(100,100,160,.08);color:var(--muted);border:1px solid var(--border)}
-.slot-chev{color:var(--dim);font-size:14px;transition:transform .22s;flex-shrink:0}
-.slot-chev.open{transform:rotate(180deg)}
 
 /* ── VARIANT PICKER ── */
-.var-picker{border-top:1px solid var(--border);background:rgba(0,0,0,.25);padding:10px}
 .v-alert{font-size:11px;padding:6px 8px;border-radius:5px;margin-bottom:8px;display:flex;gap:6px;align-items:flex-start;line-height:1.4}
 .v-alert.warn{background:rgba(255,208,0,.06);color:var(--yellow);border-left:2px solid var(--yellow)}
 .v-alert.conflict{background:rgba(255,59,92,.06);color:var(--red);border-left:2px solid var(--red)}
 .v-alert.rec{background:rgba(0,232,135,.05);color:var(--green);border-left:2px solid rgba(0,232,135,.3)}
-.var-grid{display:grid;grid-template-columns:1fr;gap:8px}
-.vcard{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);padding:12px 13px;transition:border-color .15s,background .15s;position:relative;overflow:hidden}
 .vcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:transparent;transition:background .15s}
-.vcard.vactive{border-color:var(--verify);background:var(--verify-bg)}
+.vcard.vactive{border-color:var(--action);background:var(--surface-raised)}
 .vcard.vactive::before{background:var(--verify)}
 .vc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px}
-.vc-brand{font-family:var(--font-mono);font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
-.vc-price{font-family:var(--font-mono);font-size:13px;color:var(--green);font-weight:700}
-.vc-name{font-family:var(--font-ui);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;color:#fff;margin-bottom:4px}
-.vc-social{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.vc-brand{font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:.14em;text-transform:uppercase}
+.vc-price{font-family:var(--font-mono);font-size:15px;color:var(--verify);font-weight:600;font-variant-numeric:tabular-nums}
+.vc-name-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:3px}
+.vc-name{font-family:var(--font-ui);font-weight:600;font-size:16px;color:var(--text-hi)}
+/* Blue: a fact about relevance to your car, not an action. Held at the 10px
+   floor rather than the mockup's 8.5px (06-accessibility.md). */
+.vc-rec-chip{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--relevant);border:1px solid var(--relevant-bd);
+  border-radius:var(--r-chip);padding:2px 5px;flex:none}
+.vc-rec-curated{color:var(--text-2);border-color:var(--line-dashed)}
+.vc-actions{display:flex;align-items:center;gap:7px;margin-top:11px}
+.vc-rating{font-family:var(--font-mono);font-size:11px;color:var(--text-3);white-space:nowrap}
 .vc-like{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--border);border-radius:14px;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
 .vc-like:hover{border-color:var(--muted);color:var(--text)}
 .vc-like.on{border-color:var(--action);background:rgba(255,106,22,.12);color:var(--action)}
 .vc-like-ic{font-size:11px;filter:grayscale(1);opacity:.7;transition:all .15s}
 .vc-like.on .vc-like-ic{filter:none;opacity:1}
 .vc-like-n{margin-left:2px;padding-left:6px;border-left:1px solid currentColor;opacity:.85;font-size:10px;letter-spacing:.04em}
-.vc-rec{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--green);background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.25);border-radius:10px;padding:3px 8px;font-weight:700}
-.vc-fyb{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);background:rgba(68,153,255,.1);border:1px solid rgba(68,153,255,.28);border-radius:10px;padding:3px 8px;font-weight:700}
 
 /* ── RECOMMENDED FOR YOUR BUILD ── */
 .rfy{border:1px solid rgba(68,153,255,.3);background:linear-gradient(180deg,rgba(68,153,255,.09),rgba(68,153,255,.03));border-radius:8px;padding:10px;margin-bottom:8px}
@@ -1943,7 +1969,7 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .rfy-alt-name{font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-right:6px}
 .rfy-alt-why{color:var(--dim);font-weight:300}
 .rfy-note{margin-top:7px;font-size:10px;line-height:1.45;color:var(--yellow);opacity:.9}
-.vc-notes{font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;font-weight:300}
+.vc-why{font-size:13px;line-height:1.45;color:var(--text-2);text-wrap:pretty;margin:7px 0 0}
 .vc-stats{display:flex;gap:4px;margin-bottom:7px}
 .vcstat{flex:1;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:4px 3px;text-align:center}
 .vcstat-label{font-family:var(--font-mono);font-size:10px;color:var(--dim);letter-spacing:.05em;text-transform:uppercase}
@@ -1953,12 +1979,12 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .vc-pros{color:var(--green)}.vc-cons{color:var(--red)}
 .vc-diff{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
 .d-plug{color:var(--verify)}.d-diy{color:var(--measure)}.d-pro{color:var(--danger)}
-.vc-btn{width:100%;padding:10px;border:1px solid var(--action);background:transparent;color:var(--action);font-family:var(--font-ui);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:all .15s}
-.vc-btn:active,.vc-btn:hover{background:var(--action);color:var(--on-accent)}
-.vc-btn.vsel{background:var(--action);border-color:var(--action);color:var(--on-accent)}
-.vc-btn.vsel:active,.vc-btn.vsel:hover{background:var(--red);border-color:var(--red);color:var(--on-accent)}
-.vc-buy{display:block;text-align:center;background:var(--action);color:var(--on-accent);padding:8px 0;border-radius:6px;text-decoration:none;font-family:var(--font-ui);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-top:6px;transition:background .15s}
-.vc-buy:hover{filter:brightness(1.08);color:var(--on-accent)}
+.vc-btn{flex:1;min-height:44px;padding:0 10px;border:1px solid var(--line-dashed);background:transparent;color:var(--text-2);font-family:var(--font-ui);font-weight:700;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:var(--r-row);cursor:pointer;transition:all .15s}
+.vc-btn:active,.vc-btn:hover{border-color:var(--text-2);color:var(--text-hi)}
+.vc-btn.vsel{background:var(--action);border-color:var(--action);color:var(--on-action)}
+.vc-btn.vsel:active,.vc-btn.vsel:hover{filter:brightness(1.08)}
+.vc-buy{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--text-3);text-decoration:none;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:9px}
+.vc-buy:hover{color:var(--text-2)}
 
 /* ── TIME ESTIMATES ── */
 .t-est-row{display:flex;align-items:stretch;margin:6px 0 8px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:6px;overflow:hidden}
@@ -2599,7 +2625,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .run-ctrl-select,.section-title button,.tc-table-toggle,.draggy-reupload,
 .sc-preview,.pub-fcta,.share-copy,.admin-fab,.pub-ptab,.rf-cancel{
   min-height:44px}
-.vc-btn,.vc-buy,.rf-save,.pf-save,.add-run-btn,.draggy-btn,.act-cta,.reco-card{
+.vc-btn,.vc-buy,.rf-save,.pf-save,.add-run-btn,.draggy-btn,.act-cta{
   min-height:46px}
 .run-del,.brm,.draggy-clear,.act-dismiss,.pub-close,.admin-close{
   min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
@@ -3128,6 +3154,184 @@ function HealthChips({ installedMap }) {
   );
 }
 
+// ── PART SHEET (04-screens.md #5b) ──────────────────────────────────────────
+// Recommended-first: the pick for this build leads, and the rest of the
+// catalogue sits behind "+N options". That inversion is the whole point — the
+// old inline accordion opened with every variant at once and buried the
+// recommendation inside them.
+//
+// Dialog semantics come from useDialog (focus moves in, Tab is trapped, Escape
+// closes, focus returns). The scrim is a real button with an accessible name,
+// and the caller marks the app shell inert while this is open.
+function VariantCard({
+  slot, v, isActive, isRecommended, isAdminPick, buildMode, modelId, currentModel,
+  liked, likeCount, likesLive, onToggleLike, onChoose, onTrackBuy,
+}) {
+  const hp = v.hp[modelId] || 0;
+  const tq = v.torque[modelId] || 0;
+  // #5b swaps the label rather than the button: "what is in my build" has to be
+  // readable without comparing borders.
+  const chooseLabel = isActive
+    ? (buildMode === "installed" ? "✓ In your build" : "✓ On your wishlist")
+    : (buildMode === "installed" ? "Add to build" : "Add to wishlist");
+
+  return (
+    <article className={`vcard${isActive ? " vactive" : ""}`}>
+      <div className="vc-top">
+        <span className="vc-brand">{v.brand}</span>
+        <span className="vc-price">${v.price.toLocaleString()}</span>
+      </div>
+      <div className="vc-name-row">
+        <span className="vc-name">{v.label}</span>
+        {/* Blue: a fact about relevance to this car, not an action. */}
+        {isRecommended && <span className="vc-rec-chip">Recommended</span>}
+        {isAdminPick && <span className="vc-rec-chip vc-rec-curated">Curator pick</span>}
+      </div>
+      <p className="vc-why">{v.notes}</p>
+
+      <div className="vc-actions">
+        <button
+          type="button"
+          className={`vc-like${liked ? " on" : ""}`}
+          aria-pressed={!!liked}
+          aria-label={`${liked ? "Unlike" : "Like"} ${v.brand} ${v.label}${
+            likesLive && likeCount > 0 ? ` — ${likeCount.toLocaleString()} likes` : ""}`}
+          onClick={() => onToggleLike(v.id)}>
+          <span className="vc-like-ic" aria-hidden="true">♥</span>
+          {likesLive && likeCount > 0 ? likeCount.toLocaleString() : (liked ? "Liked" : "Like")}
+        </button>
+        {v.rating != null && (
+          <span className="vc-rating"><span aria-hidden="true">★</span> {v.rating.toFixed(1)}</span>
+        )}
+        <button type="button" className={`vc-btn${isActive ? " vsel" : ""}`}
+          onClick={() => onChoose(slot.id, v.id)}
+          aria-label={isActive
+            ? `Remove ${v.brand} ${v.label} from your ${buildMode === "installed" ? "build" : "wishlist"}`
+            : `Add ${v.brand} ${v.label} to your ${buildMode === "installed" ? "build" : "wishlist"}`}>
+          {chooseLabel}
+        </button>
+      </div>
+
+      <div className="vc-stats">
+        <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${hp}`:"—"}</div></div>
+        <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${Math.round(hp*0.85)}`:"—"}</div></div>
+        <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
+      </div>
+      {hp > 0 && (
+        <div className="t-est-row">
+          <div className="t-est-box">
+            <div className="t-est-label">1/4 Mile Est.</div>
+            <div className="t-est-val">−{(currentModel.et * hp / (currentModel.hp + hp)).toFixed(2)}s</div>
+          </div>
+          <div className="t-est-divider"/>
+          <div className="t-est-box">
+            <div className="t-est-label">60–130 Est.</div>
+            <div className="t-est-val">−{(currentModel.t60130 * hp / (currentModel.hp + hp)).toFixed(2)}s</div>
+          </div>
+        </div>
+      )}
+      <div className="vc-pc">
+        <div className="vc-pros">{v.pros.map((p,i)=><div key={i}>+ {p}</div>)}</div>
+        <div className="vc-cons">{v.cons.map((c,i)=><div key={i}>− {c}</div>)}</div>
+      </div>
+      <div className={`vc-diff ${diffClass(v.difficulty)}`}>{v.difficulty}</div>
+      {/* Outbound link to the vendor's own page — Proof.Build does not sell
+          parts, so this is deliberately NOT labelled "Buy". */}
+      {v.buyUrl && (
+        <a className="vc-buy" href={v.buyUrl} target="_blank" rel="noopener noreferrer"
+          onClick={() => onTrackBuy(v)}>
+          View at vendor ↗
+        </a>
+      )}
+    </article>
+  );
+}
+
+function PartSheet({
+  slot, rec, selVarId, otherVarId, buildMode, modelId, currentModel,
+  likedParts, likeCounts, likesLive, adminPicks, onToggleLike, onChoose,
+  onInstallFromWishlist, onTrackBuy, onClose, missing, conflicts, missingRecs,
+  fuelInert, extras,
+}) {
+  const dialogRef = useDialog(onClose);
+  const uid = useId();
+  const [showAll, setShowAll] = useState(false);
+
+  const recId  = rec?.recommended?.variantId || null;
+  const leadId = recId && slot.variants.some(v => v.id === recId) ? recId : slot.variants[0]?.id;
+  const lead   = slot.variants.filter(v => v.id === leadId);
+  const rest   = slot.variants.filter(v => v.id !== leadId);
+  const shown  = showAll ? [...lead, ...rest] : lead;
+
+  const hasSel = !!selVarId;
+
+  return (
+    <div className="sheet-scrim">
+      {/* A real button, not a dimmed div — it has to be reachable and named. */}
+      <button type="button" className="sheet-scrim-btn" aria-label="Close options"
+        onClick={onClose} />
+      <section className="sheet" role="dialog" aria-modal="true" tabIndex={-1}
+        ref={dialogRef} aria-labelledby={`${uid}-title`}>
+        <div className="sheet-hdr">
+          <h2 className="sheet-title" id={`${uid}-title`}>
+            {slot.name} · {slot.variants.length} option{slot.variants.length === 1 ? "" : "s"}
+          </h2>
+          <button type="button" className="sheet-x" aria-label="Close options" onClick={onClose}>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+
+        <div className="sheet-body">
+          {fuelInert && (
+            <div className="v-alert warn">
+              ⚠ Fuel hardware does nothing without a tune — this adds no power on its own.
+            </div>
+          )}
+          {conflicts.length > 0 && (
+            <div className="v-alert conflict">⚡ Conflicts with: {conflicts.map(c=>getSlotById(c)?.name||c).join(", ")}</div>
+          )}
+          {missing.length > 0 && (
+            <div className="v-alert warn">⚠ Also needs: {missing.map(m=>getSlotById(m)?.name||m).join(", ")}</div>
+          )}
+          {hasSel && !missing.length && !conflicts.length && missingRecs.length > 0 && (
+            <div className="v-alert rec">✦ Pairs well with: {missingRecs.map(r=>getSlotById(r)?.name||r).join(", ")}</div>
+          )}
+          {rec?.notes?.map((n, i) => <div key={i} className="v-alert warn">⚠ {n}</div>)}
+
+          {buildMode === "installed" && otherVarId && !hasSel && (
+            <button type="button" className="slot-install" style={{margin:"0 0 8px",width:"100%"}}
+              onClick={() => { onInstallFromWishlist(slot.id); onClose(); }}>
+              <span aria-hidden="true">✓</span> Install from wishlist
+            </button>
+          )}
+
+          {shown.map(v => (
+            <VariantCard
+              key={v.id}
+              slot={slot} v={v}
+              isActive={selVarId === v.id}
+              isRecommended={recId === v.id}
+              isAdminPick={adminPicks[slot.id] === v.id}
+              buildMode={buildMode} modelId={modelId} currentModel={currentModel}
+              liked={!!likedParts[v.id]} likeCount={likeCounts[v.id] || 0} likesLive={likesLive}
+              onToggleLike={onToggleLike} onChoose={onChoose} onTrackBuy={onTrackBuy}
+            />
+          ))}
+
+          {/* Depth, behind one button — never labelled with a bare count. */}
+          {!showAll && rest.length > 0 && (
+            <button type="button" className="sheet-more" onClick={() => setShowAll(true)}>
+              +{rest.length} option{rest.length === 1 ? "" : "s"}
+            </button>
+          )}
+
+          {showAll && extras}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 // ── ACTIVATION (04-screens.md #4b) ──────────────────────────────────────────
 // A new owner must NOT land on the populated Garage — that screen reads as
 // "you're 3 of 32 done" before they have done anything. This is the zero-mods
@@ -3586,7 +3790,7 @@ export default function TheProof() {
   const [showPublicPage, setShowPublicPage]     = useState(false); // own public page preview
   // True while any modal sheet is up — drives `inert` on the three app-shell
   // siblings so background controls can't be tabbed into or reached by AT.
-  const dialogOpen = showPublicPage || !!viewedBuild || showAdminPanel;
+  const dialogOpen = showPublicPage || !!viewedBuild || showAdminPanel || !!openSlot;
   // Custom-tune add-on features (provider + selected feature ids). Persisted to
   // localStorage — no DB migration, doesn't touch existing run/profile data.
   // Lazy initializer (runs once) so we don't add a set-state-in-effect.
@@ -3950,7 +4154,9 @@ export default function TheProof() {
     if (buildMode === "installed" && selectedMap[slotId] !== varId) clearActivationDismissal();
   }
   function remove(slotId) { setSelectedMap(prev => { const n={...prev}; delete n[slotId]; return n; }); }
-  function toggleSlot(id) { setOpenSlot(prev => prev===id ? null : id); }
+  // #5b: the row opens a sheet rather than expanding in place.
+  function openSheet(id) { setOpenSlot(id); track("part_sheet_opened", { slot: id }); }
+  function closeSheet()  { setOpenSlot(null); }
   // Jump straight into the build flow at a specific slot (used by "What's Next").
   function goToSlot(slotId) {
     const slot = getSlotById(slotId);
@@ -5106,22 +5312,12 @@ Fields to extract:
         <div className="slots-list">
           {catSlots.map(slot => {
             const selVarId   = selectedMap[slot.id];
-            // also show if other map has it
             const otherVarId = buildMode==="installed" ? wishlistMap[slot.id] : installedMap[slot.id];
             const selVar     = selVarId ? getVariantById(slot.id, selVarId) : null;
             const { missing, conflicts } = getDeps(slot.id, selectedMap);
             const hasSel    = !!selVarId;
             const hasWarn   = hasSel && missing.length > 0;
             const hasConf   = hasSel && conflicts.length > 0;
-            const isOpen    = openSlot === slot.id;
-            const missingRecs = hasSel ? slot.recommends.filter(r=>!Object.keys(selectedMap).includes(r)) : [];
-            // Personalized product pick for this slot — only computed when the
-            // picker is open (see recommendProduct: vehicle + stage + end state).
-            const rec = isOpen
-              ? recommendProduct(slot.id,
-                  { installed: installedMap, wishlist: wishlistMap },
-                  { modelId: activeModelId, goalHp: powerGoal })
-              : null;
 
             // Fuel hardware makes nothing on a stock tune, and calcTotals credits
             // it with nothing — so dim the row to match, rather than showing a
@@ -5135,166 +5331,37 @@ Fields to extract:
             else if (hasWarn) cardCls += " warn";
             else if (hasSel) cardCls += " sel";
 
-            let orbCls = "", orbIcon = "○";
-            if (hasSel && hasConf)  { orbCls="orb-conflict"; orbIcon="⚡"; }
-            else if (hasSel && hasWarn) { orbCls="orb-warn"; orbIcon="⚠"; }
-            else if (hasSel)        { orbCls="orb-ok"; orbIcon= buildMode==="installed"?"✓":"★"; }
+            // #5b uses a bracket marker in mono, not a filled orb.
+            let markCls = "slot-mark-open", mark = "[ ]";
+            if (hasSel && hasConf)      { markCls="slot-mark-conflict"; mark="[⚡]"; }
+            else if (hasSel && hasWarn) { markCls="slot-mark-warn";     mark="[⚠]"; }
+            else if (hasSel)            { markCls = buildMode==="installed" ? "slot-mark-inst" : "slot-mark-wish";
+                                          mark    = buildMode==="installed" ? "[✓]" : "[★]"; }
 
             return (
               <div key={slot.id} className={cardCls}>
-                <button type="button" className="slot-hdr" onClick={()=>toggleSlot(slot.id)}
-                  aria-expanded={isOpen} aria-controls={`slot-picker-${slot.id}`}>
-                  <div className={`slot-orb ${orbCls}`} aria-hidden="true" style={hasSel && buildMode==="wishlist" && !hasConf && !hasWarn ? {borderColor:"var(--blue)",color:"var(--blue)",background:"rgba(68,153,255,.1)"} : {}}>{orbIcon}</div>
+                {/* The row's whole job is to open the sheet (#5b). */}
+                <button type="button" className="slot-hdr" onClick={()=>openSheet(slot.id)}
+                  aria-haspopup="dialog">
+                  <span className={`slot-mark ${markCls}`} aria-hidden="true">{mark}</span>
                   <div className="slot-info">
                     <div className="slot-name">{slot.name}</div>
                     {selVar
-                      ? <div className="slot-sel-text" style={{color:buildMode==="wishlist"?"var(--blue)":undefined}}>{selVar.brand} · {selVar.label} · ${selVar.price.toLocaleString()}</div>
-                      : <div className="slot-desc-text">{slot.desc}{otherVarId ? ` · ${buildMode==="installed"?"★ On wishlist":"✓ Installed"}` : ""}</div>
+                      ? <div className="slot-sel-text" style={{color:buildMode==="wishlist"?"var(--relevant)":undefined}}>{selVar.brand} · {selVar.label}</div>
+                      : <div className="slot-desc-text">{otherVarId ? (buildMode==="installed"?"on your wishlist · tap to compare":"installed · tap to compare") : "tap to compare options"}</div>
                     }
                   </div>
                   {fuelInert
                     ? <span className="slot-tag t-inert">NEEDS TUNE</span>
                     : slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
-                  <span className={`slot-chev${isOpen?" open":""}`} aria-hidden="true">▾</span>
+                  {/* #5b ends every row in a price. */}
+                  <span className="slot-price">
+                    {selVar ? `$${selVar.price.toLocaleString()}` : `$${Math.min(...slot.variants.map(v=>v.price)).toLocaleString()}+`}
+                  </span>
+                  <span className="sr-only">
+                    {hasSel ? "in your build" : "not yet chosen"}. Opens options.
+                  </span>
                 </button>
-
-                {/* Wishlist → installed. This used to live in the Garage wishlist
-                    block; #4a has no wishlist, so the affordance moves to the
-                    slot it actually acts on. Sibling of the header, never nested
-                    inside it — the header is itself a button. */}
-                {buildMode==="installed" && otherVarId && !hasSel && (
-                  <button type="button" className="slot-install"
-                    onClick={()=>installFromWishlist(slot.id)}>
-                    <span aria-hidden="true">✓</span> Install from wishlist
-                  </button>
-                )}
-
-                {isOpen && (
-                  <div className="var-picker" id={`slot-picker-${slot.id}`}>
-                    {hasConf && <div className="v-alert conflict">⚡ Conflicts with: {conflicts.map(c=>getSlotById(c)?.name||c).join(", ")}</div>}
-                    {hasWarn && <div className="v-alert warn">⚠ Also needs: {missing.map(m=>getSlotById(m)?.name||m).join(", ")}</div>}
-                    {hasSel && !hasWarn && !hasConf && missingRecs.length>0 && (
-                      <div className="v-alert rec">✦ Pairs well with: {missingRecs.map(r=>getSlotById(r)?.name||r).join(", ")}</div>
-                    )}
-                    {rec?.recommended && (
-                      <div className="rfy">
-                        <div className="rfy-hdr">
-                          <span className="rfy-badge">Recommended for your build</span>
-                          <span className="rfy-ctx">
-                            {currentModel.label} · {rec.stageLabel}
-                            {rec.endStage !== rec.stage && <> → {rec.endStageLabel}</>}
-                            {rec.goalHp ? ` · goal ${rec.goalHp} hp` : ""}
-                          </span>
-                        </div>
-                        <div className="rfy-pick">
-                          {rec.recommended.variant.brand} · {rec.recommended.variant.label}
-                          <span className="rfy-price">${rec.recommended.variant.price.toLocaleString()}</span>
-                        </div>
-                        <div className="rfy-why">{rec.recommended.why}</div>
-                        {rec.alternatives.length > 0 && (
-                          <div className="rfy-alts">
-                            {rec.alternatives.map(a => (
-                              <div key={a.variantId} className="rfy-alt">
-                                <span className="rfy-alt-name">{a.variant.brand} · {a.variant.label}</span>
-                                <span className="rfy-alt-why">{a.why}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        {rec.notes.map((n, i) => <div key={i} className="rfy-note">⚠ {n}</div>)}
-                      </div>
-                    )}
-                    <div className="var-grid">
-                      {slot.variants.map(v => {
-                        const isActive = selVarId===v.id;
-                        const hp = v.hp[activeModelId]||0;
-                        const tq = v.torque[activeModelId]||0;
-                        return (
-                          <div key={v.id} className={`vcard${isActive?" vactive":""}`}>
-                            <div className="vc-top">
-                              <span className="vc-brand">{v.brand}</span>
-                              <span className="vc-price">${v.price.toLocaleString()}</span>
-                            </div>
-                            <div className="vc-name">{v.label}</div>
-                            <div className="vc-social">
-                              <button
-                                className={`vc-like${likedParts[v.id]?" on":""}`}
-                                aria-pressed={!!likedParts[v.id]}
-                                aria-label={`Like ${v.brand} ${v.label}${likesLive && likeCounts[v.id] > 0 ? ` — ${likeCounts[v.id].toLocaleString()} likes` : ""}`}
-                                title={likedParts[v.id]?"Liked":"Like this option"}
-                                onClick={()=>toggleLike(v.id)}>
-                                <span className="vc-like-ic" aria-hidden="true">👍</span>{likedParts[v.id]?"Liked":"Like"}
-                                {likesLive && likeCounts[v.id] > 0 && (
-                                  <span className="vc-like-n">{likeCounts[v.id].toLocaleString()}</span>
-                                )}
-                              </button>
-                              {adminPicks[slot.id] === v.id && (
-                                <span className="vc-rec">★ Recommended</span>
-                              )}
-                              {rec?.recommended?.variantId === v.id && (
-                                <span className="vc-fyb">◆ For your build</span>
-                              )}
-                            </div>
-                            <div className="vc-notes">{v.notes}</div>
-                            <div className="vc-stats">
-                              <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${hp}`:"—"}</div></div>
-                              <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`} style={{color:hp>0?"var(--measure)":undefined}}>{hp>0?`+${Math.round(hp*0.85)}`:"—"}</div></div>
-                              <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
-                            </div>
-                            {hp > 0 && (
-                              <div className="t-est-row">
-                                <div className="t-est-box">
-                                  <div className="t-est-label">1/4 Mile Est.</div>
-                                  <div className="t-est-val">−{(currentModel.et * hp / (currentModel.hp + hp)).toFixed(2)}s</div>
-                                </div>
-                                <div className="t-est-divider"/>
-                                <div className="t-est-box">
-                                  <div className="t-est-label">60–130 Est.</div>
-                                  <div className="t-est-val">−{(currentModel.t60130 * hp / (currentModel.hp + hp)).toFixed(2)}s</div>
-                                </div>
-                              </div>
-                            )}
-                            <div className="vc-pc">
-                              <div className="vc-pros">{v.pros.map((p,i)=><div key={i}>+ {p}</div>)}</div>
-                              <div className="vc-cons">{v.cons.map((c,i)=><div key={i}>− {c}</div>)}</div>
-                            </div>
-                            <div className={`vc-diff ${diffClass(v.difficulty)}`}>{v.difficulty}</div>
-                            <button className={`vc-btn${isActive?" vsel":""}`} onClick={()=>pick(slot.id,v.id)}>
-                              {isActive ? "Remove" : buildMode==="installed" ? "Mark Installed" : "Add to Wishlist"}
-                            </button>
-                            {/* Outbound link to the vendor's own page — Proof.Build does not
-                                sell parts, so this is deliberately NOT labelled "Buy".
-                                Opens in a new tab; rel=noopener keeps the vendor page from
-                                touching window.opener. */}
-                            {v.buyUrl && (
-                              <a
-                                className="vc-buy"
-                                href={v.buyUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => track('affiliate_click', {
-                                  slot: slot.id,
-                                  variant: v.id,
-                                  brand: v.brand,
-                                  price: v.price,
-                                  url: v.buyUrl,
-                                })}
-                              >
-                                View at Vendor →
-                              </a>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {slot.id === "ecu_custom" && (
-                      <>
-                        <TuneComparison runs={runs} />
-                        <CustomFeatures value={customFeatures} onChange={setCustomFeatures} />
-                      </>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -5380,6 +5447,49 @@ Fields to extract:
         {activeTab==="board"  && boardContent}
         {activeTab==="profile"&& profileContent}
       </main>
+
+      {/* Part sheet (#5b) — options for one slot, recommended pick first. */}
+      {openSlot && (() => {
+        const slot = getSlotById(openSlot);
+        if (!slot) return null;
+        const { missing, conflicts } = getDeps(slot.id, selectedMap);
+        const selVarId = selectedMap[slot.id];
+        return (
+          <PartSheet
+            slot={slot}
+            rec={recommendProduct(slot.id,
+              { installed: installedMap, wishlist: wishlistMap },
+              { modelId: activeModelId, goalHp: powerGoal })}
+            selVarId={selVarId}
+            otherVarId={buildMode==="installed" ? wishlistMap[slot.id] : installedMap[slot.id]}
+            buildMode={buildMode}
+            modelId={activeModelId}
+            currentModel={currentModel}
+            likedParts={likedParts}
+            likeCounts={likeCounts}
+            likesLive={likesLive}
+            adminPicks={adminPicks}
+            onToggleLike={toggleLike}
+            onChoose={pick}
+            onInstallFromWishlist={installFromWishlist}
+            onTrackBuy={v => track('affiliate_click', {
+              slot: slot.id, variant: v.id, brand: v.brand, price: v.price, url: v.buyUrl,
+            })}
+            onClose={closeSheet}
+            missing={selVarId ? missing : []}
+            conflicts={selVarId ? conflicts : []}
+            missingRecs={selVarId ? slot.recommends.filter(r=>!Object.keys(selectedMap).includes(r)) : []}
+            fuelInert={FUEL_SLOTS.has(slot.id) &&
+              !Object.keys(selectedMap).some(k => TUNING_SLOTS.has(k))}
+            extras={slot.id === "ecu_custom" ? (
+              <>
+                <TuneComparison runs={runs} />
+                <CustomFeatures value={customFeatures} onChange={setCustomFeatures} />
+              </>
+            ) : null}
+          />
+        );
+      })()}
 
       {/* Public page sheet — own profile preview */}
       {showPublicPage && (
