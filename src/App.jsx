@@ -1740,6 +1740,9 @@ function ceilingForBuild(map) {
 function ProgressionBar({
   hp, wishlistHp = 0, ceiling = CEILINGS.daily, goalHp = null,
   nowLabel = "NOW", wishLabel = "PLANNED", ariaLabel,
+  // #4b hatches in --verify and labels the delta, not the absolute: the bar is
+  // showing what ONE part unlocks, which is a gain, not a plan.
+  wishGain = false, ceilingLabel = null,
 }) {
   const projected = Math.max(hp, wishlistHp);
   const fillPct = pctOfScale(hp);
@@ -1755,9 +1758,9 @@ function ProgressionBar({
     <div className="pbar-wrap">
       {/* The ceiling reads ABOVE the bar: it is the number that decides what the
           car can safely make, and it must out-read the platform's top end. */}
-      <div className="pbar-ceiling-row">
+      <div className={`pbar-ceiling-row${ceilingLabel ? " pbar-ceiling-lg" : ""}`}>
         <span className="pbar-ceiling-lbl" style={{ left: `${ceilPct}%` }}>
-          {ceiling.hp} {ceiling.label} <span aria-hidden="true">✓</span>
+          {ceiling.hp} {ceilingLabel || ceiling.label} <span aria-hidden="true">✓</span>
         </span>
       </div>
 
@@ -1768,7 +1771,7 @@ function ProgressionBar({
           (hasWish ? `, ${projected} hp with planned parts` : "") +
           `. Safe ceiling for this build ${ceiling.hp} hp.`}
       >
-        {hasWish && <div className="pbar-wish" style={{ width: `${wishPct}%` }} />}
+        {hasWish && <div className={`pbar-wish${wishGain ? " pbar-wish-gain" : ""}`} style={{ width: `${wishPct}%` }} />}
         <div className="pbar-fill" style={{ width: `${fillPct}%` }} />
         <div className="pbar-tick" style={{ left: `${ceilPct}%` }} />
         {goalPct != null && <div className="pbar-tick pbar-tick-goal" style={{ left: `${goalPct}%` }} />}
@@ -1777,7 +1780,7 @@ function ProgressionBar({
       <div className="pbar-labels">
         <span className="pbar-now" style={{ left: `${fillPct}%` }}>{hp} {nowLabel}</span>
         {hasWish && (
-          <span className="pbar-wish-lbl" style={{ left: `${wishPct}%` }}>{projected} {wishLabel}</span>
+          <span className={`pbar-wish-lbl${wishGain ? " pbar-wish-lbl-gain" : ""}`} style={{ left: `${wishPct}%` }}>{wishGain ? wishLabel : `${projected} ${wishLabel}`}</span>
         )}
         {goalPct != null && (
           <span className="pbar-goal-lbl" style={{ left: `${goalPct}%` }}>{goalHp} GOAL</span>
@@ -2187,6 +2190,8 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 
 /* Section headings are Mono 10/600 .16em --text-3 with an optional counter on
    the right — the one heading treatment used across every #4/#5 screen. */
+.section-title-plain{display:block}
+.act-h2-mark{color:var(--action)}
 .section-title{font-family:var(--font-mono);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:var(--text-3);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .section-count{font-family:var(--font-mono);font-weight:600;font-size:10px;letter-spacing:.16em;color:var(--text-body)}
 .section-title button{font-family:var(--font-ui);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:4px;cursor:pointer}
@@ -2531,8 +2536,10 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   transition:width .25s ease}
 /* The hatch is drawn from 0 to the projected total and sits UNDER the solid
    fill, so the two can never disagree about where "now" ends. */
+.pbar-ceiling-lg .pbar-ceiling-lbl{font-size:11.5px}
 .pbar-wish{position:absolute;top:0;left:0;height:100%;border-radius:2px;transition:width .25s ease;
-  background:repeating-linear-gradient(115deg,var(--fill-neutral) 0 2px,transparent 2px 6px)}
+  background:repeating-linear-gradient(115deg,rgba(200,200,220,.5) 0 4px,rgba(200,200,220,.14) 4px 8px)}
+.pbar-wish-gain{background:repeating-linear-gradient(115deg,rgba(0,232,135,.6) 0 4px,rgba(0,232,135,.18) 4px 8px)}
 .pbar-tick{position:absolute;top:0;width:2px;height:100%;background:var(--verify);transition:left .25s ease}
 .pbar-tick-goal{background:var(--measure)}
 .pbar-labels{position:relative;height:13px;margin-top:3px}
@@ -2540,6 +2547,8 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   letter-spacing:.04em}
 .pbar-now{transform:translateX(-100%);color:var(--text-hi);font-weight:600}
 .pbar-wish-lbl{padding-left:5px;color:var(--text-3)}
+/* #4b labels the delta in --verify, tight to the hatch. */
+.pbar-wish-lbl-gain{padding-left:3px;color:var(--verify)}
 .pbar-goal-lbl{transform:translateX(-50%);color:var(--measure);font-weight:600}
 /* 9px is the one place below the 10px floor, and only because this label is
    meant to be the quietest thing on the bar. */
@@ -2547,23 +2556,24 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-labels .pbar-top-clear{top:14px}
 
 /* ── ACTIVATION (#4b) ───────────────────────────────────────────────────────*/
-.act-hero{padding:4px 0 2px}
-.act-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.16em;
+.act-hero{padding:11px 18px;border-bottom:1px solid var(--line)}
+.act-body{padding:11px 18px 0}
+.act-hero-lbl{font-family:var(--font-mono);font-size:10px;font-weight:400;line-height:normal;text-transform:uppercase;letter-spacing:.16em;
   color:var(--text-3)}
-.act-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:52px;line-height:.9;
-  letter-spacing:-.01em;color:var(--measure);margin-top:6px}
-.act-hero-unit{font-size:20px;font-weight:600;color:var(--text-3);margin-left:4px}
-.act-hero-ready{font-family:var(--font-ui);font-weight:700;font-size:15px;color:var(--verify);margin-top:6px}
+.act-hero-row{display:flex;align-items:baseline;gap:9px;margin-top:4px}
+.act-hero-hp{font-family:var(--font-ui);font-weight:700;font-size:52px;line-height:.9;letter-spacing:normal;color:var(--measure)}
+.act-hero-unit{font-family:var(--font-mono);font-size:11px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);white-space:nowrap}
+.act-hero-ready{margin-left:auto;font-family:var(--font-mono);font-size:11px;font-weight:400;letter-spacing:normal;color:var(--verify);white-space:nowrap}
 .act-card{background:var(--surface-raised);border:1px solid var(--line-strong);
-  border-top:3px solid var(--fill-neutral);border-radius:var(--r-card);padding:13px 15px;margin-top:4px}
+  border-top:3px solid var(--fill-neutral);border-radius:var(--r-card);padding:12px 15px;margin:0 0 10px}
 .act-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.act-card-brand{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+.act-card-brand{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;
   color:var(--text-3);text-transform:uppercase}
 .act-card-price{font-family:var(--font-mono);font-size:16px;font-weight:600;color:var(--verify)}
 .act-card-title{font-family:var(--font-ui);font-weight:600;font-size:21px;color:var(--text-hi);
-  margin:6px 0 8px;line-height:1.15}
+  margin:4px 0 0;line-height:1.2}
 .act-card-reason{font-size:13.5px;line-height:1.5;color:var(--text-2);text-wrap:pretty;
-  border-left:2px solid var(--line-dashed);padding-left:11px}
+  border-left:2px solid var(--line-dashed);padding-left:11px;margin-top:9px}
 /* Blue = a fact about relevance to your car, not an action. */
 .act-card-proof{color:var(--relevant);font-weight:600}
 .act-card-meta{margin:10px 0 0;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;color:var(--text-3)}
@@ -2574,17 +2584,17 @@ details[open] .tc-table-toggle::before{content:'▾ '}
   font-weight:600;letter-spacing:.06em;color:var(--verify);background:var(--verify-bg);
   border:1px solid var(--verify-bd);border-radius:var(--r-chip);padding:4px 9px}
 .act-safe-note{color:var(--text-2);background:transparent;border-color:var(--line-dashed)}
-.act-path{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:4px}
-.act-path li{display:flex;align-items:center;gap:10px;padding:7px 12px;border:1px dashed var(--line);border-radius:var(--r-row);min-height:44px}
+.act-path{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.act-path li{display:flex;align-items:center;gap:10px;padding:7px 12px;border:1px dashed var(--line);border-radius:var(--r-row)}
 .act-path li.act-step-now{border-color:var(--line-dashed)}
 .act-mark{flex:none;font-family:var(--font-mono);font-size:11.5px;color:var(--text-3)}
 .act-step-now .act-mark{color:var(--action)}
 .act-gain{flex:none;font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)}
 .act-step-now .act-gain{color:var(--verify)}
-.act-browse{width:100%;min-height:44px;background:transparent;border:0;color:var(--relevant);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.act-when{font-family:var(--font-ui);font-weight:400;font-size:12.5px;letter-spacing:0;
+.act-browse{width:100%;min-height:44px;margin-top:10px;background:transparent;border:0;color:var(--relevant);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.act-when{font-family:var(--font-ui);font-weight:400;font-size:14px;letter-spacing:normal;
   color:var(--text-3)}
-.act-what{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:14px;color:var(--text-body);line-height:1.3}
+.act-what{flex:1;min-width:0;font-family:var(--font-ui);font-weight:600;font-size:14px;color:var(--text-body);line-height:normal}
 .act-step-now .act-what{color:var(--text-hi)}
 .act-skip{width:100%;min-height:44px;background:transparent;border:0;color:var(--text-3);
   font-family:var(--font-ui);font-size:13px;text-decoration:underline;text-underline-offset:3px;
@@ -3564,7 +3574,7 @@ function PartSheet({
 //
 // It renders from the SAME recommendation object as every other screen (step 5),
 // so the app never proposes two different first moves.
-function ActivationScreen({ model, baseHp, nextRec, recs, onStart, onOptions, onBrowse, onSkip }) {
+function ActivationScreen({ model, baseHp, nextRec, recs, profileName, onStart, onOptions, onBrowse, onSkip }) {
   const variant = nextRec?.variant || null;
   // "+N hp ready today" is the catalog's gain for THIS model and THIS part.
   const readyHp = variant ? (variant.hp?.[model.id] || 0) : 0;
@@ -3593,28 +3603,39 @@ function ActivationScreen({ model, baseHp, nextRec, recs, onStart, onOptions, on
   }));
 
   return (
-    <div className="garage-area screen-gutter">
+    <div className="garage-area">
+      {/* #4b: full-bleed band, 11px 18px, hairline under it. */}
       <div className="act-hero">
-        <div className="act-hero-lbl">YOUR {model.label} · STOCK</div>
-        <div className="act-hero-hp">{baseHp}<span className="act-hero-unit">hp</span></div>
-        {readyHp > 0 && (
-          <div className="act-hero-ready">+{readyHp} hp ready today</div>
-        )}
-      </div>
+        <div className="act-hero-lbl">{profileName || "Your build"} · {model.label}</div>
+        <div className="act-hero-row">
+          <span className="act-hero-hp">{baseHp}</span>
+          <span className="act-hero-unit">hp · factory</span>
+          {readyHp > 0 && (
+            <span className="act-hero-ready">+{readyHp} hp ready today</span>
+          )}
+        </div>
 
       <ProgressionBar
         hp={baseHp} wishlistHp={unlocked} ceiling={CEILINGS.daily}
-        wishLabel="ONE PART"
+        wishLabel={`+${readyHp}`} wishGain
+        ceilingLabel="DAILY SAFE"
         ariaLabel={`Stock ${baseHp} hp. One part takes this to ${unlocked} hp.`}
       />
+      </div>
 
+      {/* #4b's scroll region: 11px 18px 0. */}
+      <div className="act-body">
+      {/* #4b puts the orange [→] inside the heading itself. */}
+      <h2 className="section-title section-title-plain">
+        <span className="act-h2-mark" aria-hidden="true">[→]</span> Your first mod is a solved problem
+      </h2>
       {variant && (
         <div className="act-card">
           <div className="act-card-top">
             <span className="act-card-brand">{variant.brand}</span>
             <span className="act-card-price">${variant.price.toLocaleString()}</span>
           </div>
-          <h2 className="act-card-title">Your first mod is a solved problem</h2>
+          <div className="act-card-title">{nextRec.name}</div>
           <p className="act-card-reason">
             <strong className="act-card-proof">{inTen} out of 10 builds like yours start here.</strong>{" "}
             {nextRec.name} — {variant.label}. The path is settled; you are not
@@ -3656,6 +3677,7 @@ function ActivationScreen({ model, baseHp, nextRec, recs, onStart, onOptions, on
         See builds like yours ›
       </button>
       <button className="act-skip" onClick={onSkip}>Skip — I already have mods</button>
+      </div>
     </div>
   );
 }
@@ -5081,6 +5103,7 @@ Fields to extract:
       baseHp={totalHp}
       nextRec={nextRec}
       recs={recs}
+      profileName={profile.nickname || profile.name}
       onStart={()=>{ setBuildMode("installed"); setActiveTab("parts");
         if (nextRec) goToSlot(nextRec.slot); track("activation_start"); }}
       // "+N options" opens the same sheet the Parts rows open (#5b).
