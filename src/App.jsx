@@ -7,6 +7,7 @@ import {
   STAGE_INDEX_BY_BUILD_STAGE, SORT_KEYS,
   enablerMap, groupByStage, shortSlotName,
 } from "./lib/stages.js";
+import { trapOffset, judgeTime, rankBoard, heldReason } from "./lib/integrity.js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
 const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
@@ -213,6 +214,29 @@ function trapForTime(t60130) {
       if (span === 0) return hi.trap;
       const frac = (hi.t60130 - t) / span;          // 0 at hi → 1 at lo
       return +(hi.trap + frac * (lo.trap - hi.trap)).toFixed(2);
+    }
+  }
+  return null;
+}
+
+// The inverse: given a MEASURED trap speed, what 60–130 does the reference
+// curve imply? This is the independent check the plausibility band runs on —
+// both halves are measured quantities, neither is the power model's opinion.
+// Same table, same interpolation, read the other way.
+function timeForTrap(trap) {
+  const v = Number(trap);
+  if (!Number.isFinite(v)) return null;
+  const rows = TRAP_TABLE;                  // descending t60130 → ASCENDING trap
+  if (v <= rows[0].trap) return rows[0].t60130;                      // clamp slow end
+  const last = rows[rows.length - 1];
+  if (v >= last.trap) return last.t60130;                            // clamp fast end
+  for (let i = 0; i < rows.length - 1; i++) {
+    const lo = rows[i], hi = rows[i + 1];   // lo.trap < hi.trap
+    if (v >= lo.trap && v <= hi.trap) {
+      const span = hi.trap - lo.trap;
+      if (span === 0) return lo.t60130;
+      const frac = (v - lo.trap) / span;
+      return +(lo.t60130 + frac * (hi.t60130 - lo.t60130)).toFixed(3);
     }
   }
   return null;
@@ -2914,7 +2938,9 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .lb-divider{display:flex;align-items:center;gap:8px;padding:2px 0;margin:0}
 .lb-divider-line{flex:1;border-top:1px dashed var(--line-dashed)}
 /* FLAGGED: 9px, under the 10px text minimum. Matched to #4e. */
-.lb-divider-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;color:var(--text-3)}
+/* 10px floor: the one sanctioned 9px exception is the muted "1040+ TOP END"
+   bar label, not this. */
+.lb-divider-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--text-3)}
 .lb-hidden{margin:0;padding:4px 1px;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
   color:var(--text-3)}
 
@@ -3113,6 +3139,34 @@ ul.bmap-plan{gap:5px}
 .goal-name{display:block;font-family:var(--font-ui);font-weight:700;font-size:16px;
   color:var(--text-hi);margin-top:3px}
 .goal-bar{display:block;margin-top:4px}
+
+/* ── GARAGE RUN CARD + PLAUSIBILITY (#7a · 09) ── */
+.grun{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:10px 12px}
+.grun-check{border-color:var(--measure-bd);background:var(--measure-bg)}
+.grun-top{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.grun-time{font-family:var(--font-ui);font-weight:700;font-size:26px;line-height:1;color:var(--measure)}
+.grun-unit{font-size:13px;color:var(--text-3)}
+.grun-meta{font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)}
+.grun-flag{display:flex;align-items:flex-start;gap:7px;margin-top:9px;padding-top:8px;
+  border-top:1px solid rgba(255,208,0,.2)}
+.grun-flag-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  color:var(--measure);flex:none}
+.grun-flag-why{flex:1;font-family:var(--font-ui);font-weight:600;font-size:12.5px;
+  color:var(--text-hi);text-wrap:pretty}
+.grun-cta{width:100%;min-height:44px;margin-top:9px;border:1px solid var(--line-dashed);
+  border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+
+/* ── LEADERBOARD · HELD ENTRIES (09) ── */
+/* In the list, outside the ranking. Dashed, ▲ for a rank, REVIEW for ✓ LOG. */
+.lb-row-held{border:1px dashed var(--measure-bd);background:rgba(255,208,0,.04)}
+.lb-rank-held{font-family:var(--font-mono);font-size:13px;color:var(--measure)}
+.lb-row-held .lb-name{color:var(--text-2)}
+.lb-held-why{display:block;font-family:var(--font-mono);font-size:10px;color:var(--measure);margin-top:3px}
+.lb-time-held{color:var(--text-3)}
+.lb-review{display:block;font-family:var(--font-mono);font-size:10px;color:var(--measure);margin-top:2px}
+.lb-log{display:block;font-family:var(--font-mono);font-size:10px;color:var(--verify);margin-top:2px}
+.lb-cond{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:3px}
 
 /* ── PROFILE (#7f) ── */
 .pfx-card{border:1px solid var(--line-strong);border-radius:var(--r-card);
@@ -5166,6 +5220,24 @@ export default function TheProof() {
       .sort((a, b) => parseFloat(a.time) - parseFloat(b.time))[0] || null;
     return { proven, claimCount: sixty.filter(r => !runProof(r).proven).length };
   })();
+  // ── PLAUSIBILITY, THIS BUILD (09) ───────────────────────────────────────
+  // A logged run is judged against its own trap speed where it has one, and
+  // against this build's estimated output where it does not — the same 9.59s
+  // figure the Garage already shows for 465 hp. Outside the band it is HELD:
+  // surfaced and explained, never silently ranked and never silently dropped.
+  const myBandOffset = trapOffset(liveLeaderboard, timeForTrap).offset;
+  function judgeMyRun(run) {
+    if (!run || run.time == null) return { checked: false, held: false };
+    return judgeTime({
+      t60130: run.time,
+      mph: run.type === "60-130" ? (run.trap ?? null) : null,
+      modelTime: speeds.t60130,
+      offset: myBandOffset,
+      timeForTrap,
+    });
+  }
+  const myRunVerdict = judgeMyRun(myBoardRuns.proven);
+
   const totalTq = currentModel.torque + installedTotals.torque;
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
@@ -5549,6 +5621,10 @@ Fields to extract:
   });
 
   const bestRun60130 = runs.filter(r=>r.type==="60-130" && r.time != null).sort((a,b)=>parseFloat(a.time)-parseFloat(b.time))[0];
+  // The verdict on the number the Garage would otherwise headline. A run does
+  // not have to be datalogged to be checked — a claim that the model cannot
+  // account for is exactly the case #7a exists to surface.
+  const bestRunVerdict = judgeMyRun(bestRun60130);
   const bestRun14    = runs.filter(r=>r.et != null).sort((a,b)=>parseFloat(a.et)-parseFloat(b.et))[0];
 
   // ── SHARED RUN LIST (used in both Garage and Times tabs) ──────────
@@ -5742,13 +5818,21 @@ Fields to extract:
               )}
             </div>
           </div>
+          {/* est-vs-best, surfaced rather than shipped (#7a caption). A held
+              run does not become the headline number and displace the model —
+              it stays visible in the run card below, with the reason. And a
+              CLAIM is never labelled proven: ✓ means a datalog exists. */}
           <div className="gh-stat">
             <div className="gh-stat-lbl">60–130</div>
             <div className="gh-stat-row">
-              <span className="gh-stat-val">{bestRun60130 ? bestRun60130.time : speeds.t60130}</span>
-              {bestRun60130
-                ? <span className="gh-stat-sfx gh-gain"><span aria-hidden="true">✓</span><span className="sr-only">proven</span></span>
-                : <span className="gh-stat-sfx">est</span>}
+              <span className="gh-stat-val">
+                {bestRun60130 && !bestRunVerdict.held ? bestRun60130.time : speeds.t60130}
+              </span>
+              {!bestRun60130 || bestRunVerdict.held
+                ? <span className="gh-stat-sfx">est</span>
+                : runProof(bestRun60130).proven
+                  ? <span className="gh-stat-sfx gh-gain"><span aria-hidden="true">✓</span><span className="sr-only">proven</span></span>
+                  : <span className="gh-stat-sfx">claim</span>}
             </div>
           </div>
           <div className="gh-stat">
@@ -5792,6 +5876,40 @@ Fields to extract:
         </span>
         <span className="sr-only">Opens the end-state planner.</span>
       </button>
+
+      {/* ── RUN LOG + PLAUSIBILITY (#7a, 09) ────────────────────────────
+          A run the model cannot account for is surfaced here rather than
+          shipped as fact. One action, and it is the one that would settle it. */}
+      {bestRun60130 && (
+        <>
+          <h2 className="section-title">
+            <span>Run log</span>
+            <span className="section-count">{runs.length} run{runs.length===1?"":"s"}</span>
+          </h2>
+          <div className={`grun${bestRunVerdict.held ? " grun-check" : ""}`}>
+            <div className="grun-top">
+              <span className="grun-time">{bestRun60130.time}<span className="grun-unit">s</span></span>
+              <span className="grun-meta">
+                {["60–130", bestRun60130.date, bestRun60130.da ? `DA ${bestRun60130.da}` : null]
+                  .filter(Boolean).join(" · ").toUpperCase()}
+              </span>
+            </div>
+            {bestRunVerdict.held && (
+              <>
+                <div className="grun-flag">
+                  <span className="grun-flag-lbl"><span aria-hidden="true">▲</span> CHECK</span>
+                  <span className="grun-flag-why">{heldReason(bestRunVerdict, { hp: totalHp })}</span>
+                </div>
+                <button type="button" className="grun-cta" onClick={()=>{
+                  setActiveTab("times"); setTimesView("runs");
+                  setSelectedRunId(bestRun60130.id);
+                  track("attach_datalog_prompt", { from: "garage" });
+                }}>Attach datalog to verify</button>
+              </>
+            )}
+          </div>
+        </>
+      )}
 
       <h2 className="section-title">
         <span>Build map</span>
@@ -5872,14 +5990,17 @@ Fields to extract:
   ) : garageContent;
 
   // ── TIMES LOG ─────────────────────────────────────────────────────
-  // "faster than N% of field" (#4c) — computed from the same leaderboard the
-  // bands use, so the two can never disagree.
+  // "faster than N% of field" (#4c) — computed over the VERIFIED field, the
+  // same population the ranking uses, so the percentile and the board can
+  // never disagree. A held run is not compared at all; it is under review.
+  const verifiedField = liveLeaderboard
+    .filter(r => !judgeTime({ t60130: r.t60130, mph: r.mph, offset: myBandOffset, timeForTrap }).held)
+    .map(r => Number(r.t60130)).filter(Number.isFinite);
   const fieldPercentile = (() => {
-    if (!bestRun60130) return null;
+    if (!bestRun60130 || judgeMyRun(bestRun60130).held) return null;
     const mine = parseFloat(bestRun60130.time);
-    const field = liveLeaderboard.map(r => Number(r.t60130)).filter(Number.isFinite);
-    if (!Number.isFinite(mine) || field.length === 0) return null;
-    return Math.round((field.filter(t => t > mine).length / field.length) * 100);
+    if (!Number.isFinite(mine) || verifiedField.length === 0) return null;
+    return Math.round((verifiedField.filter(t => t > mine).length / verifiedField.length) * 100);
   })();
 
   // ── TIMES · ONE COMPETITIVE SURFACE (#7d) ─────────────────────────
@@ -5939,10 +6060,11 @@ Fields to extract:
 
       <div className="tm-body">
 
-      {/* You vs the field, as bands (#4c). */}
+      {/* You vs the field, as bands (#4c) — the VERIFIED field, matching the
+          ranking and the percentile above it. */}
       <FieldBands
-        times={liveLeaderboard.map(r => r.t60130)}
-        mine={bestRun60130 ? parseFloat(bestRun60130.time) : null}
+        times={verifiedField}
+        mine={bestRun60130 && !judgeMyRun(bestRun60130).held ? parseFloat(bestRun60130.time) : null}
       />
 
       <h2 className="section-title">
@@ -6441,12 +6563,24 @@ Fields to extract:
     { id: "profile", label: "profile", count: 0,                 onSelect: goTab("profile") },
   ];
 
-  const lbFiltered = lbClass === "all"
+  const lbPool = lbClass === "all"
     ? liveLeaderboard
     : liveLeaderboard.filter(r => lbClassOf(r) === lbClass);
+
+  // ── RANK IS DERIVED, NEVER STORED (09) ───────────────────────────────────
+  // The shipped board placed 4.33 above 4.10 because it rendered whatever the
+  // `rank` column said. Rank is now an ascending sort over VERIFIED rows and
+  // nothing else, so the displayed order cannot disagree with the displayed
+  // times. The band self-calibrates off the whole population, not the filtered
+  // slice, so switching class filters never changes who is held.
+  const lbCalibration = trapOffset(liveLeaderboard, timeForTrap);
+  const judgeBoardRow = r => judgeTime({
+    t60130: r.t60130, mph: r.mph, offset: lbCalibration.offset, timeForTrap,
+  });
+  const board = rankBoard(lbPool, judgeBoardRow);
   const LB_TOP = 3;
-  const lbShown  = lbFiltered.slice(0, LB_TOP);
-  const lbHidden = Math.max(0, lbFiltered.length - lbShown.length);
+  const lbShown  = board.ranked.slice(0, LB_TOP);
+  const lbHidden = Math.max(0, board.ranked.length - lbShown.length);
 
   // ── LEADERBOARD (#7d, third segment of Times) ─────────────────────
   // Moved out of Builds. One competitive surface, one population, one count.
@@ -6465,11 +6599,11 @@ Fields to extract:
 
       <div className="lb-list">
 
-      {lbShown.map(run => (
-        <button type="button" key={run.rank}
-          className={`lb-row${run.rank === 1 ? " lb-row-top" : ""}`}>
-          <span className={`lb-rank${run.rank === 1 ? " lb-rank-top" : ""}`}>
-            {String(run.rank).padStart(2, "0")}
+      {lbShown.map(({ row: run, rank }) => (
+        <button type="button" key={run.driver + run.t60130}
+          className={`lb-row${rank === 1 ? " lb-row-top" : ""}`}>
+          <span className={`lb-rank${rank === 1 ? " lb-rank-top" : ""}`}>
+            {String(rank).padStart(2, "0")}
           </span>
           <span className="lb-mid">
             <span className="lb-name">{run.driver}</span>
@@ -6479,10 +6613,45 @@ Fields to extract:
                 .filter(v => v && v !== "Unknown" && v !== "None")
                 .join(" · ").toUpperCase()}
             </span>
+            {/* #7d's third line: the conditions the time was set in. */}
+            <span className="lb-cond">
+              {[run.da ? `DA ${run.da}` : null,
+                run.et ? `1/4 ${run.et}${run.mph ? ` @ ${run.mph}` : ""}` : null]
+                .filter(Boolean).join(" · ").toUpperCase()}
+            </span>
           </span>
           <span className="lb-right">
             <span className="lb-time">{run.t60130}</span>
-            {run.da && <span className="lb-da">✓ DA {run.da}</span>}
+            <span className="lb-log">✓ LOG</span>
+          </span>
+        </button>
+      ))}
+
+      {/* ── HELD ENTRIES (09) ────────────────────────────────────────────
+          Outside the ranking, not outside the list. Dashed, ▲ in place of a
+          rank number, REVIEW where ✓ LOG would be, and one line saying why.
+          Hiding them would read as censorship to whoever posted them; they
+          carry no rank, so they displace nobody. */}
+      {board.held.map(({ row: run, verdict }) => (
+        <button type="button" key={"held-" + run.driver + run.t60130} className="lb-row lb-row-held">
+          <span className="lb-rank lb-rank-held" aria-hidden="true">▲</span>
+          <span className="lb-mid">
+            <span className="lb-name">{run.driver}</span>
+            <span className="lb-spec">
+              {[run.car, run.turbo, run.fuel, run.manifolds]
+                .filter(v => v && v !== "Unknown" && v !== "None")
+                .join(" · ").toUpperCase()}
+            </span>
+            <span className="lb-held-why">
+              HELD — {run.t60130}s IS OUTSIDE THE VERIFIED BAND
+            </span>
+          </span>
+          <span className="lb-right">
+            <span className="lb-time lb-time-held">{run.t60130}</span>
+            <span className="lb-review">REVIEW</span>
+          </span>
+          <span className="sr-only">
+            Held, not ranked. {heldReason(verdict)}.
           </span>
         </button>
       ))}
@@ -6500,12 +6669,14 @@ Fields to extract:
       {/* Your own placement, gated on evidence — same row shape as the
           field, outlined in --measure, carrying the real gap to the next
           tier up rather than to the bottom of the board. */}
-      {myBoardRuns.proven ? (() => {
+      {myBoardRuns.proven && !myRunVerdict.held ? (() => {
         const mine  = parseFloat(myBoardRuns.proven.time);
-        const ahead = [...lbFiltered].filter(r => Number(r.t60130) < mine)
-          .sort((a, b) => Number(b.t60130) - Number(a.t60130))[0];
-        const gap   = ahead ? +(mine - Number(ahead.t60130)).toFixed(2) : null;
-        const place = lbFiltered.filter(r => Number(r.t60130) < mine).length + 1;
+        // Placement is measured against VERIFIED entries only, exactly like
+        // every other rank on this board.
+        const aheadIdx = board.ranked.filter(x => Number(x.row.t60130) < mine);
+        const ahead = aheadIdx.length ? aheadIdx[aheadIdx.length - 1] : null;
+        const gap   = ahead ? +(mine - Number(ahead.row.t60130)).toFixed(2) : null;
+        const place = aheadIdx.length + 1;
         return (
           <button type="button" className="lb-row lb-row-you">
             <span className="lb-rank">{String(place).padStart(2, "0")}</span>
@@ -6523,6 +6694,28 @@ Fields to extract:
           </button>
         );
       })() : null}
+
+      {/* Your own run, held. Same treatment as anyone else's — the band does
+          not have a polite exception for the person reading the screen. */}
+      {myBoardRuns.proven && myRunVerdict.held && (
+        <button type="button" className="lb-row lb-row-held" onClick={()=>{
+          setTimesView("runs"); setSelectedRunId(myBoardRuns.proven.id);
+        }}>
+          <span className="lb-rank lb-rank-held" aria-hidden="true">▲</span>
+          <span className="lb-mid">
+            <span className="lb-name">YOU · {(profile.nickname || profile.name || "your build").toUpperCase()}</span>
+            <span className="lb-spec">{currentModel.label.toUpperCase()} · {stageLabel.toUpperCase()}</span>
+            <span className="lb-held-why">
+              HELD — {myBoardRuns.proven.time}s IS OUTSIDE THE VERIFIED BAND
+            </span>
+          </span>
+          <span className="lb-right">
+            <span className="lb-time lb-time-held">{myBoardRuns.proven.time}</span>
+            <span className="lb-review">REVIEW</span>
+          </span>
+          <span className="sr-only">Held, not ranked. {heldReason(myRunVerdict, { hp: totalHp })}. Opens the run.</span>
+        </button>
+      )}
 
       {/* The consequence, stated plainly (#4e). */}
       {myBoardRuns.claimCount > 0 && (
