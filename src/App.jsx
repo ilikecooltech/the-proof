@@ -8,6 +8,7 @@ import {
   enablerMap, groupByStage, shortSlotName,
 } from "./lib/stages.js";
 import { trapOffset, judgeTime, rankBoard, heldReason } from "./lib/integrity.js";
+import { parseDatalog } from "./lib/datalog.js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
 const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
@@ -2306,7 +2307,9 @@ button.hdr-slug{cursor:pointer}
 .rf-field{display:flex;flex-direction:column;gap:4px}
 .rf-field.full{grid-column:1/-1}
 .rf-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.rf-input{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-family:var(--font-ui);font-size:13px;outline:none;-webkit-appearance:none;width:100%}
+/* 44px floor: these sat at 38px, which is under the target minimum the rest
+   of the app holds — and this is the form the whole proof story runs through. */
+.rf-input{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:5px;padding:8px 10px;min-height:44px;color:var(--text);font-family:var(--font-ui);font-size:13px;outline:none;-webkit-appearance:none;width:100%}
 .rf-input:focus{border-color:var(--measure);background:rgba(255,255,255,.06)}
 .rf-input option{background:var(--card2);color:var(--text)}
 .rf-btns{display:flex;gap:8px}
@@ -3140,6 +3143,67 @@ ul.bmap-plan{gap:5px}
   color:var(--text-hi);margin-top:3px}
 .goal-bar{display:block;margin-top:4px}
 
+/* ── LOG A RUN · DATALOG + CONSEQUENCE (#6f) ── */
+.rf-h3{margin:2px 0 8px;font-family:var(--font-mono);font-weight:600;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.dl-attach{width:100%;min-height:56px;display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1px dashed var(--line-dashed);border-radius:var(--r-card);background:transparent;
+  color:var(--text-2);font-family:var(--font-mono);font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer}
+.dl-card{display:flex;align-items:center;gap:12px;min-height:74px;padding:12px 14px;
+  border:1px solid var(--verify-bd);border-radius:var(--r-card);background:var(--verify-bg)}
+.dl-tick{font-family:var(--font-mono);font-size:16px;color:var(--verify);flex:none}
+.dl-body{flex:1;min-width:0}
+.dl-name{display:block;font-family:var(--font-ui);font-weight:600;font-size:15px;color:var(--text-hi);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-meta{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:2px}
+.dl-replace{flex:none;min-height:44px;display:flex;align-items:center;padding:0 4px;
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--text-3);cursor:pointer}
+.dl-error{margin-top:8px;font-size:12px;line-height:1.45;color:var(--measure)}
+.rf-cons{display:flex;align-items:flex-start;gap:7px;margin-top:13px;border-radius:5px;padding:8px 10px}
+.rf-cons-ok{border:1px solid var(--verify-bd);background:var(--verify-bg)}
+.rf-cons-warn{border:1px solid var(--measure-bd);background:var(--measure-bg)}
+.rf-cons-muted{border:1px solid var(--line);background:var(--surface)}
+.rf-cons-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;flex:none}
+.rf-cons-ok .rf-cons-lbl{color:var(--verify)}
+.rf-cons-warn .rf-cons-lbl{color:var(--measure)}
+.rf-cons-muted .rf-cons-lbl{color:var(--text-3)}
+.rf-cons-txt{flex:1;font-family:var(--font-ui);font-weight:600;font-size:13px;color:var(--text-hi);
+  text-wrap:pretty}
+.rf-claim{width:100%;min-height:44px;margin-top:2px;border:0;background:transparent;color:var(--text-3);
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+/* ── VEHICLE SETUP HEADER + UNSAVED CHANGES (#6g) ── */
+.setup-hdr{display:flex;align-items:center;gap:10px;padding:8px 18px 10px;flex:none;
+  border-bottom:1px solid var(--line)}
+.setup-back{min-height:44px;display:flex;align-items:center;background:transparent;border:0;
+  padding:0;color:var(--text-2);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer}
+.setup-unsaved{margin-left:auto;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--measure)}
+.setup-heads{display:flex;align-items:center;gap:7px;border:1px solid var(--measure-bd);
+  background:var(--measure-bg);border-radius:5px;padding:8px 10px}
+.setup-heads-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  color:var(--measure);flex:none}
+.setup-heads-txt{flex:1;font-family:var(--font-ui);font-weight:600;font-size:13px;color:var(--text-hi)}
+.unsaved-scrim{align-items:center;justify-content:center;padding:0 26px}
+.unsaved{width:100%;max-width:360px;border:1px solid var(--line-strong);border-radius:12px;
+  background:var(--nav);padding:18px}
+.unsaved-title{margin:0;font-family:var(--font-ui);font-weight:700;font-size:19px;color:var(--text-hi)}
+.unsaved-body{margin:8px 0 0;font-size:13.5px;line-height:1.5;color:var(--text-2);text-wrap:pretty}
+.unsaved-actions{display:flex;flex-direction:column;gap:7px;margin-top:15px}
+.unsaved-primary{width:100%;min-height:46px;border:0;border-radius:var(--r-row);background:var(--action);
+  color:var(--on-action);font-family:var(--font-ui);font-weight:700;font-size:13.5px;
+  letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+.unsaved-secondary{width:100%;min-height:46px;border:1px solid var(--line-dashed);
+  border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.unsaved-tertiary{width:100%;min-height:44px;border:0;background:transparent;color:var(--text-3);
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
 /* ── GARAGE RUN CARD + PLAUSIBILITY (#7a · 09) ── */
 .grun{border:1px solid var(--line);border-radius:7px;background:var(--surface);padding:10px 12px}
 .grun-check{border-color:var(--measure-bd);background:var(--measure-bg)}
@@ -3629,7 +3693,9 @@ function CustomFeatures({ value, onChange }) {
 // a Draggy datalog (splits) or a slip/video — is a LOG; anything else is a CLAIM.
 // The distinction is load-bearing: no datalog, no leaderboard rank.
 function runProof(run) {
-  const hasDatalog = !!(run.splits && Object.keys(run.splits).length > 0);
+  // An attached log file is the strongest evidence; Draggy-derived splits and a
+  // slip/video remain evidence too, which is what the shipped runs carry.
+  const hasDatalog = !!run.datalog || !!(run.splits && Object.keys(run.splits).length > 0);
   const hasSlip    = !!run.videoUrl;
   const proven     = hasDatalog || hasSlip;
   return {
@@ -4116,21 +4182,56 @@ function readSetupFuel() {
   try { return localStorage.getItem("proof-fuel") || "p91"; } catch { return "p91"; }
 }
 
-function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave }) {
-  const [year,  setYear]  = useState(() => Number(profile.year) || 2016);
-  const [model, setModel] = useState(modelId);
-  const [stage, setStage] = useState(() => {
-    const s = inferStage(installedMap);
-    return s === "s3_hybrid" || s === "big_single" ? "custom" : (s || "stock");
-  });
-  const [fuel,  setFuel]  = useState(readSetupFuel);
-  const [end,   setEnd]   = useState(() => {
-    const g = powerGoal || 0;
-    if (g > CEILINGS.hybrid.hp) return "single";
-    if (g > CEILINGS.daily.hp)  return "hybrid";
-    return "daily";
-  });
+// Leaving a vehicle edit mid-change must ASK, never discard silently
+// (08 §Flow requirements, #6g). The screen therefore has to report two things
+// upward: whether it is dirty, and what it would save — so the parent can
+// offer "Save and leave" from the dialog without reaching into this state.
+function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave, onDraft }) {
+  const initial = {
+    year: Number(profile.year) || 2016,
+    model: modelId,
+    stage: (() => {
+      const s = inferStage(installedMap);
+      return s === "s3_hybrid" || s === "big_single" ? "custom" : (s || "stock");
+    })(),
+    fuel: readSetupFuel(),
+    end: (() => {
+      const g = powerGoal || 0;
+      if (g > CEILINGS.hybrid.hp) return "single";
+      if (g > CEILINGS.daily.hp)  return "hybrid";
+      return "daily";
+    })(),
+  };
+  const [base0] = useState(initial);
+  const [form, setForm] = useState(initial);
+  const { year, model, stage, fuel, end } = form;
   const [saved, setSaved] = useState(false);
+
+  const payloadFor = f => {
+    const s = SETUP_STAGES.find(x => x.id === f.stage) || SETUP_STAGES[0];
+    const e = SETUP_ENDS.find(x => x.id === f.end)     || SETUP_ENDS[0];
+    return { year: String(f.year), model: f.model, stage: s, fuel: f.fuel, goal: e.ceiling };
+  };
+  // Reported from the event handler rather than an effect: an effect that calls
+  // setState on the parent cascades a render on every keystroke of the flow.
+  const update = patch => {
+    const next = { ...form, ...patch };
+    setSaved(false);
+    setForm(next);
+    const dirty = Object.keys(base0).some(k => base0[k] !== next[k]);
+    onDraft?.({ dirty, payload: payloadFor(next), modelChanged: next.model !== base0.model });
+  };
+  const setYear  = v => update({ year: v });
+  const setModel = v => update({ model: v });
+  const setStage = v => update({ stage: v });
+  const setFuel  = v => update({ fuel: v });
+  const setEnd   = v => update({ end: v });
+
+  // Changing the model re-checks fitment against everything already fitted —
+  // say so before the save, not after (08 §Flow requirements).
+  const refitCount = model !== base0.model
+    ? Object.keys(installedMap || {}).filter(k => installedMap[k]).length
+    : 0;
 
   const st   = SETUP_STAGES.find(s => s.id === stage) || SETUP_STAGES[0];
   const fu   = SETUP_FUELS.find(f => f.id === fuel)   || SETUP_FUELS[0];
@@ -4162,8 +4263,8 @@ function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave }) {
   const delta   = hp - modelHp;
 
   const on = v => (v ? " on" : "");
-  // Any change re-arms the CTA: what is on screen is no longer what was saved.
-  const touch = fn => v => { setSaved(false); fn(v); };
+  // update() already re-arms the CTA and reports the draft upward.
+  const touch = fn => fn;
 
   return (
     <div className="setup-area">
@@ -4257,11 +4358,48 @@ function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave }) {
           </div>
         </div>
 
+        {refitCount > 0 && (
+          <div className="setup-heads" role="status">
+            <span className="setup-heads-lbl"><span aria-hidden="true">▲</span> HEADS UP</span>
+            <span className="setup-heads-txt">
+              Changing model re-checks fitment on {refitCount} installed part{refitCount === 1 ? "" : "s"}
+            </span>
+          </div>
+        )}
+
         <button type="button" className={`setup-cta${saved ? " saved" : ""}`}
-          onClick={() => { onSave({ year: String(year), model, stage: st, fuel, goal: en.ceiling }); setSaved(true); }}>
+          onClick={() => {
+            onSave(payloadFor(form));
+            setSaved(true);
+            onDraft?.({ dirty: false, payload: payloadFor(form), modelChanged: false });
+          }}>
           {saved ? "✓ Saved" : "Build my parts list"}
         </button>
       </div>
+    </div>
+  );
+}
+
+// ── UNSAVED CHANGES (#6g) ───────────────────────────────────────────────────
+// role="alertdialog", not a confirm(): it needs the same focus trap, Escape
+// and inert background every other sheet in the app has. Three outcomes, and
+// none of them is a silent discard.
+function UnsavedDialog({ summary, onSaveAndLeave, onKeepEditing, onDiscard }) {
+  const ref = useDialog(onKeepEditing);
+  const uid = useId();
+  return (
+    <div className="sheet-scrim unsaved-scrim">
+      <button type="button" className="sheet-scrim-btn" aria-label="Keep editing" onClick={onKeepEditing} />
+      <section className="unsaved" role="alertdialog" aria-modal="true" tabIndex={-1}
+        ref={ref} aria-labelledby={`${uid}-t`} aria-describedby={`${uid}-d`}>
+        <h2 className="unsaved-title" id={`${uid}-t`}>Keep your changes?</h2>
+        <p className="unsaved-body" id={`${uid}-d`}>{summary}</p>
+        <div className="unsaved-actions">
+          <button type="button" className="unsaved-primary" onClick={onSaveAndLeave}>Save and leave</button>
+          <button type="button" className="unsaved-secondary" onClick={onKeepEditing}>Keep editing</button>
+          <button type="button" className="unsaved-tertiary" onClick={onDiscard}>Discard changes</button>
+        </div>
+      </section>
     </div>
   );
 }
@@ -4273,7 +4411,7 @@ function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave }) {
 //
 // It renders from the SAME recommendation object as every other screen (step 5),
 // so the app never proposes two different first moves.
-function ActivationScreen({ model, baseHp, nextRec, recs, profileName, onStart, onOptions, onBrowse, onSkip }) {
+function ActivationScreen({ model, baseHp, nextRec, recs, profileName, onStart, onOptions, onBrowse, onSkip, onEditCar }) {
   const variant = nextRec?.variant || null;
   // "+N hp ready today" is the catalog's gain for THIS model and THIS part.
   const readyHp = variant ? (variant.hp?.[model.id] || 0) : 0;
@@ -4305,7 +4443,13 @@ function ActivationScreen({ model, baseHp, nextRec, recs, profileName, onStart, 
     <div className="garage-area">
       {/* #4b: full-bleed band, 11px 18px, hairline under it. */}
       <div className="act-hero">
-        <div className="act-hero-lbl">{profileName || "Your build"} · {model.label}</div>
+        <div className="gh-carrow">
+          <div className="act-hero-lbl">{profileName || "Your build"} · {model.label}</div>
+          {/* The new-user path starts at "is this actually my car?" — so the
+              route into vehicle setup is visible here too, not only after
+              activation (08 §Flow requirements). */}
+          <button type="button" className="pfx-editcar" onClick={onEditCar}>Edit car</button>
+        </div>
         <div className="act-hero-row">
           <span className="act-hero-hp">{baseHp}</span>
           <span className="act-hero-unit">hp · factory</span>
@@ -4833,8 +4977,12 @@ export default function TheProof() {
   const [runForm, setRunForm]       = useState({
     date: new Date().toISOString().slice(0,10),
     type:"60-130", time:"", mph:"", et8th:"", et:"", trap:"",
-    da:"", surface:"Street", fuel:"", tires:"", note:"", videoUrl:"", splits:{}, tuneType:""
+    da:"", surface:"Street", fuel:"", tires:"", note:"", videoUrl:"", splits:{}, tuneType:"",
+    // The datalog the "attach datalog" button has always promised, plus the
+    // condition #6f captures alongside DA.
+    datalog: null, airTemp: "",
   });
+  const [datalogError, setDatalogError] = useState("");
   const [runFormOpen, setRunFormOpen] = useState(false);
   const [selectedRunId, setSelectedRunId] = useState(null);
   const [runSortKey,    setRunSortKey]    = useState("date");
@@ -4859,7 +5007,13 @@ export default function TheProof() {
   const [showPublicPage, setShowPublicPage]     = useState(false); // own public page preview
   // True while any modal sheet is up — drives `inert` on the three app-shell
   // siblings so background controls can't be tabbed into or reached by AT.
-  const dialogOpen = showPublicPage || !!viewedBuild || showAdminPanel || !!openSlot;
+  // What vehicle setup would save if the user left right now, and whether
+  // anything is actually unsaved. Held here so the unsaved-changes dialog can
+  // offer "Save and leave" without reaching into the child's state.
+  const [setupDraft, setSetupDraft] = useState({ dirty: false, payload: null });
+  const [pendingLeave, setPendingLeave] = useState(null);
+
+  const dialogOpen = showPublicPage || !!viewedBuild || showAdminPanel || !!openSlot || !!pendingLeave;
   // Custom-tune add-on features (provider + selected feature ids). Persisted to
   // localStorage — no DB migration, doesn't touch existing run/profile data.
   // Lazy initializer (runs once) so we don't add a set-state-in-effect.
@@ -5024,12 +5178,12 @@ export default function TheProof() {
       const { data: runRows, error: runErr } = await sb.from("runs").select("*").eq("user_id", uid);
       if (runErr) { console.warn("Runs fetch error:", runErr); }
       const mapped = (runRows || []).map(r => {
-        const { note, splits, tuneType } = unpackNote(r.note || "");
+        const { note, splits, tuneType, datalog } = unpackNote(r.note || "");
         // Handle both possible column names: time_val (new) and time (original schema)
         const timeVal = r.time_val != null ? r.time_val : (r.time != null ? r.time : null);
         return { id:r.id, date:r.date, type:r.run_type, time:timeVal, mph:r.mph,
           et8th:r.et8th, et:r.et, trap:r.trap, da:r.da, surface:r.surface,
-          fuel:r.fuel, tires:r.tires, note, splits, tuneType, videoUrl:r.video_url };
+          fuel:r.fuel, tires:r.tires, note, splits, tuneType, datalog, videoUrl:r.video_url };
       });
       // Sort client-side: most recent date first
       mapped.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
@@ -5265,6 +5419,14 @@ export default function TheProof() {
   // Vehicle setup is a Garage sub-view reached from the visible "Edit car"
   // chips, so it is declared before the screens that reference it.
   function openSetup() { setActiveTab("setup"); track("tab_viewed", { tab: "setup" }); }
+
+  // ── LEAVING VEHICLE SETUP MID-EDIT (#6g) ────────────────────────────────
+  // Every route out of setup goes through here, so there is no path that can
+  // silently drop an edit — the tab bar included.
+  function leaveSetup(go) {
+    if (activeTab === "setup" && setupDraft.dirty) { setPendingLeave(() => go); return; }
+    go();
+  }
   // Jump straight into the build flow at a specific slot (used by "What's Next").
   function goToSlot(slotId) {
     const slot = getSlotById(slotId);
@@ -5316,27 +5478,65 @@ export default function TheProof() {
   // Extra fields (splits, tuneType) are packed into the note text column since the
   // DB schema is fixed. Each marker lives on its own line so parsing one can't corrupt
   // another (splits JSON is single-line via JSON.stringify).
-  function packNote(note, splits, tuneType) {
+  function packNote(note, splits, tuneType, datalog) {
     const parts = [];
     if (note) parts.push(note);
     if (tuneType) parts.push('__tune__:' + tuneType);
     if (splits && Object.keys(splits).length) parts.push('__splits__:' + JSON.stringify(splits));
+    // Same marker mechanism as splits/tuneType: the schema and the write shape
+    // stay exactly as they are (11 §6), and the evidence travels with the run.
+    if (datalog) parts.push('__datalog__:' + JSON.stringify(datalog));
     return parts.join('\n');
   }
   function unpackNote(raw) {
-    if (!raw) return { note:'', splits:{}, tuneType:'' };
-    let splits = {}, tuneType = '';
+    if (!raw) return { note:'', splits:{}, tuneType:'', datalog:null };
+    let splits = {}, tuneType = '', datalog = null;
     const noteLines = [];
     for (const line of String(raw).split('\n')) {
       if (line.startsWith('__splits__:')) {
         try { splits = JSON.parse(line.slice(11)); } catch { /* ignore malformed */ }
       } else if (line.startsWith('__tune__:')) {
         tuneType = line.slice(9);
+      } else if (line.startsWith('__datalog__:')) {
+        try { datalog = JSON.parse(line.slice(12)); } catch { /* ignore malformed */ }
       } else {
         noteLines.push(line);
       }
     }
-    return { note: noteLines.join('\n').trim(), splits, tuneType };
+    return { note: noteLines.join('\n').trim(), splits, tuneType, datalog };
+  }
+
+  // ── ATTACH A DATALOG (08 §Flow requirements) ────────────────────────────
+  // The file is read in the browser; nothing is uploaded. Where the log
+  // contains the pull, the time and splits come FROM it rather than from
+  // typing — which is the ingest-side answer to a mistyped 60–130.
+  async function attachDatalog(file) {
+    setDatalogError("");
+    try {
+      const text = await file.text();
+      const parsed = parseDatalog(text);
+      const meta = {
+        name: file.name,
+        size: file.size,
+        parsed: parsed.ok,
+        t60130: parsed.ok ? parsed.t60130 : null,
+        samples: parsed.samples ?? null,
+        duration: parsed.duration ?? null,
+      };
+      setRunForm(prev => ({
+        ...prev,
+        datalog: meta,
+        // Only overwrite what the log actually measured.
+        ...(parsed.ok ? { time: String(parsed.t60130), type: "60-130", splits: { ...prev.splits, ...parsed.splits } } : {}),
+      }));
+      if (!parsed.ok) {
+        setDatalogError(`Attached, but ${parsed.reason} — enter the time yourself.`);
+      }
+      track("datalog_attached", { parsed: parsed.ok, reason: parsed.reason || null });
+    } catch (e) {
+      setDatalogError(e?.message || "Could not read that file.");
+      track("datalog_attached", { parsed: false, reason: "read_failed" });
+    }
   }
 
   function addRun() {
@@ -5371,6 +5571,8 @@ export default function TheProof() {
       splits:   runForm.splits || {},
       videoUrl: runForm.videoUrl,
       tuneType: runForm.tuneType || "",
+      datalog:  runForm.datalog || null,
+      airTemp:  runForm.airTemp || "",
     };
 
     // ── 2. UPDATE UI RIGHT NOW (no await) ────────────────────────────
@@ -5379,7 +5581,7 @@ export default function TheProof() {
       next.sort((a,b)=>(b.date||"").localeCompare(a.date||""));
       return next;
     });
-    setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{},tuneType:""});
+    setRunForm({date:new Date().toISOString().slice(0,10),type:"60-130",time:"",mph:"",et8th:"",et:"",trap:"",da:"",surface:"Street",fuel:"",tires:"",note:"",videoUrl:"",splits:{},tuneType:"",datalog:null,airTemp:""});
     setRunFormOpen(false);
     setDraggyImage(null);
     setSelectedRunId(tempId);
@@ -5409,7 +5611,7 @@ export default function TheProof() {
       user_id:uid, date:r.date, run_type:r.type,
       time_val:r.time, mph:r.mph, et8th:r.et8th, et:r.et, trap:r.trap,
       da:r.da, surface:r.surface, fuel:r.fuel, tires:r.tires,
-      note: packNote(r.note, r.splits, r.tuneType),
+      note: packNote(r.note, r.splits, r.tuneType, r.datalog),
       video_url:r.videoUrl
     };
 
@@ -5421,7 +5623,7 @@ export default function TheProof() {
         id:saved.id, date:saved.date, type:saved.run_type, time:savedTime,
         mph:saved.mph, et8th:saved.et8th, et:saved.et, trap:saved.trap, da:saved.da,
         surface:saved.surface, fuel:saved.fuel, tires:saved.tires,
-        note:unp.note, splits:unp.splits, tuneType:unp.tuneType, videoUrl:saved.video_url
+        note:unp.note, splits:unp.splits, tuneType:unp.tuneType, datalog:unp.datalog, videoUrl:saved.video_url
       };
     };
 
@@ -5960,6 +6162,7 @@ Fields to extract:
         track("community_builds_opened", { from:"activation" });
       }}
       onSkip={dismissActivation}
+      onEditCar={openSetup}
     />
   ) : garageView === "planner" ? (
     <PlannerScreen
@@ -6002,6 +6205,50 @@ Fields to extract:
     if (!Number.isFinite(mine) || verifiedField.length === 0) return null;
     return Math.round((verifiedField.filter(t => t > mine).length / verifiedField.length) * 100);
   })();
+
+  // ── WHAT SUBMITTING THIS RUN WOULD DO ─────────────────────────────
+  // Computed from the form as it stands, against the same verified board and
+  // the same plausibility band the rest of the app uses — so the promise made
+  // here is the outcome that actually happens.
+  function getRunConsequence() {
+    if (!runFormOpen) return null;
+    const t = parseFloat(String(runForm.time).replace(/[^\d.-]/g, ""));
+    const isRoll = runForm.type === "60-130";
+    const proven = !!runForm.datalog || Object.keys(runForm.splits || {}).length > 0 || !!runForm.videoUrl;
+
+    if (!Number.isFinite(t)) {
+      return { tone: "muted", label: "NO TIME YET",
+        text: "Attach a datalog or enter a time — a run needs one of the two." };
+    }
+    if (isRoll) {
+      const verdict = judgeTime({
+        t60130: t,
+        mph: runForm.trap ? parseFloat(runForm.trap) : null,
+        modelTime: speeds.t60130, offset: myBandOffset, timeForTrap,
+      });
+      if (verdict.held) {
+        return { tone: "warn", label: "▲ WILL BE HELD",
+          text: `${heldReason(verdict, { hp: totalHp })}. Saved either way, but it will not rank until it checks out.` };
+      }
+    }
+    if (!proven) {
+      return { tone: "warn", label: "▲ WON'T RANK",
+        text: "No datalog attached — this saves as a claim and stays off the board." };
+    }
+    if (!isRoll) {
+      return { tone: "ok", label: "WILL SAVE",
+        text: `Datalog attached. ${runForm.type} runs are logged but the board ranks 60–130.` };
+    }
+    // Which board: the class the build's own turbo puts it in, read the same
+    // way every leaderboard row is classified.
+    const turboVariant = installedMap.turbo_upgrade
+      ? getVariantById("turbo_upgrade", installedMap.turbo_upgrade) : null;
+    const classId = lbClassOf({ turbo: turboVariant ? `${turboVariant.brand} ${turboVariant.label}` : "" });
+    const cls = LB_CLASSES.find(c => c.id === classId);
+    const place = board.ranked.filter(x => Number(x.row.t60130) < t).length + 1;
+    return { tone: "ok", label: "WILL RANK",
+      text: `Datalog attached — enters the ${cls ? cls.label : "60–130"} board at #${place}.` };
+  }
 
   // ── TIMES · ONE COMPETITIVE SURFACE (#7d) ─────────────────────────
   // My runs · Trap chart · Leaderboard. The board used to live in Builds with
@@ -6076,6 +6323,37 @@ Fields to extract:
       {runFormOpen && (
         <div className="run-form">
           <div className="rf-title">Log a Run</div>
+
+          {/* ── DATALOG · REQUIRED TO RANK (#6f) ────────────────────────
+              The field the button has always promised. Read in the browser;
+              nothing is uploaded. Where the log contains the pull, the time
+              and the splits come from it rather than from typing — which is
+              the ingest-side answer to a mistyped 60–130 (09). */}
+          <h3 className="rf-h3">Datalog · required to rank</h3>
+          <input type="file" id={`${formUid}-datalog`} className="sr-only"
+            accept=".csv,.txt,.log,.tsv,text/csv,text/plain"
+            onChange={e => { const f = e.target.files?.[0]; if (f) attachDatalog(f); e.target.value = ""; }} />
+          {runForm.datalog ? (
+            <div className="dl-card">
+              <span className="dl-tick" aria-hidden="true">✓</span>
+              <span className="dl-body">
+                <span className="dl-name">{runForm.datalog.name}</span>
+                <span className="dl-meta">
+                  {[
+                    `${Math.max(1, Math.round(runForm.datalog.size / 1024))} KB`,
+                    runForm.datalog.samples ? `${runForm.datalog.samples} SAMPLES` : null,
+                    runForm.datalog.parsed ? `READS ${runForm.datalog.t60130}S 60–130` : "TIME ENTERED BY HAND",
+                  ].filter(Boolean).join(" · ")}
+                </span>
+              </span>
+              <label htmlFor={`${formUid}-datalog`} className="dl-replace">Replace</label>
+            </div>
+          ) : (
+            <label htmlFor={`${formUid}-datalog`} className="dl-attach">
+              <span aria-hidden="true">↥</span> Attach datalog (.csv / .txt)
+            </label>
+          )}
+          {datalogError && <div className="dl-error" role="status">{datalogError}</div>}
 
           {/* Draggy screenshot upload */}
           <div className="draggy-upload-area">
@@ -6188,9 +6466,18 @@ Fields to extract:
               </select>
             </div>
             <div className="rf-field">
-              <label className="rf-label" htmlFor={`${formUid}-da`}>DA / Elevation</label>
+              <label className="rf-label" htmlFor={`${formUid}-da`}>Density altitude</label>
               <input id={`${formUid}-da`} className="rf-input" type="text" placeholder="-65 ft"
                 value={runForm.da} onChange={e=>setRunForm(p=>({...p,da:e.target.value}))}/>
+            </div>
+            {/* #6f captures air temp alongside DA. It is typed, and it is not
+                labelled AUTO or GPS — this build has no sensor behind it, and
+                a badge claiming otherwise would be the same class of lie the
+                rest of this pass is removing. */}
+            <div className="rf-field">
+              <label className="rf-label" htmlFor={`${formUid}-airtemp`}>Air temp</label>
+              <input id={`${formUid}-airtemp`} className="rf-input" type="text" placeholder="64 °F"
+                value={runForm.airTemp} onChange={e=>setRunForm(p=>({...p,airTemp:e.target.value}))}/>
             </div>
             <div className="rf-field">
               <label className="rf-label" htmlFor={`${formUid}-tires`}>Tires</label>
@@ -6208,10 +6495,34 @@ Fields to extract:
                 value={runForm.note} onChange={e=>setRunForm(p=>({...p,note:e.target.value}))}/>
             </div>
           </div>
+          {/* ── THE CONSEQUENCE, BEFORE SUBMIT (08 §Flow, 09) ─────────
+              Three things a user is entitled to know before they commit: will
+              this rank, where does it land, and does the model believe it. The
+              last one is the warning-before-submit that 09 asks for under the
+              entry-error root cause — after the fact is too late. */}
+          {(() => {
+            const c = getRunConsequence();
+            if (!c) return null;
+            return (
+              <div className={`rf-cons rf-cons-${c.tone}`} role="status">
+                <span className="rf-cons-lbl">{c.label}</span>
+                <span className="rf-cons-txt">{c.text}</span>
+              </div>
+            );
+          })()}
+
           <div className="rf-btns">
-            <button className="rf-save" onClick={addRun}>Save Run</button>
+            <button className="rf-save" onClick={addRun}>
+              {runForm.datalog || Object.keys(runForm.splits||{}).length ? "Submit run" : "Save run"}
+            </button>
             <button className="rf-cancel" onClick={()=>setRunFormOpen(false)}>Cancel</button>
           </div>
+          {/* The claim path exists and is labelled for what it is. */}
+          {!runForm.datalog && !Object.keys(runForm.splits||{}).length && !runForm.videoUrl && (
+            <button className="rf-claim" onClick={addRun}>
+              Save as claim — no datalog, no rank
+            </button>
+          )}
         </div>
       )}
 
@@ -6492,13 +6803,7 @@ Fields to extract:
   // profile via saveProfile, the tune slot via saveBuild, the goal via
   // setPowerGoal. Fuel is the only new value and follows powerGoal's pattern —
   // a local key, not a schema change.
-  const setupScreen = (
-    <VehicleSetup
-      profile={profile}
-      modelId={modelId}
-      installedMap={installedMap}
-      powerGoal={powerGoal}
-      onSave={({ year, model, stage, fuel, goal }) => {
+  function saveVehicle({ year, model, stage, fuel, goal }) {
         saveProfile({ ...profile, car: model, year });
         setPowerGoal(goal);
         try { localStorage.setItem("proof-fuel", fuel); } catch { /* private mode */ }
@@ -6514,10 +6819,29 @@ Fields to extract:
           saveBuild(next, wishlistMap);
           return next;
         });
-        clearActivationDismissal();
-        track("vehicle_setup_saved", { model, year, stage: stage.id, fuel, goal });
-      }}
-    />
+    clearActivationDismissal();
+    setSetupDraft({ dirty: false, payload: null });
+    track("vehicle_setup_saved", { model, year, stage: stage.id, fuel, goal });
+  }
+
+  const setupScreen = (
+    <>
+      {/* #6g gives the edit its own header: a way back that goes through the
+          unsaved-changes check, and an honest "Unsaved" state. */}
+      <div className="setup-hdr">
+        <button type="button" className="setup-back"
+          onClick={()=>leaveSetup(()=>setActiveTab("garage"))}>‹ Garage</button>
+        {setupDraft.dirty && <span className="setup-unsaved">Unsaved</span>}
+      </div>
+      <VehicleSetup
+        profile={profile}
+        modelId={modelId}
+        installedMap={installedMap}
+        powerGoal={powerGoal}
+        onDraft={setSetupDraft}
+        onSave={saveVehicle}
+      />
+    </>
   );
 
   // ── HEADER CONTEXT SLUG ────────────────────────────────────────────
@@ -6550,11 +6874,11 @@ Fields to extract:
   // competitive surfaces with different counts was the largest single source
   // of "this feels strange", so Times absorbed it as a segment and Profile
   // took the freed slot instead of resolving to the car picker.
-  const goTab = id => () => {
+  const goTab = id => () => leaveSetup(() => {
     setActiveTab(id);
     if (id === "builds" && communityBuilds.length === 0) loadCommunityBuilds();
     track("tab_viewed", { tab: id });
-  };
+  });
   const NAV_TABS = [
     { id: "garage",  label: "garage",  count: 0,                 onSelect: goTab("garage") },
     { id: "parts",   label: "parts",   count: numInst + numWish, onSelect: goTab("parts")  },
@@ -7113,6 +7437,31 @@ Fields to extract:
           bestRun60130={viewedBuild.bestT60130 != null ? { time: viewedBuild.bestT60130 } : null}
           runs={viewedBuild.runs || []}
           onClose={()=>setViewedBuild(null)}
+        />
+      )}
+
+      {/* Unsaved vehicle changes (#6g) — never a silent discard. */}
+      {pendingLeave && (
+        <UnsavedDialog
+          summary={(() => {
+            const p = setupDraft.payload;
+            const to = p ? (MODELS.find(m => m.id === p.model)?.label || p.model) : "";
+            const from = currentModel.label;
+            return p && p.model !== profile.car
+              ? `You switched ${from} → ${to} but haven't saved. Leaving now keeps your car as a ${profile.year || ""} ${from}.`.replace(/\s+/g, " ")
+              : `You changed your car setup but haven't saved. Leaving now keeps it as it was.`;
+          })()}
+          onSaveAndLeave={()=>{
+            if (setupDraft.payload) saveVehicle(setupDraft.payload);
+            const go = pendingLeave; setPendingLeave(null); go?.();
+            track("vehicle_setup_leave", { choice: "save" });
+          }}
+          onKeepEditing={()=>{ setPendingLeave(null); track("vehicle_setup_leave", { choice: "keep" }); }}
+          onDiscard={()=>{
+            setSetupDraft({ dirty: false, payload: null });
+            const go = pendingLeave; setPendingLeave(null); go?.();
+            track("vehicle_setup_leave", { choice: "discard" });
+          }}
         />
       )}
 
