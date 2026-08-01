@@ -47,14 +47,19 @@ export function modelTolerance(modelTime) {
   return Math.max(1.2, 0.3 * modelTime);
 }
 
-// A missing trap speed must not be read as a trap speed of zero. Number(null)
-// is 0 and 0 is finite, which quietly clamps to the slow end of the reference
-// table and indicts every run that simply never recorded a trap.
-const asTrap = v => {
+// ── NULL IS NOT ZERO ────────────────────────────────────────────────────────
+// Number(null) is 0 and 0 is finite, so a plain `Number.isFinite` guard reads
+// every MISSING value as a real measurement of zero. On the live board that
+// turned four quarter-mile-only entries (t60130 null, trap present) into runs
+// "logged at 0.00s", which then (a) rendered as HELD with a blank time and
+// (b) poisoned the population calibration badly enough to hold the two
+// genuinely fastest cars. Every numeric read in this module goes through here.
+const asNumber = v => {
   if (v === null || v === undefined || v === "") return null;
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : null;
 };
+const asTrap = asNumber;
 
 const median = xs => {
   if (!xs.length) return 0;
@@ -74,8 +79,8 @@ const median = xs => {
 export function trapOffset(rows, timeForTrap) {
   const deltas = [];
   (rows || []).forEach(r => {
-    const t = Number(r.t60130), mph = asTrap(r.mph);
-    if (!Number.isFinite(t) || mph === null) return;
+    const t = asNumber(r.t60130), mph = asTrap(r.mph);
+    if (t === null || mph === null) return;   // no time = nothing to calibrate on
     const expected = timeForTrap(mph);
     if (Number.isFinite(expected)) deltas.push(t - expected);
   });
@@ -96,8 +101,10 @@ export function trapOffset(rows, timeForTrap) {
  * }
  */
 export function judgeTime({ t60130, mph, modelTime, offset = 0, timeForTrap }) {
-  const t = Number(t60130);
-  if (!Number.isFinite(t)) return { checked: false, held: false };
+  const t = asNumber(t60130);
+  // No time is not a slow time. An entry with nothing in this metric is
+  // neither plausible nor implausible — it is simply not a 60–130 run.
+  if (t === null) return { checked: false, held: false, noTime: true };
 
   const trap = asTrap(mph);
   if (trap !== null && typeof timeForTrap === "function") {
@@ -113,8 +120,8 @@ export function judgeTime({ t60130, mph, modelTime, offset = 0, timeForTrap }) {
     }
   }
 
-  const m = Number(modelTime);
-  if (Number.isFinite(m) && m > 0) {
+  const m = asNumber(modelTime);
+  if (m !== null) {
     const tol = modelTolerance(m);
     const delta = +(t - m).toFixed(2);
     return {
@@ -134,20 +141,29 @@ export function judgeTime({ t60130, mph, modelTime, offset = 0, timeForTrap }) {
  *
  * @param rows    entries carrying at least { t60130 }
  * @param judge   (row) => the judgeTime result for that row
- * @returns { ranked, held, all } — `all` is the display order: every verified
- *          row in time order carrying its derived rank, then the held rows,
- *          which carry no rank and therefore displace nothing.
+ * @returns { ranked, held, noTime, all }
+ *   ranked  verified rows in time order, carrying their derived rank
+ *   held    implausible rows — no rank, so they displace nothing
+ *   noTime  rows with no 60–130 time at all. NOT held: a quarter-mile-only
+ *           entry has not made an implausible claim, it has made none. It is
+ *           kept as its own bucket so the caller can be honest about it
+ *           instead of flagging it or silently dropping it.
  */
 export function rankBoard(rows, judge) {
   const judged = (rows || []).map(r => ({ row: r, verdict: judge(r) }));
-  const asc = (a, b) => Number(a.row.t60130) - Number(b.row.t60130);
+  const t = j => asNumber(j.row.t60130) ?? Infinity;
+  const asc = (a, b) => t(a) - t(b);
 
-  const ranked = judged.filter(j => !j.verdict.held).sort(asc)
+  const timed = judged.filter(j => !j.verdict.noTime);
+  const noTime = judged.filter(j => j.verdict.noTime)
+    .map(j => ({ ...j, rank: null, held: false, noTime: true }));
+
+  const ranked = timed.filter(j => !j.verdict.held).sort(asc)
     .map((j, i) => ({ ...j, rank: i + 1, held: false }));
-  const held = judged.filter(j => j.verdict.held).sort(asc)
+  const held = timed.filter(j => j.verdict.held).sort(asc)
     .map(j => ({ ...j, rank: null, held: true }));
 
-  return { ranked, held, all: [...ranked, ...held] };
+  return { ranked, held, noTime, all: [...ranked, ...held, ...noTime] };
 }
 
 /**

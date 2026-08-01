@@ -3242,6 +3242,12 @@ ul.bmap-plan{gap:5px}
 .lb-review{display:block;font-family:var(--font-mono);font-size:10px;color:var(--measure);margin-top:2px}
 .lb-log{display:block;font-family:var(--font-mono);font-size:10px;color:var(--verify);margin-top:2px}
 .lb-cond{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:3px}
+/* No time in THIS metric — neutral, because there is nothing to doubt. */
+.lb-row-notime{border:1px solid var(--line);background:transparent;cursor:default}
+.lb-rank-notime{font-family:var(--font-mono);font-size:12px;color:var(--text-3)}
+.lb-row-notime .lb-name{color:var(--text-2)}
+.lb-notime-lbl{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.lb-notime-et{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:2px}
 
 /* ── PROFILE (#7f) ── */
 .pfx-card{border:1px solid var(--line-strong);border-radius:var(--r-card);
@@ -7003,6 +7009,36 @@ Fields to extract:
           </span>
         </button>
       ))}
+
+      {/* ── ENTRIES WITH NO 60–130 TIME ──────────────────────────────────
+          Real cars with a quarter-mile slip but nothing in THIS metric. They
+          have not made an implausible claim, so they are not held; they have
+          not made a 60–130 claim either, so they cannot be ranked. Shown
+          plainly with what they did run — neither flagged nor quietly dropped. */}
+      {board.noTime.length > 0 && (
+        <>
+          <div className="lb-divider">
+            <span className="lb-divider-line" />
+            <span className="lb-divider-lbl">NO 60–130 TIME</span>
+            <span className="lb-divider-line" />
+          </div>
+          {board.noTime.map(({ row: run }) => (
+            <div key={"nt-" + run.driver} className="lb-row lb-row-notime">
+              <span className="lb-rank lb-rank-notime" aria-hidden="true">—</span>
+              <span className="lb-mid">
+                <span className="lb-name">{run.driver}</span>
+                <span className="lb-spec">
+                  {[run.car, run.turbo].filter(v => v && v !== "Unknown").join(" · ").toUpperCase()}
+                </span>
+              </span>
+              <span className="lb-right">
+                <span className="lb-notime-lbl">1/4 ONLY</span>
+                {run.et && <span className="lb-notime-et">{run.et}{run.mph ? ` @ ${run.mph}` : ""}</span>}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
 
       {/* #4e pins your row below a "N MORE" divider so the gap to the next
           tier is readable without scrolling the whole field. */}
