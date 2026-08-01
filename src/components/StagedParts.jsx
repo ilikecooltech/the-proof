@@ -104,7 +104,10 @@ export default function StagedParts({
       <div className="sp-scroll">
         {groups.map(g => {
           if (!g.total) return null;
-          const tone = g.isCurrent ? "cur" : g.idx < g.currentStage ? "done" : "future";
+          // Orange marks one group: where the build IS, or — for a build with
+          // nothing fitted, which has not reached a tier — where to begin.
+          const tone = g.isCurrent || g.isStart ? "cur"
+            : g.idx < g.currentStage ? "done" : "future";
 
           if (g.collapsed) {
             return (
@@ -127,9 +130,10 @@ export default function StagedParts({
                 <span className="sp-h2-lbl">{g.label}</span>
                 <span className="sp-h2-rule" />
                 <span className="sp-h2-count">
-                  {g.isCurrent ? "You are here" : `${g.installedCount} of ${g.total}`}
+                  {g.isCurrent ? "You are here" : g.isStart ? "Start here" : `${g.installedCount} of ${g.total}`}
                 </span>
                 {g.isCurrent && <span className="sr-only">— the stage your build is at now</span>}
+                {g.isStart && <span className="sr-only">— nothing fitted yet, this is the first rung</span>}
               </h2>
               <ul className="sp-list">
                 {g.rows.map(r => <Row key={r.slotId} row={r} onOpen={onOpenSlot} />)}

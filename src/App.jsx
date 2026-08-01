@@ -5,6 +5,7 @@ import { pickTunePair } from "./tuneCompare.js";
 import StagedParts from "./components/StagedParts.jsx";
 import {
   STAGE_INDEX_BY_BUILD_STAGE, SORT_KEYS,
+  STAGE_1, STAGE_3, STAGE_PLUS, STAGE_SUPPORT,
   enablerMap, groupByStage, shortSlotName,
 } from "./lib/stages.js";
 import { trapOffset, judgeTime, rankBoard, heldReason } from "./lib/integrity.js";
@@ -388,7 +389,7 @@ const REC_STAGE_ORDER = ["stock", "s1", "s2", "s3_hybrid", "big_single"];
 // stage is.
 const REC_STAGE_LABEL = {
   stock:"Stock", s1:"Stage 1", s2:"Stage 2",
-  s3_hybrid:"Hybrid turbo", big_single:"Big single turbo",
+  s3_hybrid:"Big turbo", big_single:"Big single turbo",
 };
 const rankOfStage = s => Math.max(0, REC_STAGE_ORDER.indexOf(s));
 
@@ -1797,9 +1798,11 @@ const HP_SCALE_TOP = 1040;
 // "1040+ TOP END" is a near-ceiling, not a hard max — the `+` is load-bearing.
 // Never relabel it MAX.
 const CEILINGS = {
-  daily:  { hp: 750,  label: "DAILY"  },  // reliable, stock turbos
-  hybrid: { hp: 850,  label: "HYBRID" },  // keeps the fuel system
-  single: { hp: 1040, label: "SINGLE" },  // orphans OEM-turbo parts
+  daily:  { hp: 750,  label: "DAILY"     },  // reliable, stock turbos
+  // Stage 3 is BIG TURBOS. A big single is one option inside it — a bigger
+  // ceiling and a different set of trade-offs, not a different tier.
+  hybrid: { hp: 850,  label: "BIG TURBO" },  // upgraded / hybrid, keeps the fuel system
+  single: { hp: 1040, label: "BIG SINGLE"},  // one big turbo, orphans OEM-turbo parts
 };
 
 const pctOfScale = v => Math.max(0, Math.min(100, (v / HP_SCALE_TOP) * 100));
@@ -3132,6 +3135,10 @@ ul.bmap-plan{gap:5px}
 .vc-fyb-ev{flex:1;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
 .vc-reason{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--text-hi);
   font-weight:600;text-wrap:pretty}
+/* A fact about the hardware class, not an action — neutral, never orange. */
+.vc-class-chip{flex:none;font-family:var(--font-mono);font-size:10px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);
+  border:1px solid var(--line-dashed);border-radius:var(--r-chip);padding:2px 6px}
 /* One primary action per screen: the recommended card, and nothing else. */
 .vc-btn.vprimary{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:700}
 /* ── GARAGE · GOAL CARD (#7a) ── */
@@ -3957,6 +3964,10 @@ function VariantCard({
   // #8b: exactly one primary action per screen. Only the recommended card
   // takes the filled orange button; every other card is outlined.
   isPrimary = false, evidence = null, reason = null,
+  // Which kind of turbo this product is. Stage 3 is "big turbos"; a big single
+  // is one of the choices inside it, so the choice has to be visible on the
+  // card rather than implied by the price.
+  classChip = null,
 }) {
   // A catalog zero is a MEASURED zero and reads "+0"; only a missing figure
   // reads "—". The staged row and this card have to agree about the same part.
@@ -3986,6 +3997,7 @@ function VariantCard({
       </div>
       <div className="vc-name-row">
         <span className="vc-name">{v.label}</span>
+        {classChip && <span className="vc-class-chip">{classChip}</span>}
         {isAdminPick && <span className="vc-rec-chip vc-rec-curated">Curator pick</span>}
       </div>
       {/* Where the recommendation is NOT the biggest gain in the slot, the
@@ -4139,6 +4151,10 @@ function PartSheet({
               evidence={leadId === v.id ? evidence : null}
               reason={leadId === v.id ? reasonLine : null}
               isAdminPick={adminPicks[slot.id] === v.id}
+              classChip={slot.id === "turbo_upgrade"
+                ? (REC_BIG_SINGLE_TURBOS.has(v.id) ? "Big single"
+                  : REC_HYBRID_TURBOS.has(v.id) ? "Big turbo" : null)
+                : null}
               buildMode={buildMode} modelId={modelId} currentModel={currentModel}
               liked={!!likedParts[v.id]} likeCount={likeCounts[v.id] || 0} likesLive={likesLive}
               onToggleLike={onToggleLike} onChoose={onChoose} onTrackBuy={onTrackBuy}
@@ -4178,8 +4194,10 @@ const SETUP_FUELS = [
 ];
 const SETUP_ENDS = [
   { id: "daily",  label: "Reliable daily", note: "Stay under 750 hp · stock turbos",    ceiling: CEILINGS.daily.hp },
-  { id: "hybrid", label: "Hybrid turbos",  note: "To ~850 hp · keeps fuel system",      ceiling: CEILINGS.hybrid.hp },
-  { id: "single", label: "Big single",     note: "1,000+ hp · orphans OEM-turbo parts", ceiling: CEILINGS.single.hp },
+  { id: "hybrid", label: "Big turbos",     note: "To ~850 hp · upgraded or hybrid, keeps fuel system", ceiling: CEILINGS.hybrid.hp },
+  // Big single is a CHOICE inside the big-turbo tier, not a tier of its own —
+  // it keeps its higher ceiling and its own trade-off.
+  { id: "single", label: "Big single",     note: "1,000+ hp · one big turbo, orphans OEM-turbo parts", ceiling: CEILINGS.single.hp },
 ];
 
 function readSetupFuel() {
@@ -4590,7 +4608,7 @@ function PlannerScreen({
         <div className="plan-hero-lbl">{model.label} · GOAL</div>
         <div className="plan-hero-row">
           <span className="plan-hero-hp">{goalHp.toLocaleString()}</span>
-          <span className="plan-hero-unit">hp · {endStage === "big_single" ? "big single" : endStage === "s3_hybrid" ? "hybrid turbos" : "reliable daily"}</span>
+          <span className="plan-hero-unit">hp · {endStage === "big_single" ? "big single" : endStage === "s3_hybrid" ? "big turbos" : "reliable daily"}</span>
           <button className="plan-change" aria-expanded={pickingGoal}
             onClick={()=>setPickingGoal(v=>!v)}>Change goal</button>
         </div>
@@ -4948,7 +4966,9 @@ export default function TheProof() {
   // over the ladder, so "all" is a real value and the default.
   const [partsCat, setPartsCat]     = useState("all");
   const [partsSort, setPartsSort]   = useState("gain");   // see SORT_KEYS
-  const [expandedStages, setExpandedStages] = useState(() => new Set());
+  // Stage groups are EXPANDED by default; this holds only what the user has
+  // deliberately collapsed.
+  const [collapsedStages, setCollapsedStages] = useState(() => new Set());
   const [sortAnnounce, setSortAnnounce] = useState("");
   const [openSlot, setOpenSlot]     = useState(null);
   const [activeTab, setActiveTab]   = useState("garage");
@@ -7251,18 +7271,21 @@ Fields to extract:
     };
   }
 
-  // "You are here" is the group matching the build's current output.
-  const currentStageIdx = STAGE_INDEX_BY_BUILD_STAGE[inferStage(installedMap)] ?? 0;
+  // "You are here" is the group matching the build's current output. A stock
+  // build is below Stage 1 and gets -1, so no tier claims it.
+  const currentStageIdx = STAGE_INDEX_BY_BUILD_STAGE[inferStage(installedMap)] ?? -1;
 
   // Group labels are DERIVED — "+100 hp" copied off a mockup would be a number
   // this catalog never produced. Stage 1 and 2 read the gain their own ECU slot
-  // delivers on this model; stage 3 is a hardware class, not a tune step.
+  // delivers on this model; Stage 3 and + are hardware classes, not tune steps.
   function stageGroupLabel(idx) {
-    if (idx === 0) return "Stage 0 · stock";
-    if (idx === 3) return "Stage 3 · big single";
-    const tuneSlot = getSlotById(idx === 1 ? "ecu_s1" : "ecu_s2");
+    if (idx === STAGE_3)       return "Stage 3 · big turbos";
+    if (idx === STAGE_PLUS)    return "+ · beyond big turbos";
+    if (idx === STAGE_SUPPORT) return "Supporting · stock";
+    const tuneSlot = getSlotById(idx === STAGE_1 ? "ecu_s1" : "ecu_s2");
     const g = tuneSlot ? slotGain(tuneSlot) : null;
-    return g ? `Stage ${idx} · +${g} hp` : `Stage ${idx}`;
+    const n = idx + 1;
+    return g ? `Stage ${n} · +${g} hp` : `Stage ${n}`;
   }
 
   const stageGroups = groupByStage({
@@ -7270,12 +7293,13 @@ Fields to extract:
     rowFor: partsRowFor,
     currentStage: currentStageIdx,
     sortKey: partsSort,
-    expanded: expandedStages,
+    collapsed: collapsedStages,
   }).map(g => ({
     ...g,
     currentStage: currentStageIdx,
     label: stageGroupLabel(g.idx),
-    canCollapse: g.idx > currentStageIdx + 1,
+    // Every group is collapsible; none of them starts collapsed.
+    canCollapse: true,
     inside: [...g.cats.map(c => c.toUpperCase()), `TAP TO SEE ALL ${g.total}`].join(" · "),
   }));
 
@@ -7306,7 +7330,7 @@ Fields to extract:
           track("parts_sorted", { sort: key });
         }}
         onOpenSlot={openSheet}
-        onToggleGroup={idx => setExpandedStages(prev => {
+        onToggleGroup={idx => setCollapsedStages(prev => {
           const next = new Set(prev);
           if (next.has(idx)) next.delete(idx); else next.add(idx);
           return next;

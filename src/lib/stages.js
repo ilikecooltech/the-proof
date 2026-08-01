@@ -11,31 +11,57 @@
 //   no data   → last in group, displayed —
 
 // ── STAGE PER SLOT ──────────────────────────────────────────────────────────
-// The power level at which a slot becomes relevant. This is catalog data, the
-// same kind of fact as `cat` — a part's stage is a curatorial statement about
-// the part, not something derivable from its hp figure (a $96 set of plugs and
-// a $700 wastegate both make ~nothing and belong at opposite ends of the ladder).
-// Every slot id in SLOTS must appear here exactly once; assertStageCoverage()
-// below is what keeps that true as the catalog grows.
+// FOUR PERFORMANCE TIERS: Stage 1 · Stage 2 · Stage 3 (big turbos) · "+".
+//
+//   Stage 1   the first tune and the airflow it needs
+//   Stage 2   the stage 2 tune, the fuelling and the heat management it needs
+//   Stage 3   BIG TURBOS — upgraded / hybrid big-turbo setups. "Big single" is
+//             a CHOICE inside this tier (a product in the turbo slot and an
+//             end state in the vehicle selector), not the name of the tier.
+//   +         beyond big turbos — the extreme end: port injection, billet
+//             manifolds, the hardware a 1,000 hp single actually needs.
+//
+// Supporting/stock parts are NOT a performance tier. They keep their own group
+// so that maintenance and chassis work stays findable, and it renders LAST so
+// the ladder reads 1 → 2 → 3 → + without spark plugs at the top of it.
+//
+// This is catalog data, the same kind of fact as `cat` — a part's stage is a
+// curatorial statement about the part, not something derivable from its hp
+// figure (a $96 set of plugs and a $700 wastegate both make ~nothing and
+// belong at opposite ends of the ladder). Every slot id in SLOTS must appear
+// here exactly once; assertStageCoverage() is what keeps that true.
+export const STAGE_1 = 0, STAGE_2 = 1, STAGE_3 = 2, STAGE_PLUS = 3, STAGE_SUPPORT = 4;
+
 export const SLOT_STAGE = {
-  // Stage 0 · stock — supporting mods, maintenance, chassis
-  spark_plugs: 0, engine_oil: 0, fuel_lines: 0, bov: 0, resx: 0,
-  catback: 0, catback_full: 0, brake_pads: 0, tires_street: 0,
-  motor_mounts: 0, coilovers: 0, sway_bars: 0, alignment: 0, diff: 0,
   // Stage 1 — the first tune and the airflow that goes with it
-  ecu_s1: 1, cai: 1, downpipe: 1, dsg_tune: 1, tcu_tune: 1, big_brake: 1,
-  // Stage 2 — stage 2 tune, fuelling, heat
-  ecu_s2: 2, hpfp: 2, flex_fuel: 2, intercooler: 2, tires_drag: 2,
-  // Stage 3 · big single — turbos, port injection, built motor
-  ecu_custom: 3, turbo_upgrade: 3, wastegate: 3, manifolds: 3,
-  port_inj: 3, port_inj_full: 3, oil_cooler: 3,
+  ecu_s1: STAGE_1, cai: STAGE_1, downpipe: STAGE_1, dsg_tune: STAGE_1, tcu_tune: STAGE_1,
+  // Stage 2 — stage 2 tune, fuelling, heat, traction
+  ecu_s2: STAGE_2, hpfp: STAGE_2, flex_fuel: STAGE_2, intercooler: STAGE_2, tires_drag: STAGE_2,
+  // Stage 3 · big turbos — the turbo itself, the map that makes it work, and
+  // the boost control it cannot run without
+  turbo_upgrade: STAGE_3, ecu_custom: STAGE_3, wastegate: STAGE_3,
+  // + · beyond big turbos — what a 1,000 hp build needs once the turbo is on
+  port_inj: STAGE_PLUS, port_inj_full: STAGE_PLUS, manifolds: STAGE_PLUS,
+  // Supporting · stock — maintenance, sound, chassis, brakes, reliability
+  spark_plugs: STAGE_SUPPORT, engine_oil: STAGE_SUPPORT, fuel_lines: STAGE_SUPPORT,
+  bov: STAGE_SUPPORT, resx: STAGE_SUPPORT, catback: STAGE_SUPPORT,
+  catback_full: STAGE_SUPPORT, brake_pads: STAGE_SUPPORT, big_brake: STAGE_SUPPORT,
+  tires_street: STAGE_SUPPORT, motor_mounts: STAGE_SUPPORT, coilovers: STAGE_SUPPORT,
+  sway_bars: STAGE_SUPPORT, alignment: STAGE_SUPPORT, diff: STAGE_SUPPORT,
+  oil_cooler: STAGE_SUPPORT,
 };
 
-export const STAGE_COUNT = 4;
+export const STAGE_COUNT = 5;
+
+// The supporting group is not a rung, so it is never "You are here" and never
+// reads as somewhere the build is headed.
+export const IS_PERFORMANCE_TIER = idx => idx <= STAGE_PLUS;
 
 // inferStage() speaks in build stages; the list speaks in group indices.
+// A stock build is BELOW Stage 1 — it has not reached a tier yet, so it gets
+// no "You are here" and Stage 1 is marked as where to start instead.
 export const STAGE_INDEX_BY_BUILD_STAGE = {
-  stock: 0, s1: 1, s2: 2, s3_hybrid: 3, big_single: 3,
+  stock: -1, s1: STAGE_1, s2: STAGE_2, s3_hybrid: STAGE_3, big_single: STAGE_PLUS,
 };
 
 // Returns the ids that carry no stage — empty is the invariant.
@@ -126,14 +152,23 @@ export const SORT_KEYS = [
  *
  * @param opts.slots          catalog
  * @param opts.rowFor         (slot) => row facts (see buildRow in App.jsx)
- * @param opts.currentStage   0-3, the group that reads "You are here"
+ * @param opts.currentStage   the group that reads "You are here"; -1 when the
+ *                            build is still stock and has reached no tier
  * @param opts.sortKey        one of SORT_KEYS ids
- * @param opts.expanded       Set of stage indices the user has opened
+ * @param opts.collapsed      Set of stage indices the user has COLLAPSED.
+ *                            Every group starts expanded — the ladder is the
+ *                            point, and a turbo tier hidden behind "tap to see
+ *                            all" is the thing this list exists to replace.
  * @returns [{ idx, isCurrent, collapsed, rows, installedCount, total }]
  */
-export function groupByStage({ slots, rowFor, currentStage, sortKey = "gain", expanded }) {
+export function groupByStage({ slots, rowFor, currentStage, sortKey = "gain", collapsed }) {
   const groups = Array.from({ length: STAGE_COUNT }, (_, idx) => ({
-    idx, rows: [], isCurrent: idx === currentStage, collapsed: false,
+    idx, rows: [],
+    isCurrent: IS_PERFORMANCE_TIER(idx) && idx === currentStage,
+    // Nothing fitted yet: no tier is "here", so Stage 1 says where to begin
+    // rather than leaving the list with no orange at all.
+    isStart: idx === STAGE_1 && currentStage < STAGE_1,
+    collapsed: false,
     installedCount: 0, total: 0, cats: [],
   }));
 
@@ -149,10 +184,9 @@ export function groupByStage({ slots, rowFor, currentStage, sortKey = "gain", ex
     g.installedCount = g.rows.filter(r => r.installed).length;
     g.total = g.rows.length;
     g.cats = [...new Set(g.rows.map(r => r.cat))];
-    // Groups above the current stage stay expanded — they are the ladder.
-    // Only far-future groups collapse, and the current and next never do.
-    const farFuture = g.idx > currentStage + 1;
-    g.collapsed = farFuture && !(expanded && expanded.has(g.idx));
+    // EXPANDED BY DEFAULT, every tier. Collapsing is something the user does,
+    // never something the list decides for them.
+    g.collapsed = !!(collapsed && collapsed.has(g.idx));
   });
 
   return groups;
