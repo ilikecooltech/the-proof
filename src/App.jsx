@@ -2,6 +2,11 @@ import { Component, useState, useEffect, useId, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 import posthog from "posthog-js";
 import { pickTunePair } from "./tuneCompare.js";
+import StagedParts from "./components/StagedParts.jsx";
+import {
+  STAGE_INDEX_BY_BUILD_STAGE, SORT_KEYS,
+  enablerMap, groupByStage, shortSlotName,
+} from "./lib/stages.js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
 const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
@@ -320,7 +325,7 @@ function recommendNext(installedMap, count = 3) {
       const variant = getVariantById(m.slot, m.pick) || slot?.variants?.[0] || null;
       return {
         slot: m.slot,
-        name: slot?.name || m.slot,
+        name: slot ? canonicalSlotName(slot) : m.slot,
         cat: slot?.cat || "",
         builds: m.builds,
         pct: Math.round((m.builds / MOD_PATH_TOTAL) * 100),
@@ -686,7 +691,7 @@ function recommendProduct(slotId, build = {}, vehicle = {}) {
 
   return {
     slot: slotId,
-    slotName: slot.name,
+    slotName: canonicalSlotName(slot),
     modelId,
     goalHp,
     stage,
@@ -1662,6 +1667,51 @@ const PERF_TIERS = {
 // ── HELPERS ────────────────────────────────────────────────────────────────
 function getSlotById(id) { return SLOTS.find(s => s.id === id); }
 function getVariantById(slotId, variantId) { return getSlotById(slotId)?.variants.find(v => v.id === variantId); }
+
+// ── ONE CANONICAL NAME PER PART (08 §6) ─────────────────────────────────────
+// The build map, Parts, the planner, the product view and the recommendation
+// all render the SAME string for a slot. Where the catalog name drifted
+// ("Cat-Back Exhaust" vs "Cat-Back System", "Port Injection" vs "Port
+// Injection System"), this is the one that wins. "Stage" appears only on the
+// three ECU tunes — it is the name of a tune level and nothing else.
+const CANONICAL_SLOT_NAME = {
+  ecu_s1: "Stage 1 ECU tune",
+  ecu_s2: "Stage 2 ECU tune",
+  ecu_custom: "Custom ECU tune",
+  turbo_upgrade: "Turbo upgrade",
+  wastegate: "Wastegate actuators",
+  hpfp: "HPFP internals",
+  flex_fuel: "Flex fuel kit",
+  port_inj: "Port injection",
+  port_inj_full: "Port injection · full kit",
+  fuel_lines: "Fuel feed lines",
+  cai: "Cold air intake",
+  downpipe: "High-flow downpipes",
+  catback: "Cat-back exhaust",
+  catback_full: "Cat-back · full system",
+  resx: "Resonator delete + X-pipe",
+  intercooler: "Intercooler upgrade",
+  manifolds: "Upgraded manifolds",
+  spark_plugs: "Spark plugs",
+  engine_oil: "Engine oil",
+  bov: "Blow-off valve",
+  oil_cooler: "Oil cooler",
+  dsg_tune: "DSG / S-tronic tune",
+  tcu_tune: "TCU / ZF8 tune",
+  diff: "Differential upgrade",
+  coilovers: "Coilovers",
+  sway_bars: "Sway bars",
+  alignment: "Performance alignment",
+  motor_mounts: "Motor mounts",
+  brake_pads: "Brake pads",
+  big_brake: "Big brake kit",
+  tires_street: "Street tires",
+  tires_drag: "Drag tires",
+};
+function canonicalSlotName(slot) {
+  if (!slot) return "";
+  return CANONICAL_SLOT_NAME[slot.id] || slot.name;
+}
 
 function getDeps(slotId, selectedMap) {
   const slot = getSlotById(slotId);
@@ -2962,6 +3012,99 @@ ul.bmap-plan{gap:5px}
     animation-duration:.01ms !important;animation-iteration-count:1 !important;
     transition-duration:.01ms !important;scroll-behavior:auto !important}
 }
+
+/* ── PARTS · STAGED LIST (#8a) ──────────────────────────────────────────────
+   All slots on one screen, grouped by stage. The only orange in the list is
+   the current stage group and the [→] next-step row — the user's position
+   reads at a glance without a legend. */
+.sp-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.sp-sortbar{display:flex;align-items:center;gap:6px;padding:8px 18px;flex:none;
+  border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.sp-sortbar::-webkit-scrollbar{display:none}
+.sp-sortlbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-3);flex:none}
+.sp-sortbar .csbtn{flex:none;min-height:32px;padding:0 11px}
+.sp-cats{padding:8px 18px}
+.sp-scroll{flex:1;overflow-y:auto;padding:0 18px 18px;-webkit-overflow-scrolling:touch}
+.sp-group{display:block}
+
+/* Group header — a real <h2>: label, hairline, count. */
+.sp-h2{margin:0;display:flex;align-items:center;gap:8px;padding:10px 0 6px;font-weight:400}
+.sp-h2-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-3);flex:none}
+.sp-h2-rule{flex:1;border-top:1px solid var(--line)}
+.sp-h2-spacer{flex:1}
+.sp-h2-count{font-family:var(--font-mono);font-size:10px;color:var(--text-3);flex:none}
+/* "You are here" is a GROUP, not a badge. */
+.sp-h2-cur .sp-h2-lbl{color:var(--action)}
+.sp-h2-cur .sp-h2-rule{border-top-color:var(--action)}
+.sp-h2-cur .sp-h2-count{color:var(--action);font-weight:600}
+/* Rungs already behind you read as settled, not as pending work. */
+.sp-h2-done .sp-h2-lbl{color:var(--verify)}
+
+/* Far-future groups collapse behind a real disclosure button. */
+.sp-h2-collapsed{display:block;padding:10px 0 0}
+.sp-collapse{width:100%;min-height:48px;display:flex;align-items:center;gap:8px;text-align:left;
+  padding:7px 11px;border:1px dashed var(--line-dashed);border-radius:var(--r-row);
+  background:transparent;cursor:pointer}
+.sp-chev{color:var(--text-3);font-size:12px;flex:none}
+.sp-h2-inside{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
+  color:var(--text-3);margin-top:6px;padding:0 2px}
+.sp-collapse-back{width:100%;min-height:44px;margin-top:6px;border:0;background:transparent;
+  color:var(--text-3);font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer}
+
+/* Rows */
+.sp-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.sp-row{width:100%;min-height:44px;display:flex;align-items:center;gap:10px;text-align:left;
+  padding:5px 11px;border:1px solid var(--line);border-radius:var(--r-row);
+  background:var(--surface);cursor:pointer;position:relative}
+.sp-row:active{background:var(--surface-raised)}
+/* The recommended next step: 52px, dashed --action, tinted. */
+.sp-row-next{min-height:52px;padding:7px 11px;border:1px dashed var(--action);background:var(--action-bg)}
+/* Fuel hardware with no tune reads as inert. Dimming by opacity dropped the
+   10px sub-line to 3.1:1 — the de-emphasis is carried by the name colour and
+   the "needs tune" sub-line instead, both of which clear AA. */
+.sp-row-inert .sp-name{color:var(--text-3)}
+.sp-mark{font-family:var(--font-mono);font-size:11px;flex:none;line-height:1}
+.sp-mark-open{color:var(--text-3)}
+.sp-mark-inst{color:var(--verify)}
+.sp-mark-next{color:var(--action)}
+.sp-mark-enabler{color:var(--relevant)}
+.sp-body{flex:1;min-width:0}
+.sp-name{display:block;font-family:var(--font-ui);font-weight:600;font-size:14px;color:var(--text-2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-row-inst .sp-name,.sp-row-next .sp-name{color:var(--text-hi)}
+.sp-row-next .sp-name{font-weight:700;font-size:14.5px}
+.sp-sub{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sp-metric{text-align:right;flex:none}
+.sp-gain{display:block;font-family:var(--font-ui);font-weight:700;font-size:14px;line-height:1;
+  color:var(--measure)}
+.sp-row-next .sp-gain{font-size:15px}
+.sp-gain-none{color:var(--text-3)}
+/* ENABLER, never "+0" — "+0" reads as worthless on a row that unlocks a tier. */
+.sp-enabler-lbl{display:block;font-family:var(--font-mono);font-size:10px;font-weight:600;
+  color:var(--relevant);line-height:1.2}
+.sp-price{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:2px}
+.sp-price-only{font-family:var(--font-mono);font-size:10px;color:var(--text-3);flex:none}
+/* ── SLOT EXPANDED (#8b) ── */
+.sheet-sub{display:block;font-family:var(--font-ui);font-weight:400;font-size:12.5px;
+  line-height:1.4;color:var(--text-3);margin-top:3px;text-transform:none;letter-spacing:0}
+.vcard.vrec{border-color:var(--line-strong);background:var(--surface-raised)}
+.vc-fyb-row{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.vc-fyb{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--relevant);border:1px solid var(--relevant-bd);
+  border-radius:var(--r-chip);padding:2px 6px;flex:none}
+.vc-fyb-ev{flex:1;font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.vc-reason{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--text-hi);
+  font-weight:600;text-wrap:pretty}
+/* One primary action per screen: the recommended card, and nothing else. */
+.vc-btn.vprimary{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:700}
+/* Preserved badges, sized down to ride a 44px row without stealing the metric. */
+.sp-tag{flex:none;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;border-radius:var(--r-chip);padding:1px 5px;white-space:nowrap;
+  max-width:96px;overflow:hidden;text-overflow:ellipsis}
 `;
 
 // ── TAG CLASS ────────────────────────────────────────────────────────────
@@ -3394,19 +3537,23 @@ function BuildMap({ installedMap, nextRec, onOpenSlot, onRemove, dense = false }
     const variant   = isInst ? getVariantById(m.slot, varId) : null;
     const pct       = Math.round((m.builds / MOD_PATH_TOTAL) * 100);
 
-    let state = "open", marker = "[ ]", sub, price, name = slot.name;
+    // One canonical name per part (08 §6). The row is named for the SLOT
+    // everywhere; the specific product rides in the sub-line, so the Garage,
+    // Parts and the planner never call the same thing three names.
+    let state = "open", marker = "[ ]", sub, price;
+    const name = canonicalSlotName(slot);
     if (isInst) {
       state = "inst"; marker = "[✓]";
       sub = `${varId} · installed`;
       price = variant?.price ?? null;
     } else if (isNext) {
-      // #4a/#3a put the PRODUCT name and its price on this row — the same two
-      // strings the recommendation shows. Agreeing at the slot level is not
-      // enough; the user has to see the same part at the same price.
+      // #4a/#3a still put the PRODUCT and its price on this row — agreeing at
+      // the slot level is not enough; the user has to see the same part at the
+      // same price as the recommendation does.
       state = "next"; marker = "[→]";
-      name  = nextRec.variant?.label || slot.name;
       const tie = clearsChip(installed, nextRec.slot, nextRec.variant?.id);
-      sub   = tie ? `next up · clears ${tie}` : "next up";
+      const pick = nextRec.variant ? `${nextRec.variant.id} · ${nextRec.variant.label}` : "next up";
+      sub   = tie ? `${pick} · clears ${tie}` : pick;
       price = nextRec.variant?.price ?? null;
     } else {
       sub = `${m.pick} · ${pct}% of builds`;
@@ -3587,8 +3734,14 @@ function FieldBands({ times, mine }) {
 function VariantCard({
   slot, v, isActive, isRecommended, isAdminPick, buildMode, modelId, currentModel,
   liked, likeCount, likesLive, onToggleLike, onChoose, onTrackBuy,
+  // #8b: exactly one primary action per screen. Only the recommended card
+  // takes the filled orange button; every other card is outlined.
+  isPrimary = false, evidence = null, reason = null,
 }) {
-  const hp = v.hp[modelId] || 0;
+  // A catalog zero is a MEASURED zero and reads "+0"; only a missing figure
+  // reads "—". The staged row and this card have to agree about the same part.
+  const hasHp = Number.isFinite(v.hp?.[modelId]);
+  const hp = hasHp ? v.hp[modelId] : 0;
   const tq = v.torque[modelId] || 0;
   // #5b swaps the label rather than the button: "what is in my build" has to be
   // readable without comparing borders.
@@ -3597,17 +3750,28 @@ function VariantCard({
     : (buildMode === "installed" ? "Add to build" : "Add to wishlist");
 
   return (
-    <article className={`vcard${isActive ? " vactive" : ""}`}>
+    <article className={`vcard${isActive ? " vactive" : ""}${isRecommended ? " vrec" : ""}`}>
+      {/* #8b heads the recommended card with FOR YOUR BUILD and its evidence
+          line, so the recommendation reads as a position with a reason rather
+          than a gate in front of the rest of the slot. */}
+      {isRecommended && (
+        <div className="vc-fyb-row">
+          <span className="vc-fyb">For your build</span>
+          {evidence && <span className="vc-fyb-ev">{evidence}</span>}
+        </div>
+      )}
       <div className="vc-top">
         <span className="vc-brand">{v.brand}</span>
         <span className="vc-price">${v.price.toLocaleString()}</span>
       </div>
       <div className="vc-name-row">
         <span className="vc-name">{v.label}</span>
-        {/* Blue: a fact about relevance to this car, not an action. */}
-        {isRecommended && <span className="vc-rec-chip">Recommended</span>}
         {isAdminPick && <span className="vc-rec-chip vc-rec-curated">Curator pick</span>}
       </div>
+      {/* Where the recommendation is NOT the biggest gain in the slot, the
+          reason has to say why — otherwise the order looks broken and the
+          recommendation loses its authority. */}
+      {reason && <p className="vc-reason">{reason}</p>}
       <p className="vc-why">{v.notes}</p>
 
       <div className="vc-actions">
@@ -3624,7 +3788,7 @@ function VariantCard({
         {v.rating != null && (
           <span className="vc-rating"><span aria-hidden="true">★</span> {v.rating.toFixed(1)}</span>
         )}
-        <button type="button" className={`vc-btn${isActive ? " vsel" : ""}`}
+        <button type="button" className={`vc-btn${isActive ? " vsel" : isPrimary ? " vprimary" : ""}`}
           onClick={() => onChoose(slot.id, v.id)}
           aria-label={isActive
             ? `Remove ${v.brand} ${v.label} from your ${buildMode === "installed" ? "build" : "wishlist"}`
@@ -3634,8 +3798,8 @@ function VariantCard({
       </div>
 
       <div className="vc-stats">
-        <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${hp}`:"—"}</div></div>
-        <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hp>0?`+${Math.round(hp*0.85)}`:"—"}</div></div>
+        <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hasHp?`+${hp}`:"—"}</div></div>
+        <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hasHp?`+${Math.round(hp*0.85)}`:"—"}</div></div>
         <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
       </div>
       {hp > 0 && (
@@ -3676,13 +3840,31 @@ function PartSheet({
 }) {
   const dialogRef = useDialog(onClose);
   const uid = useId();
-  const [showAll, setShowAll] = useState(false);
 
+  // ── #8b: EVERY product, no gate ──────────────────────────────────────────
+  // Ordered by hp gained descending, with the recommendation lifted to first.
+  // The "+N options" / "see all" secondary is gone: there is nothing left to
+  // reveal, and hiding depth made the recommendation read as an ad.
   const recId  = rec?.recommended?.variantId || null;
-  const leadId = recId && slot.variants.some(v => v.id === recId) ? recId : slot.variants[0]?.id;
-  const lead   = slot.variants.filter(v => v.id === leadId);
-  const rest   = slot.variants.filter(v => v.id !== leadId);
-  const shown  = showAll ? [...lead, ...rest] : lead;
+  const hpOf   = v => (Number.isFinite(v.hp?.[modelId]) ? v.hp[modelId] : -1);
+  const byGain = [...slot.variants].sort((a, b) => hpOf(b) - hpOf(a) || a.price - b.price);
+  const leadId = recId && slot.variants.some(v => v.id === recId) ? recId : byGain[0]?.id;
+  const shown  = [
+    ...byGain.filter(v => v.id === leadId),
+    ...byGain.filter(v => v.id !== leadId),
+  ];
+
+  // Only meaningful when the slot has a measured delta at all; a slot where
+  // every product reads "—" has no "biggest gain" to be beaten.
+  const topGain     = hpOf(byGain[0]);
+  const leadGain    = hpOf(shown[0] || {});
+  const recNotTopped = topGain > 0 && leadGain < topGain;
+  const reasonLine  = recNotTopped
+    ? `Not the biggest gain in this slot — ${rec?.recommended?.why || "it fits this build better than the bigger number does."}`
+    : null;
+  const evidence = rec?.recommended?.pct != null
+    ? `${rec.recommended.pct}% of ${MOD_PATH_TOTAL} logged builds`
+    : null;
 
   const hasSel = !!selVarId;
 
@@ -3695,7 +3877,8 @@ function PartSheet({
         ref={dialogRef} aria-labelledby={`${uid}-title`}>
         <div className="sheet-hdr">
           <h2 className="sheet-title" id={`${uid}-title`}>
-            {slot.name} · {slot.variants.length} option{slot.variants.length === 1 ? "" : "s"}
+            {canonicalSlotName(slot)} · {slot.variants.length} option{slot.variants.length === 1 ? "" : "s"}
+            <span className="sheet-sub">Biggest gain first</span>
           </h2>
           <button type="button" className="sheet-x" aria-label="Close options" onClick={onClose}>
             <span aria-hidden="true">✕</span>
@@ -3709,13 +3892,13 @@ function PartSheet({
             </div>
           )}
           {conflicts.length > 0 && (
-            <div className="v-alert conflict">⚡ Conflicts with: {conflicts.map(c=>getSlotById(c)?.name||c).join(", ")}</div>
+            <div className="v-alert conflict">⚡ Conflicts with: {conflicts.map(c=>canonicalSlotName(getSlotById(c))||c).join(", ")}</div>
           )}
           {missing.length > 0 && (
-            <div className="v-alert warn">⚠ Also needs: {missing.map(m=>getSlotById(m)?.name||m).join(", ")}</div>
+            <div className="v-alert warn">⚠ Also needs: {missing.map(m=>canonicalSlotName(getSlotById(m))||m).join(", ")}</div>
           )}
           {hasSel && !missing.length && !conflicts.length && missingRecs.length > 0 && (
-            <div className="v-alert rec">✦ Pairs well with: {missingRecs.map(r=>getSlotById(r)?.name||r).join(", ")}</div>
+            <div className="v-alert rec">✦ Pairs well with: {missingRecs.map(r=>canonicalSlotName(getSlotById(r))||r).join(", ")}</div>
           )}
           {rec?.notes?.map((n, i) => <div key={i} className="v-alert warn">⚠ {n}</div>)}
 
@@ -3731,7 +3914,10 @@ function PartSheet({
               key={v.id}
               slot={slot} v={v}
               isActive={selVarId === v.id}
-              isRecommended={recId === v.id}
+              isRecommended={leadId === v.id}
+              isPrimary={leadId === v.id}
+              evidence={leadId === v.id ? evidence : null}
+              reason={leadId === v.id ? reasonLine : null}
               isAdminPick={adminPicks[slot.id] === v.id}
               buildMode={buildMode} modelId={modelId} currentModel={currentModel}
               liked={!!likedParts[v.id]} likeCount={likeCounts[v.id] || 0} likesLive={likesLive}
@@ -3739,14 +3925,7 @@ function PartSheet({
             />
           ))}
 
-          {/* Depth, behind one button — never labelled with a bare count. */}
-          {!showAll && rest.length > 0 && (
-            <button type="button" className="sheet-more" onClick={() => setShowAll(true)}>
-              +{rest.length} option{rest.length === 1 ? "" : "s"}
-            </button>
-          )}
-
-          {showAll && extras}
+          {extras}
         </div>
       </section>
     </div>
@@ -4068,7 +4247,7 @@ function plannerRows(goalHp, installedMap, wishlistMap) {
     const orphanedBy = VARIANT_FIT[varId]?.orphanedBy || [];
     const orphaned   = !!endStage && orphanedBy.includes(endStage);
     return {
-      slotId, varId, name: slot.name, brand: v.brand, label: v.label,
+      slotId, varId, name: canonicalSlotName(slot), brand: v.brand, label: v.label,
       price: v.price, orphaned,
       reason: orphaned ? "replaced at the goal" : "survives end-state",
       installed: !!(installedMap || {})[slotId],
@@ -4240,7 +4419,7 @@ function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose })
       const slot = getSlotById(slotId);
       if (!slot) return null;
       const variant = getVariantById(slotId, vid);
-      return { name: slot.name, brand: variant?.brand || "" };
+      return { name: canonicalSlotName(slot), brand: variant?.brand || "" };
     })
     .filter(Boolean);
   const modCount = installedSlots.length;
@@ -4348,7 +4527,7 @@ function CommunityBuildCard({ build, onView, userCar, nextRec }) {
   const model = MODELS.find(m => m.id === build.car) || MODELS.find(m=>m.id==="s7");
   const slotNames = Object.entries(build.installed_map || {})
     .filter(([, vid]) => !!vid)
-    .map(([sid]) => getSlotById(sid)?.name || sid)
+    .map(([sid]) => canonicalSlotName(getSlotById(sid)) || sid)
     .filter(Boolean);
   const likeYours = userCar && build.car === userCar;
   const proven = build.bestT60130 != null;
@@ -4436,7 +4615,7 @@ function AdminPanel({ adminPicks, onSetPick, onClose }) {
         {filtered.map(slot => (
           <div key={slot.id} className="admin-slot">
             <div className="admin-slot-hdr">
-              <span className="admin-slot-name">{slot.name}</span>
+              <span className="admin-slot-name">{canonicalSlotName(slot)}</span>
               <span className="admin-slot-cat">{slot.cat}</span>
             </div>
             {(slot.variants||[]).map(v => {
@@ -4444,7 +4623,7 @@ function AdminPanel({ adminPicks, onSetPick, onClose }) {
               return (
                 <button type="button" key={v.id} className={`admin-var${on?" on":""}`}
                   aria-pressed={on}
-                  aria-label={`${on ? "Remove" : "Set"} ${v.brand} ${v.label} as the recommended pick for ${slot.name}`}
+                  aria-label={`${on ? "Remove" : "Set"} ${v.brand} ${v.label} as the recommended pick for ${canonicalSlotName(slot)}`}
                   onClick={()=>handlePick(slot.id, v.id, on)}>
                   <div className="admin-var-info">
                     <div className="admin-var-brand">{v.brand}</div>
@@ -4467,7 +4646,12 @@ export default function TheProof() {
   // Stable id prefix for label/control association across the run-log and
   // profile forms (both live in this component).
   const formUid = useId();
-  const [activeCat, setActiveCat]   = useState("Engine");
+  // Parts is stage-first now (#8a). The category strip survives as a filter
+  // over the ladder, so "all" is a real value and the default.
+  const [partsCat, setPartsCat]     = useState("all");
+  const [partsSort, setPartsSort]   = useState("gain");   // see SORT_KEYS
+  const [expandedStages, setExpandedStages] = useState(() => new Set());
+  const [sortAnnounce, setSortAnnounce] = useState("");
   const [openSlot, setOpenSlot]     = useState(null);
   const [activeTab, setActiveTab]   = useState("garage");
   const [installedMap, setInstalledMap] = useState({});
@@ -4846,7 +5030,17 @@ export default function TheProof() {
   // ── SINGLE SOURCE OF TRUTH FOR "NEXT STEP" ──────────────────────────────
   // Computed once here and handed to BOTH the recommendation card and the build
   // map. Neither recomputes it, so the screen cannot show two different answers.
-  const recs    = recommendNext(installedMap, 3);
+  //
+  // recommendNext answers "which SLOT next"; the product inside it is then
+  // resolved through recommendProduct — the same call the staged list and the
+  // slot sheet make — so the Garage, Parts and the planner name one product
+  // per slot instead of three (08 §6, naming incoherence).
+  const recs = recommendNext(installedMap, 3).map(r => {
+    const rp = recommendProduct(r.slot,
+      { installed: installedMap, wishlist: wishlistMap },
+      { modelId: profile.car, goalHp: powerGoal });
+    return rp?.recommended?.variant ? { ...r, variant: rp.recommended.variant } : r;
+  });
   const nextRec = recs[0] || null;
 
   // Leaderboard placement is gated on evidence: only datalog/slip-backed runs
@@ -4862,7 +5056,6 @@ export default function TheProof() {
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
 
-  const catSlots = SLOTS.filter(s => s.cat === activeCat);
   const catCounts = {};
   CATEGORIES.forEach(c => {
     catCounts[c] = SLOTS.filter(s => s.cat===c && (installedMap[s.id] || wishlistMap[s.id])).length;
@@ -4888,7 +5081,10 @@ export default function TheProof() {
     const slot = getSlotById(slotId);
     if (!slot) return;
     setBuildMode("installed");
-    setActiveCat(slot.cat);
+    // The ladder is stage-first now, so land on the full list rather than
+    // filtering to the slot's category — otherwise the [→] row arrives with
+    // its own stage group hidden behind a filter the user never set.
+    setPartsCat("all");
     setActiveTab("parts");
     setOpenSlot(slotId);
     track("reco_slot_clicked", { slot: slotId });
@@ -5231,8 +5427,8 @@ Fields to extract:
     const { missing, conflicts } = getDeps(slotId, selectedMap);
     const slot = getSlotById(slotId);
     if (!slot) return;
-    missing.forEach(m => allIssues.push({type:"warn", msg:`${slot.name} needs: ${getSlotById(m)?.name||m}`}));
-    conflicts.forEach(c => allIssues.push({type:"conflict", msg:`${slot.name} conflicts with ${getSlotById(c)?.name||c}`}));
+    missing.forEach(m => allIssues.push({type:"warn", msg:`${canonicalSlotName(slot)} needs: ${canonicalSlotName(getSlotById(m))||m}`}));
+    conflicts.forEach(c => allIssues.push({type:"conflict", msg:`${canonicalSlotName(slot)} conflicts with ${canonicalSlotName(getSlotById(c))||c}`}));
   });
 
   const bestRun60130 = runs.filter(r=>r.type==="60-130" && r.time != null).sort((a,b)=>parseFloat(a.time)-parseFloat(b.time))[0];
@@ -6150,91 +6346,132 @@ Fields to extract:
     </div>
   );
 
-  // ── PARTS CONTENT ─────────────────────────────────────────────────
+  // ── PARTS · STAGED LIST (10-parts-picker-staged.md · #8a) ─────────
+  // Replaces the category-first parts IA. Every slot is visible, grouped by
+  // stage and ranked WITHIN each stage by hp gained — never by price.
   const activeModelId = currentModel.id;
-  const partsContent = (
-    <>
-      <div className="cat-strip">
-        {CATEGORIES.map(cat => (
-          <button key={cat} className={`cbtn${activeCat===cat?" active":""}`} aria-pressed={activeCat===cat}
-            onClick={()=>{setActiveCat(cat);setOpenSlot(null);}}>
-            {cat}
-            {catCounts[cat]>0 && <span className="cbtn-dot"/>}
-          </button>
-        ))}
-      </div>
-      <div className="parts-area">
-        {/* #5b heads the screen with one mono line: category on the left, the
-            option count on the right. No 22px title, no subtitle, and no
-            progression bar — that was #3a, which this supersedes. */}
-        <h2 className="section-title">
-          <span>{activeCat}</span>
-          <span className="section-count">
-            {catSlots.length} slot{catSlots.length === 1 ? "" : "s"}
-          </span>
-        </h2>
-        <div className="slots-list">
-          {catSlots.map(slot => {
-            const selVarId   = selectedMap[slot.id];
-            const otherVarId = buildMode==="installed" ? wishlistMap[slot.id] : installedMap[slot.id];
-            const selVar     = selVarId ? getVariantById(slot.id, selVarId) : null;
-            const { missing, conflicts } = getDeps(slot.id, selectedMap);
-            const hasSel    = !!selVarId;
-            const hasWarn   = hasSel && missing.length > 0;
-            const hasConf   = hasSel && conflicts.length > 0;
 
-            // Fuel hardware makes nothing on a stock tune, and calcTotals credits
-            // it with nothing — so dim the row to match, rather than showing a
-            // confident hp figure the estimate does not actually contain.
-            const fuelInert = FUEL_SLOTS.has(slot.id) &&
-              !Object.keys(selectedMap).some(k => TUNING_SLOTS.has(k));
+  // Catalog gain for a slot on this model, taken from the product the
+  // recommendation engine would actually put first. `null` means the catalog
+  // carries no measured delta for this model — the row shows "—" and sorts
+  // last. Never guess a number on a screen called the-proof.
+  // The row describes the product the recommendation engine would actually put
+  // first, so the row and the slot sheet can never show two different answers.
+  // Cached for the render — 32 slots is cheap, but not 32 times over.
+  const slotPickCache = new Map();
+  function slotVariantId(slot) {
+    if (selectedMap[slot.id]) return selectedMap[slot.id];
+    if (slotPickCache.has(slot.id)) return slotPickCache.get(slot.id);
+    const rec = recommendProduct(slot.id,
+      { installed: installedMap, wishlist: wishlistMap },
+      { modelId: activeModelId, goalHp: powerGoal });
+    // Every product gated out for this build (fitment / prerequisite): fall back
+    // to the strongest catalog entry rather than variants[0], which is often a
+    // "stock" placeholder at $0.
+    const id = rec?.recommended?.variantId
+      || [...slot.variants].sort((a, b) => (b.hp?.[activeModelId] || 0) - (a.hp?.[activeModelId] || 0))[0]?.id
+      || null;
+    slotPickCache.set(slot.id, id);
+    return id;
+  }
+  function slotGain(slot) {
+    const v = getVariantById(slot.id, slotVariantId(slot));
+    if (!v || !v.hp) return null;
+    const g = v.hp[activeModelId];
+    return Number.isFinite(g) ? g : null;
+  }
+  // Enablers are a dependency lookup over the catalog's own `requires` edges,
+  // not a hand-maintained list (10 §"Enablers score zero and must not sink").
+  const enablers = enablerMap(SLOTS, slotGain);
 
-            let cardCls = "slot-card";
-            if (fuelInert) cardCls += " fuel-inert";
-            if (hasConf) cardCls += " conflict";
-            else if (hasWarn) cardCls += " warn";
-            else if (hasSel) cardCls += " sel";
+  const pathRankOf = slotId => {
+    const i = MOD_PATH.findIndex(m => m.slot === slotId);
+    return i < 0 ? 99 : i;
+  };
 
-            // #5b uses a bracket marker in mono, not a filled orb.
-            let markCls = "slot-mark-open", mark = "[ ]";
-            if (hasSel && hasConf)      { markCls="slot-mark-conflict"; mark="[⚡]"; }
-            else if (hasSel && hasWarn) { markCls="slot-mark-warn";     mark="[⚠]"; }
-            else if (hasSel)            { markCls = buildMode==="installed" ? "slot-mark-inst" : "slot-mark-wish";
-                                          mark    = buildMode==="installed" ? "[✓]" : "[★]"; }
+  // The sub-line carries id · % run · option count, or the prerequisite where
+  // one exists. It must not wrap, so it degrades rather than overflows.
+  function subLineFor(slot, { variantId, installed, enabler, missing, runPct, fuelInert }) {
+    if (installed) return `${variantId || slot.id} · installed`;
+    if (enabler) {
+      const verb = enabler.kind === "gates" ? "gates" : "supports";
+      const target = getSlotById(enabler.targetId);
+      return `${variantId || slot.id} · ${verb} ${shortSlotName(target)} +${enabler.targetGain}`;
+    }
+    const pct = runPct != null ? `${runPct}% run this` : null;
+    if (missing.length) {
+      const needs = `needs ${missing.map(m => shortSlotName(getSlotById(m))).join(" + ")}`;
+      return [pct, needs].filter(Boolean).join(" · ");
+    }
+    // Fuel hardware makes nothing until a tune can command it — the estimator
+    // credits it with zero, so the row says so rather than implying the gain
+    // is available today.
+    if (fuelInert) return [variantId, "needs tune"].filter(Boolean).join(" · ");
+    const opts = slot.variants.length > 1 ? `${slot.variants.length} options` : null;
+    const full = [variantId, pct, opts].filter(Boolean).join(" · ");
+    if (full.length <= 34) return full;
+    const trimmed = [variantId, pct].filter(Boolean).join(" · ");
+    return trimmed.length <= 34 ? trimmed : (pct || variantId || "");
+  }
 
-            return (
-              <div key={slot.id} className={cardCls}>
-                {/* The row's whole job is to open the sheet (#5b). */}
-                <button type="button" className="slot-hdr" onClick={()=>openSheet(slot.id)}
-                  aria-haspopup="dialog">
-                  <span className={`slot-mark ${markCls}`} aria-hidden="true">{mark}</span>
-                  <div className="slot-info">
-                    <div className="slot-name">{slot.name}</div>
-                    {selVar
-                      ? <div className="slot-sel-text" style={{color:buildMode==="wishlist"?"var(--relevant)":undefined}}>{selVar.brand} · {selVar.label}</div>
-                      : <div className="slot-desc-text">{otherVarId ? (buildMode==="installed"?"on your wishlist · tap to compare":"installed · tap to compare") : "tap to compare options"}</div>
-                    }
-                  </div>
-                  {fuelInert
-                    ? <span className="slot-tag t-inert">NEEDS TUNE</span>
-                    : slot.tag && <span className={`slot-tag ${tagClass(slot.tag)}`}>{slot.tag}</span>}
-                  {/* #5b ends every row in a price. */}
-                  <span className="slot-price">
-                    {selVar ? `$${selVar.price.toLocaleString()}` : `$${Math.min(...slot.variants.map(v=>v.price)).toLocaleString()}+`}
-                  </span>
-                  <span className="sr-only">
-                    {hasSel ? "in your build" : "not yet chosen"}. Opens options.
-                  </span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </>
-  );
+  function partsRowFor(slot) {
+    if (partsCat !== "all" && slot.cat !== partsCat) return null;
+    const variantId = slotVariantId(slot);
+    const v = variantId ? getVariantById(slot.id, variantId) : null;
+    const installed = !!selectedMap[slot.id];
+    const enabler = enablers.get(slot.id) || null;
+    const { missing } = getDeps(slot.id, selectedMap);
+    const runPct = RECOMMENDED_BY_SLOT[slot.id]?.pct ?? null;
+    const fuelInert = FUEL_SLOTS.has(slot.id) &&
+      !Object.keys(selectedMap).some(k => TUNING_SLOTS.has(k));
+    return {
+      slotId: slot.id,
+      name: canonicalSlotName(slot),
+      cat: slot.cat,
+      tag: slot.tag || null,
+      tagClass: slot.tag ? tagClass(slot.tag) : "",
+      variantId,
+      price: v ? v.price : null,
+      gain: installed ? null : slotGain(slot),
+      runPct,
+      pathRank: pathRankOf(slot.id),
+      installed,
+      mark: installed && buildMode === "wishlist" ? "[★]" : null,
+      isNext: !installed && nextRec?.slot === slot.id,
+      enabler,
+      fuelInert,
+      sub: subLineFor(slot, { variantId, installed, enabler, missing: installed ? [] : missing, runPct, fuelInert }),
+    };
+  }
 
-  // ── PARTS + BUILD MODE TOGGLE ──────────────────────────────────────
+  // "You are here" is the group matching the build's current output.
+  const currentStageIdx = STAGE_INDEX_BY_BUILD_STAGE[inferStage(installedMap)] ?? 0;
+
+  // Group labels are DERIVED — "+100 hp" copied off a mockup would be a number
+  // this catalog never produced. Stage 1 and 2 read the gain their own ECU slot
+  // delivers on this model; stage 3 is a hardware class, not a tune step.
+  function stageGroupLabel(idx) {
+    if (idx === 0) return "Stage 0 · stock";
+    if (idx === 3) return "Stage 3 · big single";
+    const tuneSlot = getSlotById(idx === 1 ? "ecu_s1" : "ecu_s2");
+    const g = tuneSlot ? slotGain(tuneSlot) : null;
+    return g ? `Stage ${idx} · +${g} hp` : `Stage ${idx}`;
+  }
+
+  const stageGroups = groupByStage({
+    slots: SLOTS,
+    rowFor: partsRowFor,
+    currentStage: currentStageIdx,
+    sortKey: partsSort,
+    expanded: expandedStages,
+  }).map(g => ({
+    ...g,
+    currentStage: currentStageIdx,
+    label: stageGroupLabel(g.idx),
+    canCollapse: g.idx > currentStageIdx + 1,
+    inside: [...g.cats.map(c => c.toUpperCase()), `TAP TO SEE ALL ${g.total}`].join(" · "),
+  }));
+
   const partsWithToggle = (
     <>
       <div style={{padding:"8px 14px 0",background:"var(--surface)",flexShrink:0}}>
@@ -6251,7 +6488,29 @@ Fields to extract:
           </button>
         </div>
       </div>
-      {partsContent}
+      <StagedParts
+        groups={stageGroups}
+        sortKey={partsSort}
+        sortAnnounce={sortAnnounce}
+        onSort={key => {
+          setPartsSort(key);
+          const k = SORT_KEYS.find(s => s.id === key);
+          setSortAnnounce(`Parts re-ordered by ${k ? k.announce : key}, within each stage group.`);
+          track("parts_sorted", { sort: key });
+        }}
+        onOpenSlot={openSheet}
+        onToggleGroup={idx => setExpandedStages(prev => {
+          const next = new Set(prev);
+          if (next.has(idx)) next.delete(idx); else next.add(idx);
+          return next;
+        })}
+        categories={[
+          { id: "all", label: "All", dot: false },
+          ...CATEGORIES.map(c => ({ id: c, label: c, dot: catCounts[c] > 0 })),
+        ]}
+        activeCat={partsCat}
+        onCat={id => { setPartsCat(id); setOpenSlot(null); }}
+      />
     </>
   );
 
