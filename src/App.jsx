@@ -3101,6 +3101,74 @@ ul.bmap-plan{gap:5px}
   font-weight:600;text-wrap:pretty}
 /* One primary action per screen: the recommended card, and nothing else. */
 .vc-btn.vprimary{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:700}
+/* ── GARAGE · GOAL CARD (#7a) ── */
+.gh-carrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.goal-card{width:100%;display:block;text-align:left;border:1px solid var(--line-strong);
+  border-radius:var(--r-card);background:var(--surface-raised);padding:10px 13px;cursor:pointer;
+  margin-bottom:13px}
+.goal-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.goal-lbl{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-3)}
+.goal-chev{color:var(--text-3);font-size:13px}
+.goal-name{display:block;font-family:var(--font-ui);font-weight:700;font-size:16px;
+  color:var(--text-hi);margin-top:3px}
+.goal-bar{display:block;margin-top:4px}
+
+/* ── PROFILE (#7f) ── */
+.pfx-card{border:1px solid var(--line-strong);border-radius:var(--r-card);
+  background:var(--surface-raised);padding:13px 14px}
+.pfx-idrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pfx-id{min-width:0}
+.pfx-name{font-family:var(--font-ui);font-weight:700;font-size:18px;color:var(--text-hi)}
+.pfx-car{font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:2px}
+/* "Edit car" is a visible 34px chip here and on Garage — the header chip it
+   replaces was 19px and nobody found it (08 §Flow requirements). */
+.pfx-editcar{flex:none;min-height:34px;padding:0 12px;border:1px solid var(--line-dashed);
+  border-radius:17px;background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.pfx-stats{display:flex;gap:16px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+.pfx-stat-val{display:block;font-family:var(--font-ui);font-weight:700;font-size:21px;line-height:1;
+  color:var(--text-hi)}
+.pfx-measure{color:var(--measure)}
+.pfx-none{color:var(--text-3)}
+.pfx-stat-lbl{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--text-3);margin-top:3px}
+.pfx-share{width:100%;min-height:46px;margin-top:12px;border:0;border-radius:var(--r-row);
+  background:var(--action);color:var(--on-action);font-family:var(--font-ui);font-weight:700;
+  font-size:13.5px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+.pfx-h2{margin:13px 0 7px;font-family:var(--font-mono);font-weight:600;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
+.pfx-switches{display:flex;flex-direction:column;gap:5px}
+.pfx-row{width:100%;min-height:50px;display:flex;align-items:center;gap:11px;text-align:left;
+  padding:8px 13px;border:1px solid var(--line);border-radius:var(--r-row);
+  background:var(--surface);cursor:pointer}
+.pfx-row-body{flex:1;min-width:0}
+.pfx-row-name{display:block;font-family:var(--font-ui);font-weight:600;font-size:14px;color:var(--text-hi)}
+.pfx-row-sub{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text-3);margin-top:1px}
+.pfx-chev{color:var(--text-3);font-size:13px;flex:none}
+.pfx-pill{flex:none;width:40px;height:24px;border-radius:12px;background:var(--track);display:flex;
+  align-items:center;padding:0 3px;box-sizing:border-box}
+.pfx-pill.on{background:var(--action);justify-content:flex-end}
+.pfx-thumb{width:18px;height:18px;border-radius:9px;background:var(--text-3)}
+.pfx-pill.on .pfx-thumb{background:var(--on-action)}
+.pfx-acct{border:1px solid var(--measure-bd);background:var(--measure-bg);
+  border-radius:var(--r-row);padding:10px 12px}
+.pfx-acct-ok{border-color:var(--verify-bd);background:var(--verify-bg)}
+.pfx-acct-hd{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;
+  color:var(--measure)}
+.pfx-acct-hd-ok{color:var(--verify)}
+.pfx-acct-body{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--text-2);text-wrap:pretty}
+.pfx-acct-sent{margin:8px 0 0;font-size:12.5px;color:var(--verify)}
+.pfx-acct-form{margin-top:9px}
+.pfx-acct-row{display:flex;gap:8px;align-items:stretch;margin-top:4px}
+.pfx-acct-row .pf-input{flex:1;min-width:0}
+.pfx-acct-cta{min-height:44px;padding:0 14px;margin-top:9px;border:1px solid var(--line-dashed);
+  border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.pfx-acct-row .pfx-acct-cta{margin-top:0}
+.pfx-acct-cta:disabled{opacity:.5;cursor:default}
+.pfx-about{font-size:11px;color:var(--text-2);line-height:1.7;font-weight:300}
+
 /* ── TIMES · THREE SEGMENTS (#7d) ── */
 .tm-segs{display:flex;gap:5px;padding:9px 18px;flex:none;border-bottom:1px solid var(--line)}
 .tm-seg{flex:1;min-height:34px;border-radius:17px}
@@ -4316,7 +4384,7 @@ function PlannerScreen({
   return (
     <div className="garage-area">
       <div className="plan-hero">
-        <button className="plan-back" onClick={onBack}>‹ Back to garage</button>
+        <button className="plan-back" onClick={onBack}>‹ Garage</button>
         <div className="plan-hero-lbl">{model.label} · GOAL</div>
         <div className="plan-hero-row">
           <span className="plan-hero-hp">{goalHp.toLocaleString()}</span>
@@ -4689,6 +4757,20 @@ export default function TheProof() {
     name: "", car: "s7", year: "2016", color: "", nickname: "", tuner: "", note: "", public: false
   });
   const [profileSaved, setProfileSaved] = useState(false);
+  // #7f visibility switch. Off means the user's own row is withheld from the
+  // board — a real setting, not decoration. Local, like powerGoal: no schema
+  // change (11 §6 keeps the Supabase read/write shapes untouched).
+  const [rankMyRuns, setRankMyRunsState] = useState(() => {
+    try { return localStorage.getItem("proof-rank-runs") !== "off"; } catch { return true; }
+  });
+  function setRankMyRuns(next) {
+    setRankMyRunsState(prev => {
+      const val = typeof next === "function" ? next(prev) : next;
+      try { localStorage.setItem("proof-rank-runs", val ? "on" : "off"); } catch { /* private mode */ }
+      track("rank_runs_toggled", { on: val });
+      return val;
+    });
+  }
   const [authEmail, setAuthEmail] = useState("");
   const [authSent, setAuthSent] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -5077,7 +5159,9 @@ export default function TheProof() {
   // can place, and the number of runs that could NOT place is counted so the
   // consequence can be stated rather than the runs quietly disappearing.
   const myBoardRuns = (() => {
-    const sixty = runs.filter(r => r.type === "60-130" && r.time != null);
+    // "Rank my proven runs" off means the row is withheld from the board; the
+    // runs themselves are untouched and still show on Times.
+    const sixty = rankMyRuns ? runs.filter(r => r.type === "60-130" && r.time != null) : [];
     const proven = sixty.filter(r => runProof(r).proven)
       .sort((a, b) => parseFloat(a.time) - parseFloat(b.time))[0] || null;
     return { proven, claimCount: sixty.filter(r => !runProof(r).proven).length };
@@ -5106,6 +5190,9 @@ export default function TheProof() {
   // #5b: the row opens a sheet rather than expanding in place.
   function openSheet(id) { setOpenSlot(id); track("part_sheet_opened", { slot: id }); }
   function closeSheet()  { setOpenSlot(null); }
+  // Vehicle setup is a Garage sub-view reached from the visible "Edit car"
+  // chips, so it is declared before the screens that reference it.
+  function openSetup() { setActiveTab("setup"); track("tab_viewed", { tab: "setup" }); }
   // Jump straight into the build flow at a specific slot (used by "What's Next").
   function goToSlot(slotId) {
     const slot = getSlotById(slotId);
@@ -5619,6 +5706,12 @@ Fields to extract:
   // build map → one orange action. Nothing else belongs on this screen:
   // run logging lives on Times (#4c), browsing on Builds (#4d), and the
   // build map's [→] row is the only "what's next" answer the design has.
+  // A user who has never set a goal still needs a next step, so the end state
+  // defaults to Reliable daily / 750 rather than leaving the [→] cue empty
+  // (08 §2). Once the build itself implies more, the build wins.
+  const plannerGoal = powerGoal || Math.max(CEILINGS.daily.hp, buildCeiling.hp);
+  const goalEnd = SETUP_ENDS.find(e => e.ceiling >= plannerGoal) || SETUP_ENDS[SETUP_ENDS.length - 1];
+
   const garageContent = (
     <div className="garage-area">
       <div className="garage-hero">
@@ -5626,9 +5719,14 @@ Fields to extract:
           {profile.nickname || profile.name || "Your garage"}
           {profile.note ? ` · ${profile.note}` : ""}
         </div>
-        <div className="gh-car">
-          {profile.year ? `${profile.year} ` : ""}Audi {currentModel.label}{" "}
-          <span className="gh-engine">{currentModel.engine}</span>
+        <div className="gh-carrow">
+          <div className="gh-car">
+            {profile.year ? `${profile.year} ` : ""}Audi {currentModel.label}{" "}
+            <span className="gh-engine">{currentModel.engine}</span>
+          </div>
+          {/* Re-setup has to be discoverable: a visible 34px chip on Garage and
+              Profile, not a 19px slug in the header (08 §Flow requirements). */}
+          <button type="button" className="pfx-editcar" onClick={openSetup}>Edit car</button>
         </div>
 
         {/* Three tiles: hp / 60–130 / quarter mile. All three are the numbers
@@ -5668,6 +5766,33 @@ Fields to extract:
 
       {/* #4a's scroll region: its own 18px gutter, 10px above the heading. */}
       <div className="garage-body">
+
+      {/* ── GOAL CARD (#7a) ──────────────────────────────────────────────
+          The planner drives the build map's [→] cue, so it cannot be a
+          tertiary link at the bottom of the screen. It sits directly above the
+          build content, and tapping it opens the planner as a Garage SUB-VIEW
+          with a "‹ Garage" back link — not a sixth tab. A user who has never
+          set a goal still gets a next step: the end state defaults to
+          Reliable daily / 750 rather than rendering an empty cue. */}
+      <button type="button" className="goal-card" onClick={()=>{
+        setGarageView("planner");
+        track("planner_opened", { from:"goal_card" });
+      }}>
+        <span className="goal-top">
+          <span className="goal-lbl">Your goal</span>
+          <span className="goal-chev" aria-hidden="true">▸</span>
+        </span>
+        <span className="goal-name">{goalEnd.label} · {plannerGoal} hp</span>
+        <span className="goal-bar">
+          <ProgressionBar
+            hp={totalHp}
+            ceiling={{ hp: plannerGoal, label: "GOAL" }}
+            ariaLabel={`${totalHp} hp of a ${HP_SCALE_TOP} hp scale. Your goal is ${plannerGoal} hp — ${goalEnd.label}.`}
+          />
+        </span>
+        <span className="sr-only">Opens the end-state planner.</span>
+      </button>
+
       <h2 className="section-title">
         <span>Build map</span>
         {/* "3/32 slots" in #4a counts every build slot, not just the proven
@@ -5685,16 +5810,12 @@ Fields to extract:
       />
 
       {/* The one orange action on the screen. */}
-      <button className="g-cta" onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
+      <button className="g-cta" onClick={()=>{
+        setActiveTab("times"); setTimesView("runs"); setRunFormOpen(true);
+        track("tab_viewed",{tab:"times"});
+      }}>
         Log a run
       </button>
-
-      {/* Tertiary, in the #4b/#4d link language. The planner has no tab of its
-          own, so this is its only route in — see the gap report. */}
-      <button className="g-tertiary" onClick={()=>{
-        setGarageView("planner");
-        track("planner_opened", { from:"garage" });
-      }}>Plan back from an end state ›</button>
       </div>
     </div>
   );
@@ -5703,7 +5824,6 @@ Fields to extract:
   // A new owner with nothing logged must not land on the populated Garage —
   // "3 of 32 fitted" is a discouraging first impression when the answer is 0.
   const showActivation = numInst === 0 && !activationDismissed;
-  const plannerGoal = powerGoal || (buildCeiling.hp === CEILINGS.daily.hp ? 700 : buildCeiling.hp);
 
   const garageScreen = showActivation ? (
     <ActivationScreen
@@ -5998,113 +6118,187 @@ Fields to extract:
     </div>
   ); }
 
-  // ── PROFILE SETTINGS ──────────────────────────────────────────────
-  const profileContent = (
+  // ── PROFILE (#7f) ─────────────────────────────────────────────────
+  // The tab that used to resolve to the car picker. Identity + stats, the
+  // share card, the public page, visibility switches, and the anonymous
+  // localStorage account state made explicit rather than implied.
+  function renderProfile() {
+    const instSlots = Object.entries(installedMap)
+      .filter(([, vid]) => !!vid)
+      .map(([sid, vid]) => {
+        const s = getSlotById(sid);
+        return s ? { name: canonicalSlotName(s), brand: getVariantById(sid, vid)?.brand || "" } : null;
+      })
+      .filter(Boolean);
+    const best = runs.filter(r => r.type === "60-130" && r.time != null).sort((a, b) => a.time - b.time)[0];
+    const fuel = (runs.find(r => r.fuel) || {}).fuel || "—";
+    const initials = getInitials(profile.name);
+    // Rank is a real placement or nothing — never a placeholder number.
+    const myRank = myBoardRuns.proven
+      ? liveLeaderboard.filter(r => Number(r.t60130) < parseFloat(myBoardRuns.proven.time)).length + 1
+      : null;
+    const handle = `${(profile.name || "yourname").toLowerCase().replace(/\s+/g, "_")}/${currentModel.label.toLowerCase().replace(/\s+/g, "-")}`;
+
+    return (
     <div className="profile-area">
-      {/* ── SHARE SECTION ── */}
-      <div className="share-box">
-        <div className="share-title">Your build link</div>
-        <div className="share-sub">
-          Share your setup with the community. Anyone with this link sees your full mod list and best time.
+      {/* Identity + stats. "Edit car" is a visible 34px chip here and on
+          Garage — the header chip was not discoverable (08 §Flow). */}
+      <div className="pfx-card">
+        <div className="pfx-idrow">
+          <div className="pfx-id">
+            <div className="pfx-name">{profile.nickname || profile.name || "Your build"}</div>
+            <div className="pfx-car">
+              {`${profile.year || ""} AUDI ${currentModel.label} · ${currentModel.engine}`.trim().toUpperCase()}
+            </div>
+          </div>
+          <button type="button" className="pfx-editcar" onClick={openSetup}>Edit car</button>
         </div>
-
-        {/* Public toggle */}
-        <button className="pub-toggle" onClick={()=>{
-          const next = {...profile, public: !profile.public};
-          saveProfile(next);
-          track("profile_public_toggled", {public: next.public});
-        }}>
-          <div className="pub-toggle-left">
-            <div className="pub-toggle-label">Show in Community builds</div>
-            <div className="pub-toggle-sub">{profile.public ? "Your build is visible to other members" : "Only you can see your build"}</div>
-          </div>
-          <div className={`pub-toggle-pill${profile.public ? " on" : ""}`}>
-            <div className="pub-toggle-thumb"/>
-          </div>
+        <div className="pfx-stats">
+          <span className="pfx-stat">
+            <span className="pfx-stat-val pfx-measure">{totalHp}</span>
+            <span className="pfx-stat-lbl">Crank hp</span>
+          </span>
+          <span className="pfx-stat">
+            <span className="pfx-stat-val pfx-measure">{best ? best.time : speeds.t60130}</span>
+            <span className="pfx-stat-lbl">60–130</span>
+          </span>
+          <span className="pfx-stat">
+            <span className={`pfx-stat-val${myRank ? "" : " pfx-none"}`}>{myRank ? `#${myRank}` : "—"}</span>
+            <span className="pfx-stat-lbl">Rank</span>
+          </span>
+          <span className="pfx-stat">
+            <span className="pfx-stat-val">{numInst}</span>
+            <span className="pfx-stat-lbl">{numInst === 1 ? "Mod" : "Mods"}</span>
+          </span>
+        </div>
+        <button type="button" className="pfx-share" onClick={() => setShowPublicPage(true)}>
+          Share my build card
         </button>
-
-        {profile.public && <>
-          <div className="share-url">proof.build/@{profile.name ? profile.name.toLowerCase().replace(/\s+/g,"_") : "yourname"}/{currentModel.label.toLowerCase().replace(/\s+/g,"-")}</div>
-          <button className="share-copy" onClick={()=>{
-            try { navigator.clipboard?.writeText(`proof.build/@${(profile.name||"yourname").toLowerCase().replace(/\s+/g,"_")}/${currentModel.label.toLowerCase().replace(/\s+/g,"-")}`); } catch {}
-          }}>Copy Link</button>
-        </>}
       </div>
 
-      {/* ── SHARE CARD PREVIEW ── */}
-      {(() => {
-        const instSlots = Object.entries(installedMap)
-          .filter(([,vid])=>!!vid)
-          .map(([sid,vid])=>{ const s=getSlotById(sid); return s ? {name:s.name, brand:getVariantById(sid,vid)?.brand||""} : null; })
-          .filter(Boolean);
-        const best = runs.filter(r=>r.type==="60-130"&&r.time!=null).sort((a,b)=>a.time-b.time)[0];
-        const fuel = (runs.find(r=>r.fuel)||{}).fuel||"—";
-        const initials = getInitials(profile.name);
-        return (
-          <>
-            <div className="sc-sect">Your share card</div>
-            <div className="sc-wrap">
-              <div className="sc-head">
-                <div className="sc-av">{initials}</div>
-                <div className="sc-namewrap">
-                  <div className="sc-name">{profile.name || "Your Name"}</div>
-                  <div className="sc-car">{profile.year} {currentModel.label}{profile.tuner ? ` · ${profile.tuner}` : ""}</div>
-                </div>
-              </div>
-              <div className="sc-stats">
-                <div className="sc-stat">
-                  <div className="sc-stat-val" style={{color:"var(--green)"}}>{best ? `${best.time}s` : "—"}</div>
-                  <div className="sc-stat-lbl">Best run</div>
-                </div>
-                <div className="sc-stat">
-                  <div className="sc-stat-val" style={{color:"var(--measure)"}}>{instSlots.length || "—"}</div>
-                  <div className="sc-stat-lbl">Mods</div>
-                </div>
-                <div className="sc-stat">
-                  <div className="sc-stat-val" style={{color:"var(--blue)"}}>{fuel}</div>
-                  <div className="sc-stat-lbl">Fuel</div>
-                </div>
-              </div>
-              {instSlots.length > 0 && (
-                <div className="sc-chips">
-                  {instSlots.map((s,i)=><span key={i} className="sc-chip">{s.name}</span>)}
-                </div>
-              )}
-              <button className="sc-preview" onClick={()=>setShowPublicPage(true)}>Preview public page →</button>
-            </div>
-          </>
-        );
-      })()}
+      {/* ── PUBLIC PAGE ── */}
+      <h2 className="pfx-h2">Public page</h2>
+      <button type="button" className="pfx-row" onClick={() => setShowPublicPage(true)}>
+        <span className="pfx-row-body">
+          <span className="pfx-row-name">proof.build/@{handle}</span>
+          <span className="pfx-row-sub">Preview what others see</span>
+        </span>
+        <span className="pfx-chev" aria-hidden="true">▸</span>
+      </button>
 
+      {/* ── VISIBILITY ── */}
+      <h2 className="pfx-h2">Visibility</h2>
+      <div className="pfx-switches">
+        <button type="button" role="switch" aria-checked={!!profile.public} className="pfx-row"
+          onClick={() => {
+            const next = { ...profile, public: !profile.public };
+            saveProfile(next);
+            track("profile_public_toggled", { public: next.public });
+          }}>
+          <span className="pfx-row-body">
+            <span className="pfx-row-name">Show my build publicly</span>
+            <span className="pfx-row-sub">appears in Builds discovery</span>
+          </span>
+          <span className={`pfx-pill${profile.public ? " on" : ""}`} aria-hidden="true"><span className="pfx-thumb" /></span>
+        </button>
+        <button type="button" role="switch" aria-checked={rankMyRuns} className="pfx-row"
+          onClick={() => setRankMyRuns(v => !v)}>
+          <span className="pfx-row-body">
+            <span className="pfx-row-name">Rank my proven runs</span>
+            <span className="pfx-row-sub">datalogged runs only</span>
+          </span>
+          <span className={`pfx-pill${rankMyRuns ? " on" : ""}`} aria-hidden="true"><span className="pfx-thumb" /></span>
+        </button>
+      </div>
+
+      {/* ── SHARE CARD ── */}
+      <h2 className="pfx-h2">Your share card</h2>
+      <div className="sc-wrap">
+        <div className="sc-head">
+          <div className="sc-av">{initials}</div>
+          <div className="sc-namewrap">
+            <div className="sc-name">{profile.name || "Your Name"}</div>
+            <div className="sc-car">{profile.year} {currentModel.label}{profile.tuner ? ` · ${profile.tuner}` : ""}</div>
+          </div>
+        </div>
+        <div className="sc-stats">
+          <div className="sc-stat">
+            <div className="sc-stat-val" style={{color:"var(--green)"}}>{best ? `${best.time}s` : "—"}</div>
+            <div className="sc-stat-lbl">Best run</div>
+          </div>
+          <div className="sc-stat">
+            <div className="sc-stat-val" style={{color:"var(--measure)"}}>{instSlots.length || "—"}</div>
+            <div className="sc-stat-lbl">Mods</div>
+          </div>
+          <div className="sc-stat">
+            <div className="sc-stat-val" style={{color:"var(--blue)"}}>{fuel}</div>
+            <div className="sc-stat-lbl">Fuel</div>
+          </div>
+        </div>
+        {instSlots.length > 0 && (
+          <div className="sc-chips">
+            {instSlots.map((s,i)=><span key={i} className="sc-chip">{s.name}</span>)}
+          </div>
+        )}
+        {profile.public && (
+          <button className="sc-preview" onClick={()=>{
+            try { navigator.clipboard?.writeText(`proof.build/@${handle}`); setSaveFeedback("Link copied ✓"); setTimeout(()=>setSaveFeedback(""), 2500); } catch { /* clipboard unavailable */ }
+          }}>Copy link</button>
+        )}
+      </div>
+
+      {/* ── ACCOUNT ── */}
+      {/* Anonymous localStorage ids mean a build lives on ONE device. Saying so
+          is the honest state; the auth migration is a separate project (11 §6). */}
+      <h2 className="pfx-h2">Account</h2>
+      {authUser ? (
+        <div className="pfx-acct pfx-acct-ok">
+          <div className="pfx-acct-hd pfx-acct-hd-ok"><span aria-hidden="true">✓</span> SIGNED IN</div>
+          <p className="pfx-acct-body">
+            Saved to {authUser.email} — your build and runs reload on any device.
+          </p>
+          <button className="pfx-acct-cta" onClick={()=>sb.auth.signOut()}>Sign out</button>
+        </div>
+      ) : (
+        <div className="pfx-acct">
+          <div className="pfx-acct-hd"><span aria-hidden="true">▲</span> THIS DEVICE ONLY</div>
+          <p className="pfx-acct-body">
+            Your build and runs live on this phone. Clear your browser and they&rsquo;re gone.
+          </p>
+          {authSent ? (
+            <p className="pfx-acct-sent"><span aria-hidden="true">✓</span> Magic link sent — check your email.</p>
+          ) : (
+            <div className="pfx-acct-form">
+              <label className="pf-label" htmlFor={`${formUid}-pemail`}>Email</label>
+              <div className="pfx-acct-row">
+                <input id={`${formUid}-pemail`} className="pf-input" type="email" placeholder="you@example.com"
+                  value={authEmail} onChange={e=>setAuthEmail(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&sendMagicLink()} />
+                <button className="pfx-acct-cta" onClick={sendMagicLink} disabled={authLoading||!authEmail}>
+                  {authLoading ? "Sending…" : "Save to an account"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── DETAILS ── */}
+      <h2 className="pfx-h2">Your details</h2>
       <div className="pf-card">
-        <div className="pf-title">Car Profile</div>
         <div className="pf-grid">
           <div className="pf-field">
-            <label className="pf-label" htmlFor={`${formUid}-pname`}>Your Name</label>
+            <label className="pf-label" htmlFor={`${formUid}-pname`}>Your name</label>
             <input id={`${formUid}-pname`} className="pf-input" type="text" placeholder="First Last"
               value={profile.name} onChange={e=>setProfile(p=>({...p,name:e.target.value}))}/>
           </div>
           <div className="pf-field">
-            <label className="pf-label" htmlFor={`${formUid}-pnick`}>Car Nickname</label>
+            <label className="pf-label" htmlFor={`${formUid}-pnick`}>Car nickname</label>
             <input id={`${formUid}-pnick`} className="pf-input" type="text" placeholder="The Beast"
               value={profile.nickname} onChange={e=>setProfile(p=>({...p,nickname:e.target.value}))}/>
           </div>
           <div className="pf-field">
-            <label className="pf-label" htmlFor={`${formUid}-pmodel`}>Model</label>
-            <select id={`${formUid}-pmodel`} className="pf-input" value={profile.car||"s7"}
-              onChange={e=>setProfile(p=>({...p,car:e.target.value}))}>
-              {MODELS.map(m=><option key={m.id} value={m.id}>{m.label}</option>)}
-            </select>
-          </div>
-          <div className="pf-field">
-            <label className="pf-label" htmlFor={`${formUid}-pyear`}>Year</label>
-            <select id={`${formUid}-pyear`} className="pf-input" value={profile.year||"2016"}
-              onChange={e=>setProfile(p=>({...p,year:e.target.value}))}>
-              {["2013","2014","2015","2016","2017","2018"].map(y=><option key={y}>{y}</option>)}
-            </select>
-          </div>
-          <div className="pf-field">
-            <label className="pf-label" htmlFor={`${formUid}-pcolor`}>Color</label>
+            <label className="pf-label" htmlFor={`${formUid}-pcolor`}>Colour</label>
             <input id={`${formUid}-pcolor`} className="pf-input" type="text" placeholder="Phantom Black"
               value={profile.color} onChange={e=>setProfile(p=>({...p,color:e.target.value}))}/>
           </div>
@@ -6114,45 +6308,19 @@ Fields to extract:
               value={profile.tuner} onChange={e=>setProfile(p=>({...p,tuner:e.target.value}))}/>
           </div>
           <div className="pf-field full">
-            <label className="pf-label" htmlFor={`${formUid}-pnote`}>Build Note</label>
+            <label className="pf-label" htmlFor={`${formUid}-pnote`}>Build note</label>
             <input id={`${formUid}-pnote`} className="pf-input" type="text" placeholder="Daily driver | street/strip | track build…"
               value={profile.note} onChange={e=>setProfile(p=>({...p,note:e.target.value}))}/>
           </div>
         </div>
+        {/* Year and model are the car, and the car is edited in one place —
+            "Edit car" above — so they are not duplicated here. */}
         <button className={`pf-save${profileSaved?" pf-saved":""}`} onClick={()=>saveProfile(profile)}>
-          {profileSaved ? "✓ Saved" : "Save Profile"}
+          {profileSaved ? "✓ Saved" : "Save profile"}
         </button>
       </div>
 
-            <div className="pf-card">
-        <div className="pf-title">{authUser ? "Profile Linked" : "Link Your Profile"}</div>
-        {authUser ? (
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            <div style={{color:"var(--verify)",fontSize:13}}>✓ Signed in as {authUser.email}</div>
-            <div style={{fontSize:12,color:"var(--dim)"}}>Profile syncs to your account — reload from any device.</div>
-            <button className="pf-save" onClick={()=>sb.auth.signOut()} style={{marginTop:4,maxWidth:140}}>Sign Out</button>
-          </div>
-        ) : (
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            <div style={{fontSize:12,color:"var(--dim)"}}>Save your profile to your account and reload it on any device.</div>
-            {authSent ? (
-              <div style={{color:"var(--verify)",fontSize:13}}>✓ Magic link sent — check your email!</div>
-            ) : (
-              <div className="pf-field full">
-                <label className="pf-label" htmlFor={`${formUid}-pemail`}>Email</label>
-                <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                  <input id={`${formUid}-pemail`} className="pf-input" type="email" placeholder="you@example.com" value={authEmail} onChange={e=>setAuthEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMagicLink()} style={{flex:1}} />
-                  <button className="pf-save" onClick={sendMagicLink} disabled={authLoading||!authEmail} style={{whiteSpace:"nowrap",width:"auto",minWidth:110,opacity:(authLoading||!authEmail)?0.5:1}}>
-                    {authLoading ? "Sending…" : "Send Magic Link"}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-<div className="pf-card" style={{fontSize:11,color:"var(--muted)",lineHeight:1.7,fontWeight:300}}>
+      <div className="pf-card pfx-about">
         <div className="pf-title">About Proof.Build</div>
         Proof.Build is a performance build platform for the Audi 4.0T community. Configure your current setup, plan your next mods, log your times, and discover what upgrades fit your goals — backed by real community data, real vendor specs, and a verified leaderboard.<br/><br/>
         Platform: C7 / C7.5 (2013–2018) · S6 · S7 · RS6 · RS7<br/>
@@ -6161,7 +6329,9 @@ Fields to extract:
         <span style={{color:"var(--fill-neutral)"}}>proof.build</span> · Coming soon
       </div>
     </div>
-  );
+    );
+  }
+
 
   // ── COMMUNITY POPULATION (#7e) ────────────────────────────────────
   // "All 4.0T" is the default and never narrows to the user's own model; the
@@ -6235,7 +6405,6 @@ Fields to extract:
   // #4d "103 BUILDS", #4e "✓ DATALOG REQUIRED", #4f "End-state plan",
   // #5b "2016 S6 · STAGE 2".
   const stageLabel = REC_STAGE_LABEL[inferStage(installedMap)] || "Stock";
-  const openSetup = () => { setActiveTab("setup"); track("tab_viewed", { tab: "setup" }); };
   const hdrSlug = (() => {
     if (activeTab === "garage" && garageView === "planner")
       return { text: "End-state plan", upper: true };
@@ -6685,7 +6854,7 @@ Fields to extract:
           {activeTab==="times"  && renderTimes()}
           {activeTab==="builds" && renderBuilds()}
           {activeTab==="setup"  && setupScreen}
-          {activeTab==="profile"&& profileContent}
+          {activeTab==="profile"&& renderProfile()}
         </ScreenBoundary>
       </main>
 
