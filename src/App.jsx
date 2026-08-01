@@ -382,9 +382,13 @@ function recommendNext(installedMap, count = 3) {
 // rules and gates are product facts and stay exactly as they are.
 
 const REC_STAGE_ORDER = ["stock", "s1", "s2", "s3_hybrid", "big_single"];
+// "Stage" names a TUNE level and nothing else (08 §6). A hybrid turbo is a
+// turbo, so it is called one — calling it "Stage 3" put the word on hardware
+// and made the build map, the header and the board disagree about what a
+// stage is.
 const REC_STAGE_LABEL = {
   stock:"Stock", s1:"Stage 1", s2:"Stage 2",
-  s3_hybrid:"Stage 3 · hybrid turbo", big_single:"Big single turbo",
+  s3_hybrid:"Hybrid turbo", big_single:"Big single turbo",
 };
 const rankOfStage = s => Math.max(0, REC_STAGE_ORDER.indexOf(s));
 
