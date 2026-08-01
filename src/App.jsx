@@ -3101,6 +3101,34 @@ ul.bmap-plan{gap:5px}
   font-weight:600;text-wrap:pretty}
 /* One primary action per screen: the recommended card, and nothing else. */
 .vc-btn.vprimary{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:700}
+/* ── TIMES · THREE SEGMENTS (#7d) ── */
+.tm-segs{display:flex;gap:5px;padding:9px 18px;flex:none;border-bottom:1px solid var(--line)}
+.tm-seg{flex:1;min-height:34px;border-radius:17px}
+
+/* ── LEADERBOARD, now inside Times ── */
+.lb-req-line{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--text-3);
+  padding:10px 0 0}
+
+/* ── BUILDS · COMMUNITY DISCOVERY (#7e) ── */
+/* The user's own build is the first row and the way back into their Garage. */
+.cmt-mine{width:100%;display:block;text-align:left;border:1px dashed var(--line-dashed);
+  border-radius:var(--r-card);padding:10px 13px;background:transparent;cursor:pointer}
+.cmt-mine-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cmt-mine-name{font-family:var(--font-ui);font-weight:700;font-size:15px;color:var(--text-hi)}
+.cmt-mine-edit{font-family:var(--font-mono);font-size:10px;color:var(--text-3)}
+.cmt-mine-sub{display:block;margin-top:4px;font-family:var(--font-mono);font-size:10px;
+  letter-spacing:.04em;color:var(--text-3)}
+/* An empty model filter states what IS nearby rather than reading "0 builds". */
+.cmt-nearby{border:1px dashed var(--line-dashed);border-radius:var(--r-card);padding:11px 13px}
+.cmt-nearby-hd{font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--text-3)}
+.cmt-nearby-body{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--text-2);text-wrap:pretty}
+.cmt-nearby-body strong{color:var(--text-hi);font-weight:600}
+.cmt-publish{width:100%;min-height:44px;margin-top:9px;border:1px solid var(--line-dashed);
+  border-radius:var(--r-row);background:transparent;color:var(--text-2);font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.cmt-sect{margin:10px 0 0;font-family:var(--font-mono);font-weight:600;font-size:10px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--text-3)}
 /* Preserved badges, sized down to ride a 44px row without stealing the metric. */
 .sp-tag{flex:none;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.06em;
   text-transform:uppercase;border-radius:var(--r-chip);padding:1px 5px;white-space:nowrap;
@@ -4681,11 +4709,13 @@ export default function TheProof() {
   const [draggyParsing, setDraggyParsing] = useState(false);
   const [draggyError, setDraggyError] = useState("");
   const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
-  const [boardView, setBoardView]       = useState("builds"); // "builds" | "times"
+  // Times is one competitive surface with three segments (#7d).
+  const [timesView, setTimesView]       = useState("runs");   // "runs" | "trap" | "board"
   const [adminPicks, setAdminPicks]     = useState({});
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const isAdminMode = typeof window !== "undefined" && window.location.search.includes("admin");
-  const [buildSort, setBuildSort]       = useState("like");   // "like" | "fast" | "mods"
+  // #7e: the default is the whole 4.0T population, never the user's own model.
+  const [buildSort, setBuildSort]       = useState("all4");   // "all4" | "like" | "fast" | "mods"
   const [lbClass, setLbClass]           = useState("all");    // see LB_CLASSES
   const [communityBuilds, setCommunityBuilds]   = useState([]);
   const [communityLoading, setCommunityLoading] = useState(false);
@@ -5687,8 +5717,7 @@ Fields to extract:
       // "+N options" opens the same sheet the Parts rows open (#5b).
       onOptions={()=>{ if (nextRec) { setBuildMode("installed"); openSheet(nextRec.slot); } }}
       onBrowse={()=>{
-        setBoardView("builds");
-        setActiveTab("board");
+        setActiveTab("builds");
         if (communityBuilds.length === 0) loadCommunityBuilds();
         track("community_builds_opened", { from:"activation" });
       }}
@@ -5733,16 +5762,42 @@ Fields to extract:
     return Math.round((field.filter(t => t > mine).length / field.length) * 100);
   })();
 
-  const timesContent = (
+  // ── TIMES · ONE COMPETITIVE SURFACE (#7d) ─────────────────────────
+  // My runs · Trap chart · Leaderboard. The board used to live in Builds with
+  // its own count; there is one population and one count now.
+  const TIMES_SEGMENTS = [
+    { id: "runs",  label: "My runs" },
+    { id: "trap",  label: "Trap chart" },
+    { id: "board", label: "Leaderboard" },
+  ];
+  const timesSegments = (
+    <div className="tm-segs" role="group" aria-label="Times view">
+      {TIMES_SEGMENTS.map(s => (
+        <button key={s.id} type="button" className={`csbtn tm-seg${timesView===s.id?" on":""}`}
+          aria-pressed={timesView===s.id}
+          onClick={()=>{ setTimesView(s.id); track("times_view", { view: s.id }); }}>
+          {s.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  function renderTimes() { return (
     <div className="times-area">
       {/* Save feedback toast */}
       {saveFeedback && (
         <div className="save-toast">{saveFeedback}</div>
       )}
 
-      {/* #4c hero: one number, the proof state, and where it puts you. The
-          Trap Chart is no longer a top-level toggle — the mockup's own caption
-          says it lives in the run detail, which is where it renders now. */}
+      {timesSegments}
+
+      {timesView === "board" ? renderLeaderboard() : timesView === "trap" ? (
+        <div className="tm-body">
+          <TrapChart leaderboard={liveLeaderboard} bestRun60130={bestRun60130 || null} />
+        </div>
+      ) : (
+      <>
+      {/* #4c hero: one number, the proof state, and where it puts you. */}
       <div className="tm-hero">
         <div className="tm-hero-left">
           <div className="tm-hero-lbl">Your best</div>
@@ -5938,8 +5993,10 @@ Fields to extract:
         {runFormOpen ? "✕ Cancel" : "Log a run — attach datalog"}
       </button>
       </div>
+      </>
+      )}
     </div>
-  );
+  ); }
 
   // ── PROFILE SETTINGS ──────────────────────────────────────────────
   const profileContent = (
@@ -6106,8 +6163,10 @@ Fields to extract:
     </div>
   );
 
-  // ── LEADERBOARD CONTENT ───────────────────────────────────────────
-  // #4d has no per-model filter row; "Like yours" is its relevance control.
+  // ── COMMUNITY POPULATION (#7e) ────────────────────────────────────
+  // "All 4.0T" is the default and never narrows to the user's own model; the
+  // other three chips re-rank the SAME population rather than filtering it, so
+  // the count on this tab is one number that cannot contradict the board.
   const filteredCommunity = communityBuilds.slice().sort((a, b) => {
     if (buildSort === "like") {
       // #4d: builds running your next part first, then same-model builds.
@@ -6124,6 +6183,15 @@ Fields to extract:
     }
     return b.modCount - a.modCount;
   });
+
+  // How many published builds share the user's exact model — the number that
+  // decides whether "Like yours" has anything to show.
+  const sameModelCount = communityBuilds.filter(b => b.car === profile.car).length;
+  // One count, derived from what actually renders: published builds plus the
+  // board cars that are not already among them.
+  const communityCount = communityBuilds.length +
+    liveLeaderboard.filter(r =>
+      !communityBuilds.some(b => (b.name || "").toLowerCase() === (r.driver || "").toLowerCase())).length;
 
   // #4e: class filter, then a top slice with the rest folded behind "N MORE"
   // so your own row can be pinned directly beneath it.
@@ -6175,32 +6243,33 @@ Fields to extract:
       return { text: stageLabel, chip: true, action: openSetup };
     if (activeTab === "parts")
       return { text: `${profile.year || ""} ${currentModel.label} · ${stageLabel.toUpperCase()}`.trim(), action: openSetup };
+    // Times owns the board now, so the header states the gate on the segment
+    // that has one and the metric everywhere else (#7d).
+    if (activeTab === "times" && timesView === "board")
+      return { text: "✓ DATALOG GATED", tone: "verify" };
     if (activeTab === "times")   return { text: "60–130 MPH", lg: true };
-    if (activeTab === "board" && boardView === "times")
-      return { text: "✓ DATALOG REQUIRED", tone: "verify" };
-    if (activeTab === "board")
-      return { text: `${communityBuilds.length} BUILDS`, lg: true };
+    if (activeTab === "builds")
+      return { text: `${communityCount} BUILDS`, lg: true };
     if (activeTab === "setup") return { text: "Set up your car", upper: true };
-    return { text: "Your profile", upper: true };
+    return { text: "Profile", upper: true };
   })();
 
-  // ── TAB BAR ITEMS ──────────────────────────────────────────────────
-  // The spec's five, in order. Labels are lowercase here and uppercased in CSS,
-  // exactly as the mockup does it. Counts feed the accessible name only — the
-  // mockup carries no visual badges.
-  const openBoard = view => () => {
-    setActiveTab("board");
-    setBoardView(view);
-    if (view === "builds" && communityBuilds.length === 0) loadCommunityBuilds();
-    track("tab_viewed", { tab: view === "builds" ? "builds" : "board" });
+  // ── TAB BAR ITEMS (08 §Target nav) ─────────────────────────────────
+  // Garage · Parts · Times · Builds · Profile. `board` is gone as a tab: two
+  // competitive surfaces with different counts was the largest single source
+  // of "this feels strange", so Times absorbed it as a segment and Profile
+  // took the freed slot instead of resolving to the car picker.
+  const goTab = id => () => {
+    setActiveTab(id);
+    if (id === "builds" && communityBuilds.length === 0) loadCommunityBuilds();
+    track("tab_viewed", { tab: id });
   };
-  const goTab = id => () => { setActiveTab(id); track("tab_viewed", { tab: id }); };
   const NAV_TABS = [
-    { id: "garage", label: "garage", count: 0,                 onSelect: goTab("garage") },
-    { id: "parts",  label: "parts",  count: numInst + numWish, onSelect: goTab("parts")  },
-    { id: "times",  label: "times",  count: runs.length,       onSelect: goTab("times")  },
-    { id: "builds", label: "builds", count: 0,                 onSelect: openBoard("builds") },
-    { id: "board",  label: "board",  count: 0,                 onSelect: openBoard("times")  },
+    { id: "garage",  label: "garage",  count: 0,                 onSelect: goTab("garage") },
+    { id: "parts",   label: "parts",   count: numInst + numWish, onSelect: goTab("parts")  },
+    { id: "times",   label: "times",   count: runs.length,       onSelect: goTab("times")  },
+    { id: "builds",  label: "builds",  count: 0,                 onSelect: goTab("builds") },
+    { id: "profile", label: "profile", count: 0,                 onSelect: goTab("profile") },
   ];
 
   const lbFiltered = lbClass === "all"
@@ -6210,141 +6279,189 @@ Fields to extract:
   const lbShown  = lbFiltered.slice(0, LB_TOP);
   const lbHidden = Math.max(0, lbFiltered.length - lbShown.length);
 
-  const boardContent = (
+  // ── LEADERBOARD (#7d, third segment of Times) ─────────────────────
+  // Moved out of Builds. One competitive surface, one population, one count.
+  function renderLeaderboard() { return (
     <div className="lb-area">
-      {/* The Builds / Leaderboard toggle that used to sit here is gone: the tab
-          bar now addresses #4d and #4e directly, and two controls for the same
-          switch is worse than one. */}
+      <div className="lb-req-line">60–130 · AUDI 4.0T · CATLESS DOWNPIPES · DATALOG REQUIRED</div>
 
-      {/* ── TIMES VIEW (existing leaderboard) ── */}
-      {boardView === "times" && (
-        <>
-          <h2 className="lb-title">60–130 Leaderboard</h2>
-          <div className="lb-req"><span aria-hidden="true">✓</span> DATALOG REQUIRED</div>
-          <div className="lb-sub">Real runs · Audi 4.0T community · All catless downpipes</div>
+      {/* Class filters (#4e). Derived from each run's own turbo string, so
+          a car lands in a class because of what it runs, not a label. */}
+      <div className="lb-filters">
+        {LB_CLASSES.map(c => (
+          <button key={c.id} className={`csbtn${lbClass===c.id?" on":""}`} aria-pressed={lbClass===c.id}
+            onClick={()=>setLbClass(c.id)}>{c.label}</button>
+        ))}
+      </div>
 
-          {/* Class filters (#4e). Derived from each run's own turbo string, so
-              a car lands in a class because of what it runs, not a label. */}
-          <div className="lb-filters">
-            {LB_CLASSES.map(c => (
-              <button key={c.id} className={`csbtn${lbClass===c.id?" on":""}`} aria-pressed={lbClass===c.id}
-                onClick={()=>setLbClass(c.id)}>{c.label}</button>
-            ))}
-          </div>
+      <div className="lb-list">
 
-          <div className="lb-list">
+      {lbShown.map(run => (
+        <button type="button" key={run.rank}
+          className={`lb-row${run.rank === 1 ? " lb-row-top" : ""}`}>
+          <span className={`lb-rank${run.rank === 1 ? " lb-rank-top" : ""}`}>
+            {String(run.rank).padStart(2, "0")}
+          </span>
+          <span className="lb-mid">
+            <span className="lb-name">{run.driver}</span>
+            {/* #4e compresses the whole spec into one mono line. */}
+            <span className="lb-spec">
+              {[run.car, run.tuner, run.fuel, run.supFuel]
+                .filter(v => v && v !== "Unknown" && v !== "None")
+                .join(" · ").toUpperCase()}
+            </span>
+          </span>
+          <span className="lb-right">
+            <span className="lb-time">{run.t60130}</span>
+            {run.da && <span className="lb-da">✓ DA {run.da}</span>}
+          </span>
+        </button>
+      ))}
 
-          {lbShown.map(run => (
-            <button type="button" key={run.rank}
-              className={`lb-row${run.rank === 1 ? " lb-row-top" : ""}`}>
-              <span className={`lb-rank${run.rank === 1 ? " lb-rank-top" : ""}`}>
-                {String(run.rank).padStart(2, "0")}
+      {/* #4e pins your row below a "N MORE" divider so the gap to the next
+          tier is readable without scrolling the whole field. */}
+      {lbHidden > 0 && (
+        <div className="lb-divider">
+          <span className="lb-divider-line" />
+          <span className="lb-divider-lbl">{lbHidden} MORE</span>
+          <span className="lb-divider-line" />
+        </div>
+      )}
+
+      {/* Your own placement, gated on evidence — same row shape as the
+          field, outlined in --measure, carrying the real gap to the next
+          tier up rather than to the bottom of the board. */}
+      {myBoardRuns.proven ? (() => {
+        const mine  = parseFloat(myBoardRuns.proven.time);
+        const ahead = [...lbFiltered].filter(r => Number(r.t60130) < mine)
+          .sort((a, b) => Number(b.t60130) - Number(a.t60130))[0];
+        const gap   = ahead ? +(mine - Number(ahead.t60130)).toFixed(2) : null;
+        const place = lbFiltered.filter(r => Number(r.t60130) < mine).length + 1;
+        return (
+          <button type="button" className="lb-row lb-row-you">
+            <span className="lb-rank">{String(place).padStart(2, "0")}</span>
+            <span className="lb-mid">
+              <span className="lb-name">YOU · {(profile.nickname || profile.name || "your build").toUpperCase()}</span>
+              <span className="lb-spec">
+                {currentModel.label.toUpperCase()} · {stageLabel.toUpperCase()}
+                {gap != null ? ` · ${gap}s TO #${ahead.rank}` : " · FASTEST ON THE BOARD"}
               </span>
-              <span className="lb-mid">
-                <span className="lb-name">{run.driver}</span>
-                {/* #4e compresses the whole spec into one mono line. */}
-                <span className="lb-spec">
-                  {[run.car, run.tuner, run.fuel, run.supFuel]
-                    .filter(v => v && v !== "Unknown" && v !== "None")
-                    .join(" · ").toUpperCase()}
-                </span>
-              </span>
-              <span className="lb-right">
-                <span className="lb-time">{run.t60130}</span>
-                {run.da && <span className="lb-da">✓ DA {run.da}</span>}
-              </span>
+            </span>
+            <span className="lb-right">
+              <span className="lb-time">{myBoardRuns.proven.time}</span>
+              {myBoardRuns.proven.da && <span className="lb-da">✓ DA {myBoardRuns.proven.da}</span>}
+            </span>
+          </button>
+        );
+      })() : null}
+
+      {/* The consequence, stated plainly (#4e). */}
+      {myBoardRuns.claimCount > 0 && (
+        <div className="lb-hidden">
+          <span aria-hidden="true">▲</span> {myBoardRuns.claimCount} CLAIMED TIME{myBoardRuns.claimCount!==1?"S":""} HIDDEN — NO DATALOG, NO RANK
+        </div>
+      )}
+
+      <button className="lb-cta" onClick={()=>{ setTimesView("runs"); setRunFormOpen(true); }}>
+        Log a run — attach datalog
+      </button>
+      </div>
+    </div>
+  ); }
+
+  // ── BUILDS · COMMUNITY DISCOVERY (#7e) ────────────────────────────
+  // Discovery only — the leaderboard that used to share this tab now lives in
+  // Times. This surface must never read "0 builds" while cars exist, so when
+  // nobody has published a build yet it draws the SAME population the board
+  // does rather than dead-ending.
+  const publishedDrivers = new Set(filteredCommunity.map(b => (b.name || "").toLowerCase()));
+  const lbAsBuilds = liveLeaderboard.filter(r => !publishedDrivers.has((r.driver || "").toLowerCase()));
+  function renderBuilds() { return (
+    <div className="lb-area">
+      <div className="cmt-filters">
+        <div className="cmt-sort">
+          {/* Default is ALL 4.0T, not the user's exact model — filtering to a
+              model the community hasn't posted yet is how this tab used to
+              dead-end. "Like yours" is opt-in. */}
+          <button className={`csbtn${buildSort==="all4"?" on":""}`} aria-pressed={buildSort==="all4"}
+            onClick={()=>setBuildSort("all4")}>All 4.0T</button>
+          <button className={`csbtn${buildSort==="like"?" on":""}`} aria-pressed={buildSort==="like"}
+            onClick={()=>setBuildSort("like")}>Like yours</button>
+          <button className={`csbtn${buildSort==="fast"?" on":""}`} aria-pressed={buildSort==="fast"}
+            onClick={()=>setBuildSort("fast")}>Fastest</button>
+          <button className={`csbtn${buildSort==="mods"?" on":""}`} aria-pressed={buildSort==="mods"}
+            onClick={()=>setBuildSort("mods")}>Most mods</button>
+        </div>
+      </div>
+
+      <div className="cmt-list">
+        {/* The user's own build is the first row and an entry point back into
+            their Garage (#7e). */}
+        <button type="button" className="cmt-mine" onClick={()=>{ setActiveTab("garage"); track("tab_viewed",{tab:"garage"}); }}>
+          <span className="cmt-mine-top">
+            <span className="cmt-mine-name">Your build · {currentModel.label}</span>
+            <span className="cmt-mine-edit">EDIT ›</span>
+          </span>
+          <span className="cmt-mine-sub">
+            {totalHp} HP · {numInst} MOD{numInst===1?"":"S"} · {profile.public ? "PUBLIC" : "NOT YET PUBLIC"}
+          </span>
+        </button>
+
+        {communityLoading && <div className="cmt-empty">Loading builds…</div>}
+
+        {/* A genuinely empty model filter states what IS nearby and offers the
+            way out, instead of "0 builds". */}
+        {!communityLoading && buildSort === "like" && sameModelCount === 0 && (
+          <div className="cmt-nearby">
+            <div className="cmt-nearby-hd">No {currentModel.label} 4.0T builds yet</div>
+            <p className="cmt-nearby-body">
+              Showing all 4.0T instead — <strong>{communityCount} build{communityCount===1?"":"s"}</strong> share
+              your engine. Post yours and you&rsquo;d be the first {currentModel.label}.
+            </p>
+            <button className="cmt-publish" onClick={()=>{ setActiveTab("profile"); track("publish_prompt",{from:"builds"}); }}>
+              Publish my build
             </button>
-          ))}
+          </div>
+        )}
 
-          {/* #4e pins your row below a "N MORE" divider so the gap to the next
-              tier is readable without scrolling the whole field. */}
-          {lbHidden > 0 && (
-            <div className="lb-divider">
-              <span className="lb-divider-line" />
-              <span className="lb-divider-lbl">{lbHidden} MORE</span>
-              <span className="lb-divider-line" />
-            </div>
-          )}
+        {filteredCommunity.map((b, i) => (
+          <CommunityBuildCard key={b.user_id || i} build={b}
+            userCar={profile.car}
+            nextRec={nextRec}
+            onView={()=>setViewedBuild(b)} />
+        ))}
 
-          {/* Your own placement, gated on evidence — same row shape as the
-              field, outlined in --measure, carrying the real gap to the next
-              tier up rather than to the bottom of the board. */}
-          {myBoardRuns.proven ? (() => {
-            const mine  = parseFloat(myBoardRuns.proven.time);
-            const ahead = [...lbFiltered].filter(r => Number(r.t60130) < mine)
-              .sort((a, b) => Number(b.t60130) - Number(a.t60130))[0];
-            const gap   = ahead ? +(mine - Number(ahead.t60130)).toFixed(2) : null;
-            const place = lbFiltered.filter(r => Number(r.t60130) < mine).length + 1;
-            return (
-              <button type="button" className="lb-row lb-row-you">
-                <span className="lb-rank">{String(place).padStart(2, "0")}</span>
-                <span className="lb-mid">
-                  <span className="lb-name">YOU · {(profile.nickname || profile.name || "your build").toUpperCase()}</span>
-                  <span className="lb-spec">
-                    {currentModel.label.toUpperCase()} · {stageLabel.toUpperCase()}
-                    {gap != null ? ` · ${gap}s TO #${ahead.rank}` : " · FASTEST ON THE BOARD"}
-                  </span>
+        {/* Same cars as the board. Rendered here so Builds can never claim a
+            population of zero while Times lists ten. */}
+        {lbAsBuilds.length > 0 && (
+          <>
+            <h2 className="cmt-sect">From the leaderboard · {lbAsBuilds.length}</h2>
+            {lbAsBuilds.map(r => (
+              <button type="button" key={`lb-${r.rank}`} className="cmt-card"
+                onClick={()=>{ setActiveTab("times"); setTimesView("board"); track("tab_viewed",{tab:"board"}); }}>
+                <span className="cmt-top">
+                  <span className="cmt-name">{r.driver} <span className="cmt-car">{r.car}</span></span>
                 </span>
-                <span className="lb-right">
-                  <span className="lb-time">{myBoardRuns.proven.time}</span>
-                  {myBoardRuns.proven.da && <span className="lb-da">✓ DA {myBoardRuns.proven.da}</span>}
+                <span className="cmt-summary">
+                  {[r.turbo, r.fuel, r.supFuel, r.manifolds, r.dp]
+                    .filter(v => v && v !== "Unknown" && v !== "None").join(" · ").toUpperCase()}
+                </span>
+                <span className="cmt-stats">
+                  <span className="cmt-stat">{r.t60130}<span className="cmt-unit"> s</span></span>
+                  <span className="cmt-proven">✓ PROVEN</span>
+                  <span className="cmt-mods">#{r.rank} on the board</span>
                 </span>
               </button>
-            );
-          })() : null}
+            ))}
+          </>
+        )}
 
-          {/* The consequence, stated plainly (#4e). */}
-          {myBoardRuns.claimCount > 0 && (
-            <div className="lb-hidden">
-              <span aria-hidden="true">▲</span> {myBoardRuns.claimCount} CLAIMED TIME{myBoardRuns.claimCount!==1?"S":""} HIDDEN — NO DATALOG, NO RANK
-            </div>
-          )}
-
-          <button className="lb-cta" onClick={()=>{setActiveTab("times");track("tab_viewed",{tab:"times"});}}>
-            Beat it — log a run
-          </button>
-          </div>
-        </>
-      )}
-
-      {/* ── BUILDS VIEW (community browser) ── */}
-      {boardView === "builds" && (
-        <>
-          {/* #4d carries one filter row of three chips. The per-model filter
-              that used to sit above it has no counterpart in the mockup and is
-              largely subsumed by "Like yours" — flagged in the report. */}
-          {communityLoading
-            ? <div className="cmt-empty">Loading builds…</div>
-            : <>
-                <div className="cmt-filters">
-                  <div className="cmt-sort">
-                    {/* #4d pins "Like yours" first — it is the default reason
-                        to browse at all. */}
-                    <button className={`csbtn${buildSort==="like"?" on":""}`} aria-pressed={buildSort==="like"} onClick={()=>setBuildSort("like")}>Like yours</button>
-                    <button className={`csbtn${buildSort==="fast"?" on":""}`} aria-pressed={buildSort==="fast"} onClick={()=>setBuildSort("fast")}>Fastest</button>
-                    <button className={`csbtn${buildSort==="mods"?" on":""}`} aria-pressed={buildSort==="mods"} onClick={()=>setBuildSort("mods")}>Most mods</button>
-                  </div>
-                </div>
-                {filteredCommunity.length === 0
-                  ? <div className="cmt-empty">No builds logged yet.</div>
-                  : <div className="cmt-list">
-                      {filteredCommunity.map((b, i) => (
-                        <CommunityBuildCard key={b.user_id || i} build={b}
-                          userCar={profile.car}
-                          nextRec={nextRec}
-                          onView={()=>setViewedBuild(b)} />
-                      ))}
-                      <button className="cmt-more" onClick={()=>loadCommunityBuilds()}>
-                        More builds
-                      </button>
-                    </div>
-                }
-              </>
-          }
-        </>
-      )}
+        {filteredCommunity.length > 0 && (
+          <button className="cmt-more" onClick={()=>loadCommunityBuilds()}>More builds</button>
+        )}
+      </div>
     </div>
-  );
+  ); }
 
   // ── PARTS · STAGED LIST (10-parts-picker-staged.md · #8a) ─────────
   // Replaces the category-first parts IA. Every slot is visible, grouped by
@@ -6565,8 +6682,8 @@ Fields to extract:
         <ScreenBoundary resetKey={activeTab}>
           {activeTab==="garage" && garageScreen}
           {activeTab==="parts"  && partsWithToggle}
-          {activeTab==="times"  && timesContent}
-          {activeTab==="board"  && boardContent}
+          {activeTab==="times"  && renderTimes()}
+          {activeTab==="builds" && renderBuilds()}
           {activeTab==="setup"  && setupScreen}
           {activeTab==="profile"&& profileContent}
         </ScreenBoundary>
@@ -6650,15 +6767,15 @@ Fields to extract:
         }} />
       )}
 
-      {/* Tab bar (03-components.md). Five lowercase mono labels, no icons —
+      {/* Tab bar (08 §Target nav). Five lowercase mono labels, no icons —
           uppercased in CSS so the rendered text matches the mockup while the
-          source stays the spec's `garage · parts · times · builds · board`.
-          `builds` and `board` are the two halves of #4d and #4e, which the app
-          already models as boardView "builds" | "times". */}
+          source stays the spec's `garage · parts · times · builds · profile`.
+          Vehicle setup is a Garage sub-view, not a tab, so it keeps Garage lit
+          rather than leaving the bar with nothing current. */}
       <nav className="bottom-nav" aria-label="Primary" inert={dialogOpen}>
         {NAV_TABS.map(t => {
-          const current = t.id === "builds" ? (activeTab === "board" && boardView === "builds")
-            : t.id === "board"              ? (activeTab === "board" && boardView === "times")
+          const current = t.id === "garage"
+            ? (activeTab === "garage" || activeTab === "setup")
             : activeTab === t.id;
           return (
             <button
