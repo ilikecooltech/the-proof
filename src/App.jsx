@@ -10,6 +10,7 @@ import {
 } from "./lib/stages.js";
 import { trapOffset, judgeTime, rankBoard, heldReason } from "./lib/integrity.js";
 import { parseDatalog } from "./lib/datalog.js";
+import { barLayout, pctOfScale as pctOf } from "./lib/barGeometry.js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
 const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
@@ -1790,13 +1791,21 @@ function calcSpeeds(model, hpGain, baseHpOverride) {
 function calcWhp(crankHp) { return Math.round(crankHp * 0.85); }
 
 // ── PROGRESSION SCALE (05-data-and-math.md) ─────────────────────────────────
-// One scale everywhere: 0 → 1040 hp. Every label sits on a real tick, and every
-// percentage below is DERIVED — the mockup's 58% / 72% / 43% are outputs of this
-// function, never constants to be copied.
-const HP_SCALE_TOP = 1040;
+// One scale everywhere: 0 → 1400 hp. Every label sits on a real tick, and every
+// percentage below is DERIVED — no percentage is ever written down. Changing
+// this number is the ONLY edit needed to rescale every bar in the app, on
+// Garage, Parts, Activation, the goal card, the planner and vehicle setup.
+//
+// Raised from 1040 because the top of this platform moved: the big singles in
+// the catalog are quoted past what a 1040 scale could show without pinning the
+// fill to 100% and losing the difference between a 1,050 hp car and a 1,350 one.
+const HP_SCALE_TOP = 1400;
 
-// "1040+ TOP END" is a near-ceiling, not a hard max — the `+` is load-bearing.
+// "1400+ TOP END" is a near-ceiling, not a hard max — the `+` is load-bearing.
 // Never relabel it MAX.
+//
+// These are REAL hp ceilings and do not move with the scale — they simply sit
+// at lower percentages of it now (750 → 53.6%, 850 → 60.7%, 1040 → 74.3%).
 const CEILINGS = {
   daily:  { hp: 750,  label: "DAILY"     },  // reliable, stock turbos
   // Stage 3 is BIG TURBOS. A big single is one option inside it — a bigger
@@ -1805,7 +1814,8 @@ const CEILINGS = {
   single: { hp: 1040, label: "BIG SINGLE"},  // one big turbo, orphans OEM-turbo parts
 };
 
-const pctOfScale = v => Math.max(0, Math.min(100, (v / HP_SCALE_TOP) * 100));
+// Bound to the app's one scale so no caller passes it by hand.
+const pctOfScale = v => pctOf(v, HP_SCALE_TOP);
 
 // The daily-safe ceiling a build can actually reach, taken from the turbo it is
 // running (or planning). This is the bar's emotional anchor — not the top end.
@@ -1826,31 +1836,20 @@ function ProgressionBar({
   // showing what ONE part unlocks, which is a gain, not a plan.
   wishGain = false, ceilingLabel = null, hideTopEnd = false,
 }) {
-  const projected = Math.max(hp, wishlistHp);
-  const fillPct = pctOfScale(hp);
-  const wishPct = pctOfScale(projected);
-  const ceilPct = pctOfScale(ceiling.hp);
-  const goalPct = goalHp != null ? pctOfScale(goalHp) : null;
-  const hasWish = projected > hp;
-  // The ceiling label is centred on its tick, so keep it off the two ends where
-  // it would collide with NOW or the top-end label.
-  const ceilNearEdge = ceilPct > 92;
-
   // ── LABEL COLLISION ──────────────────────────────────────────────────────
-  // Every label is absolutely positioned on the same 366px row, so at high hp
-  // the NOW label (which ends AT the fill edge) runs straight into
-  // "1040+ TOP END", which is pinned right. At 919/1040 the fill sits at 88%
-  // and the two overlap outright. Widths below are the labels' share of the
-  // track at their authored sizes — NOW is ~8 mono chars at 10px, TOP END is
-  // 13 at 9px — with a couple of points of breathing room.
-  const NOW_SHARE = 14;
-  const TOP_SHARE = 23;
-  const rightMost = Math.max(fillPct, hasWish ? wishPct : 0);
-  // Drop TOP END onto its own line when anything would reach it.
-  const stackTop  = !hideTopEnd && (ceilNearEdge || rightMost > 100 - TOP_SHARE);
-  // At very low hp the NOW label, translated fully left of the fill edge,
-  // would hang off the start of the track — pin it to the left instead.
-  const nowAtLeft = fillPct < NOW_SHARE;
+  // Every position and every label reservation is computed in ../lib/barGeometry
+  // from {value, scaleTop} and from the label STRINGS — the two shares used to
+  // be hand-tuned constants measured against the old scale, and raising the
+  // scale to 1400 made four-digit hp the common case, so a fixed reservation
+  // would have under-reserved exactly where the labels are longest.
+  const {
+    fillPct, wishPct, ceilPct, goalPct, hasWish,
+    ceilNearEdge, stackTop, nowAtLeft,
+  } = barLayout({
+    hp, wishlistHp, ceilingHp: ceiling.hp, goalHp,
+    scaleTop: HP_SCALE_TOP, nowLabel, hideTopEnd,
+  });
+  const projected = Math.max(hp, wishlistHp);
 
   return (
     <div className="pbar-wrap">
@@ -1974,28 +1973,38 @@ body{background:var(--bg);color:var(--text-body);font-family:var(--font-ui);-web
 .app{display:flex;flex-direction:column;height:100dvh;overflow:hidden}
 
 /* ── HEADER ── */
-/* 402x40: 10px 18px 11px, transparent over --bg, one hairline. */
-.header{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:10px 18px 11px;background:transparent;border-bottom:1px solid var(--line);
+/* Still 402x40 and still 10/18/11 of breathing room — but the vertical padding
+   now lives on the CHILDREN rather than the header, so the two controls fill
+   the header's full height instead of being 19px slivers inside it. Same
+   pixels rendered, ~2x the tap target.
+   FLAGGED: that makes them 40px, not 44px. The mockup fixes the header at 40px,
+   so 44 cannot fit without changing its height; 40 is as close as the visual
+   system allows and is a real improvement on 19. */
+.header{display:flex;align-items:stretch;justify-content:space-between;gap:12px;
+  padding:0 18px;background:transparent;border-bottom:1px solid var(--line);
   flex:none;z-index:50}
-.logo{margin:0;font-family:var(--font-mono);font-weight:600;font-size:14px;letter-spacing:.06em;
+.logo-h{margin:0;display:flex;align-items:stretch;flex:none}
+.logo{margin:0;display:flex;align-items:center;padding:10px 0 11px;
+  background:transparent;border:0;cursor:pointer;
+  font-family:var(--font-mono);font-weight:600;font-size:14px;letter-spacing:.06em;
   text-transform:none;color:var(--text-hi);flex:none}
 .logo-slash{color:var(--action)}
 /* Plain slug: Mono 10.5/400 .06em --text-3. The chip variant states build
    state and is the way into setup, so it is a real button — visually identical
-   to the mockup's span, which is why its tap target is the chip itself.
-   FLAGGED: 19px tall, under the 44px target floor. The header is 40px in the
-   mockup, so a 44px target cannot fit without changing its height. */
-.hdr-slug{font-family:var(--font-mono);font-size:10.5px;font-weight:400;line-height:normal;letter-spacing:.06em;
-  color:var(--text-3);background:transparent;border:0;padding:0;flex:none;white-space:nowrap;
+   to the mockup's span. */
+.hdr-slug{display:flex;align-items:center;
+  font-family:var(--font-mono);font-size:10.5px;font-weight:400;line-height:normal;letter-spacing:.06em;
+  color:var(--text-3);background:transparent;border:0;padding:10px 0 11px;flex:none;white-space:nowrap;
   text-align:right;cursor:default}
 button.hdr-slug{cursor:pointer}
 .hdr-slug-upper{text-transform:uppercase;letter-spacing:.08em}
 .hdr-slug-lg{font-size:11px}
 .hdr-slug-verify{color:var(--verify)}
+/* The chip keeps its 2px/7px box; the 10/11 that makes the button 40px tall
+   is applied as margin so the visible chip is unchanged. */
 .hdr-slug-chip{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
   color:var(--text-body);border:1px solid var(--line-dashed);border-radius:var(--r-chip);
-  padding:2px 7px}
+  padding:2px 7px;margin:10px 0 11px;align-self:center}
 
 .model-strip{display:flex;gap:6px;overflow-x:auto;padding:0 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .model-strip::-webkit-scrollbar{display:none}
@@ -2598,7 +2607,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pbar-ceiling-row{position:relative;height:14px}
 .pbar-ceiling-lbl{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;
   font-family:var(--font-mono);font-weight:700;font-size:11px;letter-spacing:.06em;color:var(--verify)}
-/* At a 1040 ceiling the tick sits at 100%, so a centred label hangs off the
+/* At a ceiling that lands on 100% the tick sits at the very end, so a centred label hangs off the
    right edge. Pin it instead. */
 .pbar-ceiling-lbl-end{transform:none}
 .pbar-track{position:relative;height:8px;border-radius:2px;background:var(--track);overflow:hidden}
@@ -2700,7 +2709,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
    an unbacked time cannot be mistaken for a verified one at a glance. */
 .run-proof-row{display:inline-flex;align-items:center;gap:6px}
 /* FLAGGED: 9.5px, under the 10px text minimum in 01-tokens.md, which reserves
-   sub-10px for the muted "1040+ TOP END" label alone. Matched to the mockup —
+   sub-10px for the muted "1400+ TOP END" label alone. Matched to the mockup —
    #4c's run chips and #4c/#3a's hero proof badge are both 9.5px/600. */
 .proof-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);
   font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
@@ -2948,7 +2957,7 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .lb-divider{display:flex;align-items:center;gap:8px;padding:2px 0;margin:0}
 .lb-divider-line{flex:1;border-top:1px dashed var(--line-dashed)}
 /* FLAGGED: 9px, under the 10px text minimum. Matched to #4e. */
-/* 10px floor: the one sanctioned 9px exception is the muted "1040+ TOP END"
+/* 10px floor: the one sanctioned 9px exception is the muted "1400+ TOP END"
    bar label, not this. */
 .lb-divider-lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--text-3)}
 .lb-hidden{margin:0;padding:4px 1px;font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;
@@ -4304,8 +4313,8 @@ function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave, onDra
         </div>
         <div className="setup-bar">
           <div className="setup-track">
-            <div className="setup-fill" style={{ width: `${(hp / HP_SCALE_TOP) * 100}%` }} />
-            <div className="setup-tick" style={{ left: `${(en.ceiling / HP_SCALE_TOP) * 100}%` }} />
+            <div className="setup-fill" style={{ width: `${pctOfScale(hp)}%` }} />
+            <div className="setup-tick" style={{ left: `${pctOfScale(en.ceiling)}%` }} />
           </div>
           <div className="setup-bar-lbls">
             <span className="setup-ceil">{en.ceiling} CEILING</span>
@@ -5449,6 +5458,16 @@ export default function TheProof() {
   // Vehicle setup is a Garage sub-view reached from the visible "Edit car"
   // chips, so it is declared before the screens that reference it.
   function openSetup() { setActiveTab("setup"); track("tab_viewed", { tab: "setup" }); }
+
+  // The wordmark goes home. It routes through the same unsaved-changes guard
+  // as everything else, so tapping it mid-edit asks rather than discarding.
+  function goHome() {
+    leaveSetup(() => {
+      setActiveTab("garage");
+      setGarageView("garage");
+      track("logo_home");
+    });
+  }
 
   // ── LEAVING VEHICLE SETUP MID-EDIT (#6g) ────────────────────────────────
   // Every route out of setup goes through here, so there is no path that can
@@ -6880,14 +6899,45 @@ Fields to extract:
   // Verbatim per screen — #4a "Stage 2", #4b "Stock", #4c "60–130 MPH",
   // #4d "103 BUILDS", #4e "✓ DATALOG REQUIRED", #4f "End-state plan",
   // #5b "2016 S6 · STAGE 2".
-  const stageLabel = REC_STAGE_LABEL[inferStage(installedMap)] || "Stock";
+  // ── WHAT THIS CAR IS, DERIVED FROM THE BUILD ────────────────────────────
+  // The header chip states the tune stage and, once a turbo is fitted, WHICH
+  // KIND of turbo — read off the installed product's own class, so swapping a
+  // hybrid for a big single changes the chip. Before a turbo exists there is no
+  // turbo to name, so it states the end state the build is aimed at instead.
+  // Nothing here is a constant: both halves come from state.
+  const installedTurboId = installedMap.turbo_upgrade || null;
+  const turboClass = installedTurboId
+    ? (REC_BIG_SINGLE_TURBOS.has(installedTurboId) ? "Big single"
+      : REC_HYBRID_TURBOS.has(installedTurboId)   ? "Big turbo"
+      : "Turbo")
+    : null;
+  const tuneStageName = (() => {
+    const s = inferStage(installedMap);
+    if (s === "stock") return "Stock";
+    if (s === "s1")    return "Stage 1";
+    if (s === "s2")    return "Stage 2";
+    return "Stage 3";           // a turbo or a custom map is Stage 3 territory
+  })();
+  const stageLabel = turboClass
+    ? `${tuneStageName} · ${turboClass}`
+    : `${tuneStageName} · ${goalEnd.label}`;
+  // The full picture for assistive tech, where there is no width budget.
+  const buildStateLabel = [
+    tuneStageName,
+    turboClass ? `${turboClass} fitted` : "no turbo upgrade yet",
+    `aiming at ${goalEnd.label.toLowerCase()}, ${plannerGoal} hp`,
+  ].join(", ");
+
   const hdrSlug = (() => {
     if (activeTab === "garage" && garageView === "planner")
       return { text: "End-state plan", upper: true };
     if (activeTab === "garage")
-      return { text: stageLabel, chip: true, action: openSetup };
+      return { text: stageLabel, chip: true, action: openSetup, describe: buildStateLabel };
     if (activeTab === "parts")
-      return { text: `${profile.year || ""} ${currentModel.label} · ${stageLabel.toUpperCase()}`.trim(), action: openSetup };
+      // Parts already carries the ladder, so the slug names the car and the
+      // tune step; the turbo class would push this past the header's width.
+      return { text: `${profile.year || ""} ${currentModel.label} · ${tuneStageName.toUpperCase()}`.trim(),
+               action: openSetup, describe: buildStateLabel };
     // Times owns the board now, so the header states the gate on the segment
     // that has one and the metric everywhere else (#7d).
     if (activeTab === "times" && timesView === "board")
@@ -7401,8 +7451,15 @@ Fields to extract:
             proof". A visually-hidden span was tried first and Chrome folded the
             aria-hidden glyphs into the name anyway ("the/proofthe-proof"), so
             the label is set on the heading itself. */}
-        <h1 className="logo" aria-label="the-proof">
-          the<span className="logo-slash">/</span>proof
+        {/* The wordmark is the way home. It was a bare <h1> — the one thing
+            every app makes clickable, and here it did nothing. The heading
+            stays (it is the document's h1) and carries the control inside it,
+            so the landmark and the affordance are both real. */}
+        <h1 className="logo-h" aria-label="the-proof">
+          <button type="button" className="logo" onClick={goHome}
+            aria-label="the-proof — go to your garage">
+            the<span className="logo-slash">/</span>proof
+          </button>
         </h1>
         {hdrSlug.action ? (
           // Where the slug states build state it doubles as the way into setup;
@@ -7411,7 +7468,7 @@ Fields to extract:
             type="button"
             className={`hdr-slug${hdrSlug.chip ? " hdr-slug-chip" : ""}${hdrSlug.tone ? " hdr-slug-" + hdrSlug.tone : ""}${hdrSlug.upper ? " hdr-slug-upper" : ""}${hdrSlug.lg ? " hdr-slug-lg" : ""}`}
             onClick={hdrSlug.action}
-            aria-label={`${hdrSlug.text} — open your car and profile`}
+            aria-label={`${hdrSlug.describe || hdrSlug.text} — open your car and profile`}
           >{hdrSlug.text}</button>
         ) : (
           <span className={`hdr-slug${hdrSlug.chip ? " hdr-slug-chip" : ""}${hdrSlug.tone ? " hdr-slug-" + hdrSlug.tone : ""}${hdrSlug.upper ? " hdr-slug-upper" : ""}${hdrSlug.lg ? " hdr-slug-lg" : ""}`}>
