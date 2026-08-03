@@ -58,7 +58,12 @@ function Row({ row, onOpen }) {
         {row.tag && <span className={`sp-tag ${row.tagClass}`}>{row.tag}</span>}
         <Metric row={row} />
         <span className="sr-only">
-          {row.installed ? "In your build." : row.isNext ? "Your recommended next step." : ""}
+          {/* The visible metric is a bare number under a group header that
+              states the unit; spell it out here, where there is no width
+              budget to trade against. */}
+          {row.installed ? "In your build." : row.enabler ? "" :
+            row.gain === null ? "No measured gain figure." : ` Adds ${row.gain} wheel horsepower.`}
+          {row.isNext ? " Your recommended next step." : ""}
           {row.enabler ? ` Enabler — unlocks ${row.enabler.targetName}.` : ""}
           {" "}Opens options.
         </span>

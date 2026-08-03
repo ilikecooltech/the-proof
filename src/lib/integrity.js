@@ -175,7 +175,7 @@ export function heldReason(verdict, { hp } = {}) {
   const gap = Math.abs(verdict.delta).toFixed(verdict.delta % 1 === 0 ? 0 : 1);
   const dir = verdict.delta < 0 ? "faster" : "slower";
   if (verdict.basis === "model") {
-    return `${gap}s ${dir} than the ${verdict.expected}s model for ${hp} hp — verify units or attach a datalog`;
+    return `${gap}s ${dir} than the ${verdict.expected}s model for ${hp} whp — verify units or attach a datalog`;
   }
   return `${gap}s ${dir} than its own ${verdict.expected}s trap speed implies — verify units or attach a datalog`;
 }

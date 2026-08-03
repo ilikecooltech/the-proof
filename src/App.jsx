@@ -11,6 +11,7 @@ import {
 import { trapOffset, judgeTime, rankBoard, heldReason } from "./lib/integrity.js";
 import { parseDatalog } from "./lib/datalog.js";
 import { barLayout, pctOfScale as pctOf } from "./lib/barGeometry.js";
+import { toWhp, whpCeiling, LOSS_LABEL } from "./lib/units.js";
 
 // ── ANALYTICS (PostHog) ──────────────────────────────────────────────────────
 const PH_KEY = import.meta.env.VITE_POSTHOG_Key;
@@ -269,7 +270,8 @@ const TUNE_GAINS = {
   ],
   // Rolling-metric anchor — the number to feature prominently.
   rollingAnchor: { label:"APR S6 / S7 · 60–130 mph", fromS:11.32, toS:9.93, deltaS:-1.4 },
-  drivetrainLossPct:[15,18],   // used to reconcile crank vs wheel on the 4.0T
+  // Crank↔wheel is stated ONCE, in lib/units.js — this module used to carry a
+  // second, different assumption (a 15–18% range) alongside calcWhp's 15%.
   disclaimer:"Reference figures are estimates from published dyno results, not guarantees. Actual gains vary with hardware, fuel blend, DA, and tuner.",
 };
 
@@ -1785,13 +1787,14 @@ function calcSpeeds(model, hpGain, baseHpOverride) {
   };
 }
 
-// AWD Quattro drivetrain loss ~15% on Mustang AWD dyno
-// Consistent with community data: stock RS7 560 crank = ~476 whp
-// SRM1000 kit = 992 whp measured = ~1167 hp crank
-function calcWhp(crankHp) { return Math.round(crankHp * 0.85); }
 
 // ── PROGRESSION SCALE (05-data-and-math.md) ─────────────────────────────────
-// One scale everywhere: 0 → 1400 hp. Every label sits on a real tick, and every
+// One scale everywhere: 0 → 1400 WHEEL hp. The bar is a display surface, so it
+// speaks the displayed unit end to end — the fill, the ticks, the ceiling
+// labels and the top end are all whp. Callers convert with toWhp() at the call
+// site rather than the bar converting silently, so the unit is visible where
+// the number is passed.
+// 0 → 1400 hp. Every label sits on a real tick, and every
 // percentage below is DERIVED — no percentage is ever written down. Changing
 // this number is the ONLY edit needed to rescale every bar in the app, on
 // Garage, Parts, Activation, the goal card, the planner and vehicle setup.
@@ -1804,8 +1807,9 @@ const HP_SCALE_TOP = 1400;
 // "1400+ TOP END" is a near-ceiling, not a hard max — the `+` is load-bearing.
 // Never relabel it MAX.
 //
-// These are REAL hp ceilings and do not move with the scale — they simply sit
-// at lower percentages of it now (750 → 53.6%, 850 → 60.7%, 1040 → 74.3%).
+// These stay in CRANK, because that is how the community quotes them and how
+// the recommendation bands and stageForGoalHp() read them. whpCeiling() is
+// what puts them on the bar, so a 750 crank daily ceiling renders as 638 whp.
 const CEILINGS = {
   daily:  { hp: 750,  label: "DAILY"     },  // reliable, stock turbos
   // Stage 3 is BIG TURBOS. A big single is one option inside it — a bigger
@@ -1831,7 +1835,8 @@ function ceilingForBuild(map) {
 // cannot disagree about where a build sits.
 function ProgressionBar({
   hp, wishlistHp = 0, ceiling = CEILINGS.daily, goalHp = null,
-  nowLabel = "NOW", wishLabel = "PLANNED", ariaLabel,
+  // The readout carries its unit: every number on this bar is wheel hp.
+  nowLabel = "WHP", wishLabel = "PLANNED", ariaLabel,
   // #4b hatches in --verify and labels the delta, not the absolute: the bar is
   // showing what ONE part unlocks, which is a gain, not a plan.
   wishGain = false, ceilingLabel = null, hideTopEnd = false,
@@ -1865,9 +1870,9 @@ function ProgressionBar({
       <div
         className="pbar-track"
         role="img"
-        aria-label={ariaLabel || `${hp} hp of a ${HP_SCALE_TOP} hp scale` +
-          (hasWish ? `, ${projected} hp with planned parts` : "") +
-          `. Safe ceiling for this build ${ceiling.hp} hp.`}
+        aria-label={ariaLabel || `${hp} wheel horsepower of a ${HP_SCALE_TOP} whp scale` +
+          (hasWish ? `, ${projected} whp with planned parts` : "") +
+          `. Safe ceiling for this build ${ceiling.hp} whp.`}
       >
         {hasWish && <div className={`pbar-wish${wishGain ? " pbar-wish-gain" : ""}`} style={{ width: `${wishPct}%` }} />}
         <div className="pbar-fill" style={{ width: `${fillPct}%` }} />
@@ -3647,7 +3652,7 @@ function TuneComparison({ runs }) {
           ))}
 
           <div className="tcmp-disclaimer">
-            {G.disclaimer} Crank↔wheel reconciled at ~{G.drivetrainLossPct[0]}–{G.drivetrainLossPct[1]}% drivetrain loss (4.0T).
+            {G.disclaimer} Wheel figures are crank less {LOSS_LABEL} drivetrain loss (4.0T AWD).
           </div>
         </>
       )}
@@ -4045,9 +4050,13 @@ function VariantCard({
       </div>
 
       <div className="vc-stats">
-        <div className="vcstat"><div className="vcstat-label">+Crank HP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hasHp?`+${hp}`:"—"}</div></div>
-        <div className="vcstat"><div className="vcstat-label">+Est WHP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hasHp?`+${Math.round(hp*0.85)}`:"—"}</div></div>
-        <div className="vcstat"><div className="vcstat-label">+TQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${tq}`:"—"}</div></div>
+        {/* WHP is the unit this app shows. The crank column is gone rather
+            than sitting next to it inviting the reader to pick one. */}
+        <div className="vcstat"><div className="vcstat-label">+WHP</div><div className={`vcstat-val${hp===0?" zero":""}`}>{hasHp?`+${toWhp(hp)}`:"—"}</div></div>
+        {/* Torque follows the same drivetrain, so it is stated at the wheels
+            too — a card showing wheel hp beside crank torque is the same unit
+            mismatch in a different column. */}
+        <div className="vcstat"><div className="vcstat-label">+EST WTQ</div><div className={`vcstat-val${tq===0?" zero":""}`}>{tq>0?`+${toWhp(tq)}`:"—"}</div></div>
       </div>
       {hp > 0 && (
         <div className="t-est-row">
@@ -4207,12 +4216,14 @@ const SETUP_FUELS = [
   { id: "e30", label: "E30",   hp: 36 },
   { id: "e85", label: "E85",   hp: 70 },
 ];
+// The notes quote their OWN ceiling, converted — a hand-typed "750 hp" here
+// would sit next to a bar reading 638 whp and mean something different.
 const SETUP_ENDS = [
-  { id: "daily",  label: "Reliable daily", note: "Stay under 750 hp · stock turbos",    ceiling: CEILINGS.daily.hp },
-  { id: "hybrid", label: "Big turbos",     note: "To ~850 hp · upgraded or hybrid, keeps fuel system", ceiling: CEILINGS.hybrid.hp },
+  { id: "daily",  label: "Reliable daily", note: `Stay under ${toWhp(CEILINGS.daily.hp)} whp · stock turbos`, ceiling: CEILINGS.daily.hp },
+  { id: "hybrid", label: "Big turbos",     note: `To ~${toWhp(CEILINGS.hybrid.hp)} whp · upgraded or hybrid, keeps fuel system`, ceiling: CEILINGS.hybrid.hp },
   // Big single is a CHOICE inside the big-turbo tier, not a tier of its own —
   // it keeps its higher ceiling and its own trade-off.
-  { id: "single", label: "Big single",     note: "1,000+ hp · one big turbo, orphans OEM-turbo parts", ceiling: CEILINGS.single.hp },
+  { id: "single", label: "Big single",     note: `${toWhp(CEILINGS.single.hp)}+ whp · one big turbo, orphans OEM-turbo parts`, ceiling: CEILINGS.single.hp },
 ];
 
 function readSetupFuel() {
@@ -4306,24 +4317,24 @@ function VehicleSetup({ profile, modelId, installedMap, powerGoal, onSave, onDra
   return (
     <div className="setup-area">
       <div className="setup-hero">
-        <div className="setup-hero-lbl">Estimated crank hp</div>
+        <div className="setup-hero-lbl">Estimated WHP</div>
         <div className="setup-hero-row">
-          <span className="setup-hero-hp">{hp.toLocaleString()}</span>
-          <span className="setup-hero-delta">+{delta} hp vs stock</span>
+          <span className="setup-hero-hp">{toWhp(hp).toLocaleString()}</span>
+          <span className="setup-hero-delta">+{toWhp(delta)} whp vs stock</span>
         </div>
         <div className="setup-bar">
           <div className="setup-track">
-            <div className="setup-fill" style={{ width: `${pctOfScale(hp)}%` }} />
-            <div className="setup-tick" style={{ left: `${pctOfScale(en.ceiling)}%` }} />
+            <div className="setup-fill" style={{ width: `${pctOfScale(toWhp(hp))}%` }} />
+            <div className="setup-tick" style={{ left: `${pctOfScale(toWhp(en.ceiling))}%` }} />
           </div>
           <div className="setup-bar-lbls">
-            <span className="setup-ceil">{en.ceiling} CEILING</span>
+            <span className="setup-ceil">{toWhp(en.ceiling)} WHP CEILING</span>
             <span className="setup-top">{HP_SCALE_TOP}+ TOP END</span>
           </div>
         </div>
         {/* Announced on every tap, per #5a. */}
         <p className="sr-only" aria-live="polite">
-          Estimated {hp} horsepower, {en.label.toLowerCase()} end state.
+          Estimated {toWhp(hp)} wheel horsepower, {en.label.toLowerCase()} end state.
         </p>
       </div>
 
@@ -4488,18 +4499,18 @@ function ActivationScreen({ model, baseHp, nextRec, recs, profileName, onStart, 
           <button type="button" className="pfx-editcar" onClick={onEditCar}>Edit car</button>
         </div>
         <div className="act-hero-row">
-          <span className="act-hero-hp">{baseHp}</span>
-          <span className="act-hero-unit">hp · factory</span>
+          <span className="act-hero-hp">{toWhp(baseHp)}</span>
+          <span className="act-hero-unit">whp · factory</span>
           {readyHp > 0 && (
-            <span className="act-hero-ready">+{readyHp} hp ready today</span>
+            <span className="act-hero-ready">+{toWhp(readyHp)} whp ready today</span>
           )}
         </div>
 
       <ProgressionBar
-        hp={baseHp} wishlistHp={unlocked} ceiling={CEILINGS.daily}
-        wishLabel={`+${readyHp}`} wishGain
+        hp={toWhp(baseHp)} wishlistHp={toWhp(unlocked)} ceiling={whpCeiling(CEILINGS.daily)}
+        wishLabel={`+${toWhp(readyHp)}`} wishGain
         ceilingLabel="DAILY SAFE"
-        ariaLabel={`Stock ${baseHp} hp. One part takes this to ${unlocked} hp.`}
+        ariaLabel={`Stock ${toWhp(baseHp)} whp. One part takes this to ${toWhp(unlocked)} whp.`}
       />
       </div>
 
@@ -4548,7 +4559,7 @@ function ActivationScreen({ model, baseHp, nextRec, recs, profileName, onStart, 
             <span className="act-what">
               {s.label} <span className="act-when">· {s.when}</span>
             </span>
-            {s.gain > 0 && <span className="act-gain">+{s.gain} hp</span>}
+            {s.gain > 0 && <span className="act-gain">+{toWhp(s.gain)} whp</span>}
           </li>
         ))}
       </ol>
@@ -4622,8 +4633,8 @@ function PlannerScreen({
         <button className="plan-back" onClick={onBack}>‹ Garage</button>
         <div className="plan-hero-lbl">{model.label} · GOAL</div>
         <div className="plan-hero-row">
-          <span className="plan-hero-hp">{goalHp.toLocaleString()}</span>
-          <span className="plan-hero-unit">hp · {endStage === "big_single" ? "big single" : endStage === "s3_hybrid" ? "big turbos" : "reliable daily"}</span>
+          <span className="plan-hero-hp">{toWhp(goalHp).toLocaleString()}</span>
+          <span className="plan-hero-unit">whp · {endStage === "big_single" ? "big single" : endStage === "s3_hybrid" ? "big turbos" : "reliable daily"}</span>
           <button className="plan-change" aria-expanded={pickingGoal}
             onClick={()=>setPickingGoal(v=>!v)}>Change goal</button>
         </div>
@@ -4632,15 +4643,15 @@ function PlannerScreen({
             {GOAL_CHOICES.map(g => (
               <button key={g} className={`mfbtn${g===goalHp?" on":""}`} aria-pressed={g===goalHp}
                 onClick={()=>{ onSetGoal(g); setPickingGoal(false); }}>
-                {g.toLocaleString()} hp
+                {toWhp(g).toLocaleString()} whp
               </button>
             ))}
           </div>
         )}
 
       <ProgressionBar
-        hp={currentHp} goalHp={goalHp} ceiling={ceiling} hideTopEnd
-        ariaLabel={`Today ${currentHp} hp. Goal ${goalHp} hp.`}
+        hp={toWhp(currentHp)} goalHp={toWhp(goalHp)} ceiling={whpCeiling(ceiling)} hideTopEnd
+        ariaLabel={`Today ${toWhp(currentHp)} whp. Goal ${toWhp(goalHp)} whp.`}
       />
 
       {donor && (
@@ -4889,7 +4900,7 @@ function CommunityBuildCard({ build, onView, userCar, nextRec }) {
 
       <div className="cmt-stats">
         <span className="cmt-stat cmt-stat-hp">
-          {build.estHp != null ? build.estHp.toLocaleString() : "—"}<span className="cmt-unit">hp</span>
+          {build.estHp != null ? toWhp(build.estHp).toLocaleString() : "—"}<span className="cmt-unit">whp</span>
         </span>
         <span className="cmt-stat">
           {proven ? build.bestT60130 : "—"}<span className="cmt-unit">s</span>
@@ -6061,11 +6072,11 @@ Fields to extract:
             yellow, green and blue (02-color-rules.md). */}
         <div className="gh-stats">
           <div className="gh-stat gh-stat-wide">
-            <div className="gh-stat-lbl">Est. crank hp</div>
+            <div className="gh-stat-lbl">Est. WHP</div>
             <div className="gh-stat-row">
-              <span className="gh-stat-val">{totalHp}</span>
+              <span className="gh-stat-val">{toWhp(totalHp)}</span>
               {installedTotals.hp > 0 && (
-                <span className="gh-stat-sfx gh-gain">+{installedTotals.hp}</span>
+                <span className="gh-stat-sfx gh-gain">+{toWhp(installedTotals.hp)}</span>
               )}
             </div>
           </div>
@@ -6095,7 +6106,7 @@ Fields to extract:
           </div>
         </div>
 
-        <ProgressionBar hp={totalHp} wishlistHp={projectedHp} ceiling={buildCeiling} />
+        <ProgressionBar hp={toWhp(totalHp)} wishlistHp={toWhp(projectedHp)} ceiling={whpCeiling(buildCeiling)} />
         <HealthChips installedMap={installedMap} />
       </div>
 
@@ -6117,12 +6128,12 @@ Fields to extract:
           <span className="goal-lbl">Your goal</span>
           <span className="goal-chev" aria-hidden="true">▸</span>
         </span>
-        <span className="goal-name">{goalEnd.label} · {plannerGoal} hp</span>
+        <span className="goal-name">{goalEnd.label} · {toWhp(plannerGoal)} whp</span>
         <span className="goal-bar">
           <ProgressionBar
-            hp={totalHp}
-            ceiling={{ hp: plannerGoal, label: "GOAL" }}
-            ariaLabel={`${totalHp} hp of a ${HP_SCALE_TOP} hp scale. Your goal is ${plannerGoal} hp — ${goalEnd.label}.`}
+            hp={toWhp(totalHp)}
+            ceiling={{ hp: toWhp(plannerGoal), label: "GOAL" }}
+            ariaLabel={`${toWhp(totalHp)} whp of a ${HP_SCALE_TOP} whp scale. Your goal is ${toWhp(plannerGoal)} whp — ${goalEnd.label}.`}
           />
         </span>
         <span className="sr-only">Opens the end-state planner.</span>
@@ -6149,7 +6160,7 @@ Fields to extract:
               <>
                 <div className="grun-flag">
                   <span className="grun-flag-lbl"><span aria-hidden="true">▲</span> CHECK</span>
-                  <span className="grun-flag-why">{heldReason(bestRunVerdict, { hp: totalHp })}</span>
+                  <span className="grun-flag-why">{heldReason(bestRunVerdict, { hp: toWhp(totalHp) })}</span>
                 </div>
                 <button type="button" className="grun-cta" onClick={()=>{
                   setActiveTab("times"); setTimesView("runs");
@@ -6277,7 +6288,7 @@ Fields to extract:
       });
       if (verdict.held) {
         return { tone: "warn", label: "▲ WILL BE HELD",
-          text: `${heldReason(verdict, { hp: totalHp })}. Saved either way, but it will not rank until it checks out.` };
+          text: `${heldReason(verdict, { hp: toWhp(totalHp) })}. Saved either way, but it will not rank until it checks out.` };
       }
     }
     if (!proven) {
@@ -6637,8 +6648,8 @@ Fields to extract:
         </div>
         <div className="pfx-stats">
           <span className="pfx-stat">
-            <span className="pfx-stat-val pfx-measure">{totalHp}</span>
-            <span className="pfx-stat-lbl">Crank hp</span>
+            <span className="pfx-stat-val pfx-measure">{toWhp(totalHp)}</span>
+            <span className="pfx-stat-lbl">WHP</span>
           </span>
           <span className="pfx-stat">
             <span className="pfx-stat-val pfx-measure">{best ? best.time : speeds.t60130}</span>
@@ -7147,7 +7158,7 @@ Fields to extract:
             <span className="lb-time lb-time-held">{myBoardRuns.proven.time}</span>
             <span className="lb-review">REVIEW</span>
           </span>
-          <span className="sr-only">Held, not ranked. {heldReason(myRunVerdict, { hp: totalHp })}. Opens the run.</span>
+          <span className="sr-only">Held, not ranked. {heldReason(myRunVerdict, { hp: toWhp(totalHp) })}. Opens the run.</span>
         </button>
       )}
 
@@ -7199,7 +7210,7 @@ Fields to extract:
             <span className="cmt-mine-edit">EDIT ›</span>
           </span>
           <span className="cmt-mine-sub">
-            {totalHp} HP · {numInst} MOD{numInst===1?"":"S"} · {profile.public ? "PUBLIC" : "NOT YET PUBLIC"}
+            {toWhp(totalHp)} WHP · {numInst} MOD{numInst===1?"":"S"} · {profile.public ? "PUBLIC" : "NOT YET PUBLIC"}
           </span>
         </button>
 
@@ -7287,11 +7298,19 @@ Fields to extract:
     slotPickCache.set(slot.id, id);
     return id;
   }
+  // CRANK — what the catalog stores, and what the enabler classification and
+  // the stage-header arithmetic reason about.
   function slotGain(slot) {
     const v = getVariantById(slot.id, slotVariantId(slot));
     if (!v || !v.hp) return null;
     const g = v.hp[activeModelId];
     return Number.isFinite(g) ? g : null;
+  }
+  // WHP — what the row shows and what the row sorts on. Kept as one value so
+  // the displayed figure and the ordering can never disagree.
+  function whpGain(slot) {
+    const g = slotGain(slot);
+    return g === null ? null : toWhp(g);
   }
   // Enablers are a dependency lookup over the catalog's own `requires` edges,
   // not a hand-maintained list (10 §"Enablers score zero and must not sink").
@@ -7309,7 +7328,7 @@ Fields to extract:
     if (enabler) {
       const verb = enabler.kind === "gates" ? "gates" : "supports";
       const target = getSlotById(enabler.targetId);
-      return `${variantId || slot.id} · ${verb} ${shortSlotName(target)} +${enabler.targetGain}`;
+      return `${variantId || slot.id} · ${verb} ${shortSlotName(target)} +${toWhp(enabler.targetGain)}`;
     }
     const pct = runPct != null ? `${runPct}% run this` : null;
     if (missing.length) {
@@ -7345,7 +7364,10 @@ Fields to extract:
       tagClass: slot.tag ? tagClass(slot.tag) : "",
       variantId,
       price: v ? v.price : null,
-      gain: installed ? null : slotGain(slot),
+      // The number shown IS the number sorted on, in whp. Rounding a positive
+      // scale factor is monotonic, so converting cannot reorder the list — it
+      // can only tie two adjacent rows (asserted in the unit suite).
+      gain: installed ? null : whpGain(slot),
       runPct,
       pathRank: pathRankOf(slot.id),
       installed,
@@ -7371,7 +7393,7 @@ Fields to extract:
     const tuneSlot = getSlotById(idx === STAGE_1 ? "ecu_s1" : "ecu_s2");
     const g = tuneSlot ? slotGain(tuneSlot) : null;
     const n = idx + 1;
-    return g ? `Stage ${n} · +${g} hp` : `Stage ${n}`;
+    return g ? `Stage ${n} · +${toWhp(g)} whp` : `Stage ${n}`;
   }
 
   const stageGroups = groupByStage({
@@ -7480,7 +7502,7 @@ Fields to extract:
       {/* The hp estimate recomputes on every part change; announce it rather
           than letting the number change silently for screen-reader users. */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
-        {`Estimated ${totalHp} crank horsepower, ${calcWhp(totalHp)} at the wheels. `}
+        {`Estimated ${toWhp(totalHp)} wheel horsepower. `}
         {`Estimated 60 to 130 in ${speeds.t60130} seconds.`}
       </div>
       <div className="sr-only" aria-live="polite" aria-atomic="true">{likeAnnounce}</div>

@@ -141,9 +141,9 @@ export function shortSlotName(slot) {
 // `% run` exist because two real people asked for them (10-parts-picker-staged
 // §Sort); `Stage` falls back to the community's proven progression.
 export const SORT_KEYS = [
-  { id: "gain",  label: "Gain ↓", announce: "horsepower gained, highest first" },
+  { id: "gain",  label: "Gain ↓", announce: "wheel horsepower gained, highest first" },
   { id: "stage", label: "Stage",  announce: "the proven build order" },
-  { id: "cost",  label: "$/hp",   announce: "cost per horsepower, cheapest first" },
+  { id: "cost",  label: "$/whp",  announce: "cost per wheel horsepower, cheapest first" },
   { id: "run",   label: "% run",  announce: "share of builds running it, highest first" },
 ];
 
