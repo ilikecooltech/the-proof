@@ -3153,8 +3153,6 @@ ul.bmap-plan{gap:5px}
 .vc-class-chip{flex:none;font-family:var(--font-mono);font-size:10px;font-weight:600;
   letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);
   border:1px solid var(--line-dashed);border-radius:var(--r-chip);padding:2px 6px}
-/* One primary action per screen: the recommended card, and nothing else. */
-.vc-btn.vprimary{background:var(--action);border-color:var(--action);color:var(--on-action);font-weight:700}
 /* ── GARAGE · GOAL CARD (#7a) ── */
 .gh-carrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .goal-card{width:100%;display:block;text-align:left;border:1px solid var(--line-strong);
@@ -3981,9 +3979,21 @@ function FieldBands({ times, mine }) {
 function VariantCard({
   slot, v, isActive, isRecommended, isAdminPick, buildMode, modelId, currentModel,
   liked, likeCount, likesLive, onToggleLike, onChoose, onTrackBuy,
-  // #8b: exactly one primary action per screen. Only the recommended card
-  // takes the filled orange button; every other card is outlined.
-  isPrimary = false, evidence = null, reason = null,
+  // ── BUTTON COLOUR MEANS *SELECTED*, NOT *RECOMMENDED* ──────────────────
+  // A deliberate override of 10-parts-picker-staged.md, which gives the filled
+  // orange button to the recommended card ("one primary action per screen").
+  // In practice that made two different things look identical: the button on
+  // the FOR YOUR BUILD card looked exactly like the button on the part you had
+  // already fitted, so orange answered "which should I buy?" and "what do I
+  // own?" at the same time. Orange now answers only the second.
+  //
+  //   not in the build  →  outlined, and identical on every card
+  //   in the build      →  filled orange, and the only orange button here
+  //
+  // The recommendation still reads loudly — it keeps the FOR YOUR BUILD badge,
+  // its evidence line and first position. That is the relevance signal; the
+  // button is not. Do not "restore" this to the spec.
+  evidence = null, reason = null,
   // Which kind of turbo this product is. Stage 3 is "big turbos"; a big single
   // is one of the choices inside it, so the choice has to be visible on the
   // card rather than implied by the price.
@@ -4040,7 +4050,7 @@ function VariantCard({
         {v.rating != null && (
           <span className="vc-rating"><span aria-hidden="true">★</span> {v.rating.toFixed(1)}</span>
         )}
-        <button type="button" className={`vc-btn${isActive ? " vsel" : isPrimary ? " vprimary" : ""}`}
+        <button type="button" className={`vc-btn${isActive ? " vsel" : ""}`}
           onClick={() => onChoose(slot.id, v.id)}
           aria-label={isActive
             ? `Remove ${v.brand} ${v.label} from your ${buildMode === "installed" ? "build" : "wishlist"}`
@@ -4171,7 +4181,6 @@ function PartSheet({
               slot={slot} v={v}
               isActive={selVarId === v.id}
               isRecommended={leadId === v.id}
-              isPrimary={leadId === v.id}
               evidence={leadId === v.id ? evidence : null}
               reason={leadId === v.id ? reasonLine : null}
               isAdminPick={adminPicks[slot.id] === v.id}
