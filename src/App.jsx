@@ -6744,7 +6744,10 @@ Fields to extract:
         )}
         {profile.public && (
           <button className="sc-preview" onClick={()=>{
-            try { navigator.clipboard?.writeText(`proof.build/@${handle}`); setSaveFeedback("Link copied ✓"); setTimeout(()=>setSaveFeedback(""), 2500); } catch { /* clipboard unavailable */ }
+            // The home is theproof.build — proof.build (no "the") is a DIFFERENT
+            // domain that nobody owns, so the old string copied a dead link.
+            // Scheme included: a bare host doesn't autolink in most chat apps.
+            try { navigator.clipboard?.writeText(`https://theproof.build/@${handle}`); setSaveFeedback("Link copied ✓"); setTimeout(()=>setSaveFeedback(""), 2500); } catch { /* clipboard unavailable */ }
           }}>Copy link</button>
         )}
       </div>
