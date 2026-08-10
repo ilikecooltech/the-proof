@@ -2506,10 +2506,6 @@ details[open] .tc-table-toggle::before{content:'▾ '}
 .pf-save{width:100%;padding:12px;background:var(--action);border:none;color:var(--on-accent);font-family:var(--font-ui);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;border-radius:6px;cursor:pointer;transition:background .15s}
 .pf-save:active{filter:brightness(1.08)}
 .pf-saved{background:var(--green) !important;color:var(--on-accent) !important}
-.share-box{background:rgba(0,232,135,.05);border:1px solid rgba(0,232,135,.2);border-radius:8px;padding:12px;margin-bottom:10px}
-.share-title{font-family:var(--font-ui);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:6px}
-.share-sub{font-size:11px;color:var(--muted);font-weight:300;margin-bottom:10px;line-height:1.5}
-.share-url{font-family:var(--font-mono);font-size:10px;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--green);word-break:break-all;margin-bottom:8px}
 .share-copy{width:100%;padding:9px;background:rgba(0,232,135,.1);border:1px solid rgba(0,232,135,.3);color:var(--green);font-family:var(--font-ui);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;border-radius:5px;cursor:pointer}
 
 /* ── MODE TOGGLE ── */
@@ -5045,13 +5041,10 @@ export default function TheProof() {
   const [runFormOpen, setRunFormOpen] = useState(false);
   const [selectedRunId, setSelectedRunId] = useState(null);
   const [runSortKey,    setRunSortKey]    = useState("date");
-  const [runSurfFilter, setRunSurfFilter] = useState("All");
-  const [runFuelFilter, setRunFuelFilter] = useState("All");
   const [liveLeaderboard, setLiveLeaderboard] = useState(LEADERBOARD);
   const [draggyImage, setDraggyImage] = useState(null);   // base64 data URL
   const [draggyParsing, setDraggyParsing] = useState(false);
   const [draggyError, setDraggyError] = useState("");
-  const [perfMetric, setPerfMetric]   = useState("et");   // "et" | "t60130"
   // Times is one competitive surface with three segments (#7d).
   const [timesView, setTimesView]       = useState("runs");   // "runs" | "trap" | "board"
   const [adminPicks, setAdminPicks]     = useState({});
@@ -5249,7 +5242,6 @@ export default function TheProof() {
       // Merge: preserve local time values if DB has null (schema mismatch protection)
       // Also keep any temp runs (optimistic saves in flight) not yet in DB
       setRuns(prev => {
-        const dbIds = new Set(mapped.map(r => r.id));
         const tempRuns = prev.filter(p => String(p.id).startsWith("temp_"));
         const merged = mapped.map(dbRun => {
           const local = prev.find(p => p.id === dbRun.id);
@@ -5389,7 +5381,6 @@ export default function TheProof() {
 
   const installedTotals = calcTotals(installedMap, modelId);
   const wishlistTotals  = calcTotals(wishlistMap,  modelId);
-  const totals  = buildMode === "installed" ? installedTotals : wishlistTotals;
 
   // Normalize base HP for non-RS 4.0T when aftermarket tuning mods are present
   // (S6/S7/A8/S8 are the same block — stock differences are OEM turbo/tune only)
@@ -5451,7 +5442,6 @@ export default function TheProof() {
   }
   const myRunVerdict = judgeMyRun(myBoardRuns.proven);
 
-  const totalTq = currentModel.torque + installedTotals.torque;
   const numInst = Object.keys(installedMap).length;
   const numWish = Object.keys(wishlistMap).length;
 
@@ -5460,10 +5450,6 @@ export default function TheProof() {
     catCounts[c] = SLOTS.filter(s => s.cat===c && (installedMap[s.id] || wishlistMap[s.id])).length;
   });
 
-  const hpPct   = Math.min((installedTotals.hp / Math.max(currentModel.hp * 0.8, 1)) * 100, 100);
-  const tqPct   = Math.min((installedTotals.torque / Math.max(currentModel.torque * 0.8, 1)) * 100, 100);
-  const costPct = Math.min((installedTotals.cost / 20000) * 100, 100);
-
   function pick(slotId, varId) {
     setSelectedMap(prev => {
       if (prev[slotId] === varId) { const n={...prev}; delete n[slotId]; return n; }
@@ -5471,7 +5457,6 @@ export default function TheProof() {
     });
     if (buildMode === "installed" && selectedMap[slotId] !== varId) clearActivationDismissal();
   }
-  function remove(slotId) { setSelectedMap(prev => { const n={...prev}; delete n[slotId]; return n; }); }
   // #5b: the row opens a sheet rather than expanding in place.
   function openSheet(id) { setOpenSlot(id); track("part_sheet_opened", { slot: id }); }
   function closeSheet()  { setOpenSlot(null); }
