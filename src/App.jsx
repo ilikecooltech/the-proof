@@ -4773,7 +4773,7 @@ function PublicPageSheet({ profile, installedMap, bestRun60130, runs, onClose })
   const best60130 = runs.filter(r => r.type === "60-130" && r.time != null).sort((a,b) => a.time - b.time)[0];
   const bestTime  = best60130 ? `${best60130.time}s` : (bestRun60130 ? `${bestRun60130.time}s` : "—");
   const fuelGuess = (runs.find(r => r.fuel) || {}).fuel || "—";
-  const slug = `proof.build/${handle}/${model.label.toLowerCase().replace(/\s+/g, "-")}`;
+  const slug = `theproof.build/${handle}/${model.label.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
     <div className="pub-overlay" onClick={onClose}>
@@ -6667,7 +6667,7 @@ Fields to extract:
       <h2 className="pfx-h2">Public page</h2>
       <button type="button" className="pfx-row" onClick={() => setShowPublicPage(true)}>
         <span className="pfx-row-body">
-          <span className="pfx-row-name">proof.build/@{handle}</span>
+          <span className="pfx-row-name">theproof.build/@{handle}</span>
           <span className="pfx-row-sub">Preview what others see</span>
         </span>
         <span className="pfx-chev" aria-hidden="true">▸</span>
@@ -6816,7 +6816,7 @@ Fields to extract:
         Platform: C7 / C7.5 (2013–2018) · S6 · S7 · RS6 · RS7<br/>
         Leaderboard data: Real community runs from the Audi 4.0T Drag Racing Leaderboard.<br/>
         Parts data: Verified against SRM, TGK Motorsport, 034 Motorsport, Autotech, IE, ECS, ARM, JXB Performance.<br/><br/>
-        <span style={{color:"var(--fill-neutral)"}}>proof.build</span> · Coming soon
+        <span style={{color:"var(--fill-neutral)"}}>theproof.build</span> · Coming soon
       </div>
     </div>
     );
